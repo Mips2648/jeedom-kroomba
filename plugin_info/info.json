@@ -1,9 +1,14 @@
 {
 	"id" : "kroomba",
 	"name" : "K Roomba",
+	"description" : "Plugin pour contrôler les aspirateurs Roomba",
 	"licence" : "AGPL",
 	"author" : "kavod",
-	"require" : "2.4",
+	"require" : "3.2",
 	"category" : "devicecommunication",
-  "hasDependency" : 1
+	"hasDependency" : true,
+	"language" : ["fr_FR","en_US"],
+	"compatibility" : ["miniplus","smart","rpi","docker","diy","mobile"],
+	"changelog" : "https://jmvedrine.github.io/kroomba/#language#/changelog",
+	"documentation" : "https://jmvedrine.github.io/kroomba/#language#/"
 }

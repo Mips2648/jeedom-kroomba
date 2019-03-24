@@ -1,0 +1,3 @@
+
+- Update: refonte du plugin (passage de NodeJS à Python)
+
