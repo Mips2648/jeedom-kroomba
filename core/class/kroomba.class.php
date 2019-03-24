@@ -197,10 +197,12 @@ class kroomba extends eqLogic {
 
     $cmdlogic = kroombaCmd::byEqLogicIdAndLogicalId($this->getId(),'mission');
     if (array_key_exists ('state',json_decode($result,true))) {
-      $cmdlogic->setConfiguration('value', implode($result));
+      if (is_array ($result)) { $cmdlogic->setConfiguration('value', implode($result));}
+      else {$cmdlogic->setConfiguration('value', $result);}
       $cmdlogic->save();
-      $cmdlogic->event(implode($result));
-
+      if (is_array ($result)) {$cmdlogic->event(implode($result));}
+      else {$cmdlogic->event($result);}
+      
       $phase = json_decode($result,true)['state']['reported']['cleanMissionStatus']['phase'];
       $cmdlogic = kroombaCmd::byEqLogicIdAndLogicalId($this->getId(),'status');
       $cmdlogic->setConfiguration('value', $phase);
