@@ -183,9 +183,9 @@ class kroomba extends eqLogic {
       . $this->getConfiguration('roomba_ip','') . '" "'
       . $this->getConfiguration('username','') . '" "'
       . $this->getConfiguration('password','') . '"';
-    log::add('kroomba', 'debug', $cmd . ' : ' . str_replace($this->getConfiguration('password',''),'****',$cmd));
+    log::add('kroomba', 'debug', $cmd);
     exec($cmd . ' 2>&1',$result1);
-    log::add('kroomba', 'debug', 'Result : ' . implode($result1));
+    log::add('kroomba', 'debug', 'RoombaStatus.py result : ' . implode($result1));
 
     $result = "{}";
     foreach ($result1 as $res)
@@ -241,8 +241,9 @@ class kroomba extends eqLogic {
       . $this->getConfiguration('roomba_ip','') . '" "'
       . $this->getConfiguration('username','') . '" "'
       . $this->getConfiguration('password','') . '"';
-    log::add('kroomba', 'debug', $cmd . ' : ' . str_replace($this->getConfiguration('password',''),'****',$cmd));
+    log::add('kroomba', 'debug', $cmd);
     exec($cmd . ' 2>&1',$result);
+    log::add('kroomba', 'debug', 'RoombaCmd.py result : ' . implode($result));
     return ;
   }
 

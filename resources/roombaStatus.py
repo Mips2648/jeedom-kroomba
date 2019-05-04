@@ -9,7 +9,7 @@ from roomba import Roomba
 #logging.basicConfig(level=logging.DEBUG)
 
 if len(sys.argv) < 4:
-  print("Usage: roombaStatus.py <username> <password>")
+  print("Usage: roombaStatus.py <ip> <username> <password>")
   exit()
 
 os.chdir('./roomba')
@@ -21,7 +21,6 @@ password = sys.argv[3]
 #print("Roomba(" + ip + "," + username + "," + password + ")")
 myroomba = Roomba(ip,username,password)
 
-#print("myroomba.send_command(" + cmd + ")")
 myroomba.connect()
 for i in range(10):
     time.sleep(1)
