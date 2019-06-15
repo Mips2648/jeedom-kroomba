@@ -27,7 +27,7 @@ if (!isConnect()) {
     <div class="form-group">
         <label class="col-lg-2 control-label">{{Découvrir les roombas}}</label>
         <div class="col-lg-2">
-        <a class="btn btn-warning" id="bt_discover_roomba"><i class='fa fa-refresh'></i> {{Découvrir les roombas}}</a>
+        <a class="btn btn-warning" id="bt_discover_roomba"><i class='fas fa-refresh'></i> {{Découvrir les roombas}}</a>
         </div>
     </div>
 	</fieldset>
