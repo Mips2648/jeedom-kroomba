@@ -328,7 +328,7 @@ class kroomba extends eqLogic {
     if ($this->getDisplay('hideOn' . $version) == 1) {
       return '';
     }
-    $img_path = "plugins/kroomba/doc/images/kroomba_";
+    $img_path = "plugins/kroomba/docs/images/kroomba_";
 
     $statusCmd = kroombaCmd::byEqLogicIdAndLogicalId($this->getId(),'status');
     $status = $statusCmd->getConfiguration("value","unknown");
