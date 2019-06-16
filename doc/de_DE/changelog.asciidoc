@@ -1,3 +1,0 @@
-== Änderungsprotokoll
-
-- Update: Redesign des Plugins (Übergang von NodeJS nach Python)
