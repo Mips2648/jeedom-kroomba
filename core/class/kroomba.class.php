@@ -21,6 +21,36 @@ class kroomba extends eqLogic {
 
   public static $_widgetPossibility = array('custom' => true);
 
+	public static function templateWidget(){
+		$return = array('info' => array('string' => array(), 'numeric' => array(), 'binary' => array()));
+		$return['info']['string']['state'] = array(
+			'template' => 'tmplmultistate',
+			'replace' => array("#_width_#" => "80","#_height_#" => "80"),
+			'test' => array(
+				array('operation' => "#value# == 'charge'",'state' => "<img src='plugins/kroomba/docs/images/kroomba_charge.png' title ='" . __('Charging', __FILE__) . "'>"),
+				array('operation' => "#value# == 'home'",'state' => "<img src='plugins/kroomba/docs/images/kroomba_home.png' title ='" . __('Returning to dock', __FILE__) . "'>"),
+				array('operation' => "#value# == 'run' || #value# == 'hmUsrDock'",'state' => "<img src='plugins/kroomba/docs/images/kroomba_run.png' title ='" . __('Cleaning', __FILE__) . "'>"),
+				array('operation' => "#value# == 'stop'",'state' => "<img src='plugins/kroomba/docs/images/kroomba_run.png' title ='" . __('Stopped', __FILE__) . "'>"),
+				array('operation' => "#value# == 'stuck'",'state' => "<img src='plugins/kroomba/docs/images/kroomba_run.png' title ='" . __('Stucked !?!', __FILE__) . "'>"),
+				array('operation' => "#value# == 'unknown'",'state' => "<img src='plugins/kroomba/docs/images/kroomba_run.png' title ='" . __('Unknown', __FILE__) . "'>")
+			)
+		);
+		$return['info']['numeric']['battery'] = array(
+			'template' => 'tmplmultistate',
+			'test' => array(
+				array('operation' => "#value# >75",'state' => '<i class="icon jeedom-batterie3"></i>'),
+				array('operation' => "#value# <= 75 && #value# > 50",'state' => '<i class="icon jeedom-batterie2"></i>'),
+				array('operation' => "#value# <= 50 && #value# > 25",'state' => '<i class="icon jeedom-batterie1"></i>'),
+				array('operation' => "#value# <= 25",'state' => '<i class="icon jeedom-batterie0"></i>')
+			)
+		);
+		$return['info']['binary']['binfull'] = array(
+			'template' => 'tmplicon',
+            'replace' => array('#_icon_on_#' => '<i class=\'icon_red maison-poubelle\'></i>','#_icon_off_#' => '<i class=\'icon_green icon fas fa-check\'></i>')
+        );
+		return $return;
+	}
+
   public static function cron() {
 		foreach (self::byType('kroomba') as $kroomba) {
       $cron_isEnable = $kroomba->getConfiguration('cron_isEnable',0);
@@ -53,17 +83,20 @@ class kroomba extends eqLogic {
 		}
   }
   public function postSave() {
-    log::add('kroomba', 'debug', 'postSaveBegin:getStatus Battery: ' . $this->getStatus('battery', -2));
+    // log::add('kroomba', 'debug', 'postSaveBegin:getStatus Battery: ' . $this->getStatus('battery', -2));
     $cmdlogic = kroombaCmd::byEqLogicIdAndLogicalId($this->getId(),'battery');
     if (!is_object($cmdlogic)) {
       $cmdlogic = new kroombaCmd();
       $cmdlogic->setName(__('Battery', __FILE__));
       $cmdlogic->setEqLogic_id($this->getId());
       $cmdlogic->setLogicalId('battery');
-		  $cmdlogic->setDisplay('generic_type', 'BATTERY');
+      $cmdlogic->setDisplay('generic_type', 'BATTERY');
+      $cmdlogic->setIsVisible(1);
     }
     $cmdlogic->setType('info');
     $cmdlogic->setSubType('numeric');
+    $cmdlogic->setTemplate('dashboard','kroomba::battery');
+    $cmdlogic->setTemplate('mobile','kroomba::battery');
     $cmdlogic->save();
 
     $cmdlogic = kroombaCmd::byEqLogicIdAndLogicalId($this->getId(),'status');
@@ -76,6 +109,8 @@ class kroomba extends eqLogic {
     }
     $cmdlogic->setType('info');
     $cmdlogic->setSubType('string');
+    $cmdlogic->setTemplate('dashboard','kroomba::state');
+    $cmdlogic->setTemplate('mobile','kroomba::state');
     $cmdlogic->save();
 
     $cmdlogic = kroombaCmd::byEqLogicIdAndLogicalId($this->getId(),'binFull');
@@ -88,6 +123,8 @@ class kroomba extends eqLogic {
     }
     $cmdlogic->setType('info');
     $cmdlogic->setSubType('binary');
+    $cmdlogic->setTemplate('dashboard','kroomba::binfull');
+    $cmdlogic->setTemplate('mobile','kroomba::binfull');
     $cmdlogic->save();
 
     $cmdlogic = kroombaCmd::byEqLogicIdAndLogicalId($this->getId(),'mission');
@@ -310,94 +347,6 @@ class kroomba extends eqLogic {
     //passthru(' cd ' . $resource_path . ' && pip install --user roomba >> ' . log::getPathToLog('kroomba_dep') . ' 2>&1 &');
     //passthru("touch $roomba_module_path/__init__.py");
     self::delTree('/tmp/kroomba_dep');
-  }
-
-  public function toHtml($_version = 'dashboard') {
-    $parameters = $this->getDisplay('parameters');
-    if (is_array($parameters)) {
-        foreach ($parameters as $key => $value) {
-            $replace['#' . $key . '#'] = $value;
-        }
-    }
-
-    $replace = $this->preToHtml($_version);
-    if (!is_array($replace)) {
-      return $replace;
-    }
-    $version = jeedom::versionAlias($_version);
-    if ($this->getDisplay('hideOn' . $version) == 1) {
-      return '';
-    }
-    $img_path = "plugins/kroomba/docs/images/kroomba_";
-
-    $statusCmd = kroombaCmd::byEqLogicIdAndLogicalId($this->getId(),'status');
-    $status = $statusCmd->getConfiguration("value","unknown");
-    $replace['#kroomba_ip#'] = $this->getConfiguration('roomba_ip','');
-    $replace['#phase#'] = $status;
-    switch($status)
-    {
-      case 'charge':
-        $replace['#str_phase#'] = __('Charging', __FILE__);
-        break;
-
-      case 'home':
-      case 'hmUsrDock':
-        $replace['#str_phase#'] = __('Returning to dock', __FILE__);
-        break;
-
-      case 'run':
-        $replace['#str_phase#'] = __('Cleaning', __FILE__);
-        break;
-
-      case 'stop':
-        $replace['#str_phase#'] = __('Stopped', __FILE__);
-        break;
-
-      case 'stuck':
-        $replace['#str_phase#'] = __('Stucked !?!', __FILE__);
-        break;
-
-      case 'unknown':
-      default:
-        $replace['#str_phase#'] = __('Unknown: ', __FILE__).$status;
-        $status = 'unknown';
-        break;
-    }
-    $replace['#img_phase#'] = $img_path . $status . '.png';
-
-    $cmdlogic = kroombaCmd::byEqLogicIdAndLogicalId($this->getId(),'mission');
-    $replace['#refresh_id#'] = $cmdlogic->getId();
-    $replace['#str_refresh#'] = __('Refresh', __FILE__);
-
-    $cmdlogic = kroombaCmd::byEqLogicIdAndLogicalId($this->getId(),'start');
-    $replace['#start_id#'] = $cmdlogic->getId();
-    $replace['#str_start#'] = __('Start cleaning', __FILE__);
-
-    $cmdlogic = kroombaCmd::byEqLogicIdAndLogicalId($this->getId(),'stop');
-    $replace['#stop_id#'] = $cmdlogic->getId();
-    $replace['#str_stop#'] = __('Stop cleaning', __FILE__);
-
-    $cmdlogic = kroombaCmd::byEqLogicIdAndLogicalId($this->getId(),'dock');
-    $replace['#dock_id#'] = $cmdlogic->getId();
-    $replace['#str_dock#'] = __('Back to dock', __FILE__);
-
-    $cmdlogic = kroombaCmd::byEqLogicIdAndLogicalId($this->getId(),'resume');
-    $replace['#resume_id#'] = $cmdlogic->getId();
-    $replace['#str_resume#'] = __('Resume cleaning', __FILE__);
-
-    $cmdlogic = kroombaCmd::byEqLogicIdAndLogicalId($this->getId(),'pause');
-    $replace['#pause_id#'] = $cmdlogic->getId();
-    $replace['#str_pause#'] = __('Pause cleaning', __FILE__);
-
-    $vcolor = ($_version == 'mobile') ? 'mcmdColor' : 'cmdColor';
-		if ($this->getPrimaryCategory() == '') {
-			$replace['#cmdColor#'] = jeedom::getConfiguration('eqLogic:category:default:' . $vcolor);
-		} else {
-			$replace['#cmdColor#'] = jeedom::getConfiguration('eqLogic:category:' . $this->getPrimaryCategory() . ':' . $vcolor);
-		}
-
-    $html = $this->postToHtml($_version, template_replace($replace, getTemplate('core', $_version, 'kroomba', 'kroomba')));
-    return $html;
   }
 }
 

@@ -23,7 +23,7 @@ $('#bt_cronGenerator').on('click',function(){
        $('.eqLogicAttr[data-l1key=configuration][data-l2key=autorefresh]').value(result.value);
    });
 });
-
+$("#table_cmd").sortable({axis: "y", cursor: "move", items: ".cmd", placeholder: "ui-state-highlight", tolerance: "intersect", forcePlaceholderSize: true});
 function addCmdToTable(_cmd) {
     if (!isset(_cmd)) {
         var _cmd = {configuration: {}};
@@ -37,17 +37,20 @@ function addCmdToTable(_cmd) {
       tr += '</td><td>';
       tr += '<input class="cmdAttr form-control input-sm" data-l1key="name" style="width : 140px;" placeholder="{{Nom de la commande}}"></td>';
       tr += '</td><td>';
+      tr += '<span><label class="checkbox-inline"><input type="checkbox" class="cmdAttr checkbox-inline" data-l1key="isVisible" checked/>{{Afficher}}</label></span> ';
       if (_cmd.subType == 'numeric' || _cmd.subType == 'binary') {
-        tr += '<span><input type="checkbox" class="cmdAttr" data-size="mini" data-label-text="{{Historiser}}" data-l1key="isHistorized" /></span>';
+        tr += '<span><label class="checkbox-inline"><input type="checkbox" class="cmdAttr checkbox-inline" data-l1key="isHistorized" checked/>{{Historiser}}</label></span> ';
       }
       tr += '</td><td>';
+      tr += '<input class="cmdAttr form-control input-sm" data-l1key="type" style="display : none;">';
+      tr += '<input class="cmdAttr form-control input-sm" data-l1key="subType" style="display : none;">';
       if (is_numeric(_cmd.id)) {
-        tr += '<a class="btn btn-default btn-xs cmdAction expertModeVisible" data-action="configure"><i class="fas fa-cogs"></i></a> ';
-        tr += '<a class="btn btn-default btn-xs cmdAction" data-action="test"><i class="fas fa-rss"></i> {{Tester}}</a>';
+        tr += '<a class="btn btn-default btn-xs cmdAction" data-action="configure"><i class="fas fa-cogs"></i></a> ';
+        tr += '<a class="btn btn-default btn-xs cmdAction" data-action="test"><i class="fa fa-rss"></i> {{Tester}}</a>';
       }
       tr += '<i class="fas fa-minus-circle pull-right cmdAction cursor" data-action="remove"></i></td>';
       tr += '</tr>';
-        $('#table_cmd tbody').append(tr);
-        $('#table_cmd tbody tr:last').setValues(_cmd, '.cmdAttr');
-
+      $('#table_cmd tbody').append(tr);
+      $('#table_cmd tbody tr').last().setValues(_cmd, '.cmdAttr');
+      jeedom.cmd.changeType($('#table_cmd tbody tr').last(), init(_cmd.subType));
 }

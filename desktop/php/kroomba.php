@@ -154,22 +154,13 @@ $eqLogics = eqLogic::byType($plugin->getId());
             <th style="width: 100px;">#</th>
             <th style="width: 300px;">{{Nom}}</th>
             <th style="width: 200px;">{{Options}}</th>
-            <th style="width: 150px;"></th>
+            <th style="width: 150px;">{{Action}}</th>
           </tr>
         </thead>
         <tbody>
 
         </tbody>
       </table>
-
-      <form class="form-horizontal">
-        <fieldset>
-          <div class="form-actions">
-            <a class="btn btn-danger eqLogicAction" data-action="remove"><i class="fas fa-minus-circle"></i> {{Supprimer}}</a>
-            <a class="btn btn-success eqLogicAction" data-action="save"><i class="fas fa-check-circle"></i> {{Sauvegarder}}</a>
-          </div>
-        </fieldset>
-      </form>
     </div>
   </div>
 </div>
