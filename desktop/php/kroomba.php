@@ -3,62 +3,43 @@
 if (!isConnect('admin')) {
   throw new Exception('{{401 - Accès non autorisé}}');
 }
-sendVarToJS('eqType', 'kroomba');
-$eqLogics = eqLogic::byType('kroomba');
+$plugin = plugin::byId('kroomba');
+sendVarToJS('eqType', $plugin->getId());
+$eqLogics = eqLogic::byType($plugin->getId());
 
 ?>
 
 <div class="row row-overflow">
-  <div class="col-sm-2">
-  <!--<div class="col-lg-2 col-md-3 col-sm-4">-->
-    <div class="bs-sidebar">
-      <ul id="ul_eqLogic" class="nav nav-list bs-sidenav">
-        <a class="btn btn-default eqLogicAction" style="width : 100%;margin-top : 5px;margin-bottom: 5px;" data-action="add"><i class="fas fa-plus-circle"></i> {{Ajouter un équipement}}</a>
-        <li class="filter" style="margin-bottom: 5px;"><input class="filter form-control input-sm" placeholder="{{Rechercher}}" style="width: 100%"/></li>
-        <?php
+
+    <div class="col-xs-12 eqLogicThumbnailDisplay">
+    <legend><i class="fas fa-cog"></i>  {{Gestion}}</legend>
+        <div class="eqLogicThumbnailContainer">
+          <div class="cursor eqLogicAction logoPrimary" data-action="add">
+            <i class="fas fa-plus-circle"></i>
+            <br>
+            <span>{{Ajouter}}</span>
+          </div>
+          <div class="cursor eqLogicAction logoSecondary" data-action="gotoPluginConf">
+            <i class="fas fa-wrench"></i>
+            <br>
+            <span>{{Configuration}}</span>
+          </div>
+        </div>
+        <legend><i class="fas fa-table"></i> {{Mes Roombas}}</legend>
+        <input class="form-control" placeholder="{{Rechercher}}" id="in_searchEqlogic" />
+        <div class="eqLogicThumbnailContainer">
+            <?php
         foreach ($eqLogics as $eqLogic) {
-          echo '<li class="cursor li_eqLogic" data-eqLogic_id="' . $eqLogic->getId() . '"><a>' . $eqLogic->getHumanName(true) . '</a></li>';
+            $opacity = ($eqLogic->getIsEnable()) ? '' : 'disableCard';
+            echo '<div class="eqLogicDisplayCard cursor '.$opacity.'" data-eqLogic_id="' . $eqLogic->getId() . '">';
+            echo '<img src="' . $plugin->getPathImgIcon() . '"/>';
+            echo '<br>';
+            echo '<span class="name">' . $eqLogic->getHumanName(true, true) . '</span>';
+            echo '</div>';
         }
         ?>
-      </ul>
+        </div>
     </div>
-  </div>
-
-  <div class="col-lg-10 col-md-9 col-sm-8 eqLogicThumbnailDisplay" style="border-left: solid 1px #EEE; padding-left: 25px;">
-    <legend><i class="fas fa-cog"></i>  {{Gestion}}</legend>
-    <div class="eqLogicThumbnailContainer">
-      <div class="cursor eqLogicAction" data-action="gotoPluginConf" style="background-color : #ffffff; height : 120px;margin-bottom : 10px;padding : 5px;border-radius: 2px;width : 160px;margin-left : 10px;">
-        <center>
-          <i class="fas fa-wrench" style="font-size : 5em;color:#767676;"></i>
-        </center>
-        <span style="font-size : 1.1em;position:relative; top : 15px;word-break: break-all;word-wrap: break-word;color:#767676">
-          <center>{{Configuration}}</center>
-        </span>
-      </div>
-    </div>
-    <legend><i class="fas fa-sitemap">  {{Mes Roombas}}</i></legend>
-    <div class="eqLogicThumbnailContainer">
-      <div class="cursor eqLogicAction" data-action="add" style="background-color : #ffffff; height : 200px;margin-bottom : 10px;padding : 5px;border-radius: 2px;width : 160px;margin-left : 10px;" >
-        <center>
-          <i class="fas fa-plus-circle" style="font-size : 7em;color:#00979c;"></i>
-        </center>
-        <span style="font-size : 1.1em;position:relative; top : 15px;word-break: break-all;word-wrap: break-word;">
-          <center>{{Ajouter}}</center>
-        </span>
-      </div>
-      <?php
-      foreach ($eqLogics as $eqLogic) {
-        $opacity = ($eqLogic->getIsEnable()) ? '' : jeedom::getConfiguration('eqLogic:style:noactive');
-        echo '<div class="eqLogicDisplayCard cursor" data-eqLogic_id="' . $eqLogic->getId() . '" style="background-color : #ffffff ; height : 200px;margin-bottom : 10px;padding : 5px;border-radius: 2px;width : 160px;margin-left : 10px;' . $opacity . '" >';
-        echo "<center>";
-        echo '<img src="plugins/kroomba/plugin_info/kroomba_icon.png" height="105" width="95" />';
-        echo "</center>";
-        echo '<span style="font-size : 1.1em;position:relative; top : 15px;word-break: break-all;white-space: pre-wrap;word-wrap: break-word;"><center>' . $eqLogic->getHumanName(true, true) . '</center></span>';
-        echo '</div>';
-      }
-      ?>
-    </div>
-  </div>
 
 
 <div class="col-lg-10 col-md-9 col-sm-8 eqLogic" style="border-left: solid 1px #EEE; padding-left: 25px;display: none;">
@@ -67,7 +48,7 @@ $eqLogics = eqLogic::byType('kroomba');
  <a class="btn btn-default eqLogicAction pull-right" data-action="configure"><i class="fas fa-cogs"></i> {{Configuration avancée}}</a>
  <ul class="nav nav-tabs" role="tablist">
   <li role="presentation"><a href="#" class="eqLogicAction" aria-controls="home" role="tab" data-toggle="tab" data-action="returnToThumbnailDisplay"><i class="fas fa-arrow-circle-left"></i></a></li>
-  <li role="presentation" class="active"><a href="#eqlogictab" aria-controls="home" role="tab" data-toggle="tab"><i class="fas fa-tachometer"></i> {{Equipement}}</a></li>
+  <li role="presentation" class="active"><a href="#eqlogictab" aria-controls="home" role="tab" data-toggle="tab"><i class="fas fa-tachometer-alt"></i> {{Equipement}}</a></li>
   <li role="presentation"><a href="#commandtab" aria-controls="profile" role="tab" data-toggle="tab"><i class="fas fa-list-alt"></i> {{Commandes}}</a></li>
 </ul>
 <div class="tab-content" style="height:calc(100% - 50px);overflow:auto;overflow-x: hidden;">
@@ -87,7 +68,7 @@ $eqLogics = eqLogic::byType('kroomba');
                 <select class="form-control eqLogicAttr" data-l1key="object_id">
                   <option value="">{{Aucun}}</option>
                   <?php
-                  foreach (object::all() as $object) {
+                  foreach (jeeObject::all() as $object) {
                     echo '<option value="' . $object->getId() . '">' . $object->getName() . '</option>';
                   }
                   ?>
