@@ -12,7 +12,7 @@ Pour le moment, ce plugin permet :
 ![Charge](../images/kroomba_charge.png)	
 En charge
 
-![Dock](../images/kroomba_hmUsrDock.png)	
+![Dock](../images/kroomba_home.png)	
 Retour en cours vers le dock
 
 ![Clean](../images/kroomba_run.png)	

@@ -27,12 +27,12 @@ class kroomba extends eqLogic {
 			'template' => 'tmplmultistate',
 			'replace' => array("#_width_#" => "80","#_height_#" => "80"),
 			'test' => array(
-				array('operation' => "#value# == 'charge'",'state' => "<img src='plugins/kroomba/docs/images/kroomba_charge.png' title ='" . __('Charging', __FILE__) . "'>"),
-				array('operation' => "#value# == 'home'",'state' => "<img src='plugins/kroomba/docs/images/kroomba_home.png' title ='" . __('Returning to dock', __FILE__) . "'>"),
-				array('operation' => "#value# == 'run' || #value# == 'hmUsrDock'",'state' => "<img src='plugins/kroomba/docs/images/kroomba_run.png' title ='" . __('Cleaning', __FILE__) . "'>"),
-				array('operation' => "#value# == 'stop'",'state' => "<img src='plugins/kroomba/docs/images/kroomba_run.png' title ='" . __('Stopped', __FILE__) . "'>"),
-				array('operation' => "#value# == 'stuck'",'state' => "<img src='plugins/kroomba/docs/images/kroomba_run.png' title ='" . __('Stucked !?!', __FILE__) . "'>"),
-				array('operation' => "#value# == 'unknown'",'state' => "<img src='plugins/kroomba/docs/images/kroomba_run.png' title ='" . __('Unknown', __FILE__) . "'>")
+				array('operation' => "#value# == 'charge'",'state' => "<img src='plugins/kroomba/core/img/kroomba_charge.png' title ='" . __('En charge', __FILE__) . "'>"),
+				array('operation' => "#value# == 'home' || #value# == 'hmUsrDock'",'state' => "<img src='plugins/kroomba/core/img/kroomba_home.png' title ='" . __('Retour à la base', __FILE__) . "'>"),
+				array('operation' => "#value# == 'run'",'state' => "<img src='plugins/kroomba/core/img/kroomba_run.png' title ='" . __('Nettoyage', __FILE__) . "'>"),
+				array('operation' => "#value# == 'stop'",'state' => "<img src='plugins/kroomba/core/img/kroomba_stop.png' title ='" . __('Arrété', __FILE__) . "'>"),
+				array('operation' => "#value# == 'stuck'",'state' => "<img src='plugins/kroomba/core/img/kroomba_stuck.png' title ='" . __('Bloqué', __FILE__) . "'>"),
+				array('operation' => "#value# == 'unknown'|| #value# == ''",'state' => "<img src='plugins/kroomba/core/img/kroomba_unknown.png' title ='" . __('Inconnu', __FILE__) . "'>")
 			)
 		);
 		$return['info']['numeric']['battery'] = array(
@@ -46,33 +46,34 @@ class kroomba extends eqLogic {
 		);
 		$return['info']['binary']['binfull'] = array(
 			'template' => 'tmplicon',
-            'replace' => array('#_icon_on_#' => '<i class=\'icon_red maison-poubelle\'></i>','#_icon_off_#' => '<i class=\'icon_green icon fas fa-check\'></i>')
+            'replace' => array('#_icon_on_#' => '<i class=\'icon icon_red maison-poubelle\'></i>','#_icon_off_#' => '<i class=\'icon icon_green fas fa-check\'></i>')
         );
 		return $return;
 	}
 
   public static function cron() {
-		foreach (self::byType('kroomba') as $kroomba) {
+    foreach (self::byType('kroomba') as $kroomba) {
       $cron_isEnable = $kroomba->getConfiguration('cron_isEnable',0);
-			$autorefresh = $kroomba->getConfiguration('autorefresh','');
-			$password = $kroomba->getConfiguration('password','');
-			if ($kroomba->getIsEnable() == 1 && $cron_isEnable == 1 && $password != '' && $autorefresh != '') {
-				try {
-					$c = new Cron\CronExpression($autorefresh, new Cron\FieldFactory);
-					if ($c->isDue()) {
-						try {
-							$kroomba->mission();
-              $kroomba->refreshWidget();
-						} catch (Exception $exc) {
-							log::add('kroomba', 'error', __('Error in ', __FILE__) . $kroomba->getHumanName() . ' : ' . $exc->getMessage());
-						}
-					}
-				} catch (Exception $exc) {
-					log::add('kroomba', 'error', __('Expression cron non valide pour ', __FILE__) . $kroomba->getHumanName() . ' : ' . $autorefresh);
-				}
-			}
-		}
-	}
+      $autorefresh = $kroomba->getConfiguration('autorefresh','');
+      $password = $kroomba->getConfiguration('password','');
+      if ($kroomba->getIsEnable() == 1 && $cron_isEnable == 1 && $password != '' && $autorefresh != '') {
+        log::add('kroomba', 'debug', 'Kroomba cron');
+        try {
+            $c = new Cron\CronExpression(checkAndFixCron($autorefresh), new Cron\FieldFactory);
+            if ($c->isDue()) {
+                log::add('kroomba', 'debug', 'Cron launch Mission');
+                try {
+                    $kroomba->mission();
+                } catch (Exception $exc) {
+                    log::add('kroomba', 'error', __('Error in ', __FILE__) . $kroomba->getHumanName() . ' : ' . $exc->getMessage());
+                }
+            }
+        } catch (Exception $exc) {
+            log::add('kroomba', 'error', __('Expression cron non valide pour ', __FILE__) . $kroomba->getHumanName() . ' : ' . $autorefresh);
+        }
+      }
+    }
+  }
 
   public function preSave() {
 		if ($this->getConfiguration('autorefresh') == '') {
@@ -83,15 +84,14 @@ class kroomba extends eqLogic {
 		}
   }
   public function postSave() {
-    // log::add('kroomba', 'debug', 'postSaveBegin:getStatus Battery: ' . $this->getStatus('battery', -2));
     $cmdlogic = kroombaCmd::byEqLogicIdAndLogicalId($this->getId(),'battery');
     if (!is_object($cmdlogic)) {
       $cmdlogic = new kroombaCmd();
-      $cmdlogic->setName(__('Battery', __FILE__));
+      $cmdlogic->setName(__('Batterie', __FILE__));
       $cmdlogic->setEqLogic_id($this->getId());
       $cmdlogic->setLogicalId('battery');
       $cmdlogic->setDisplay('generic_type', 'BATTERY');
-      $cmdlogic->setIsVisible(1);
+      $cmdlogic->setIsVisible(0);
     }
     $cmdlogic->setType('info');
     $cmdlogic->setSubType('numeric');
@@ -102,10 +102,11 @@ class kroomba extends eqLogic {
     $cmdlogic = kroombaCmd::byEqLogicIdAndLogicalId($this->getId(),'status');
     if (!is_object($cmdlogic)) {
       $cmdlogic = new kroombaCmd();
-      $cmdlogic->setName(__('Status', __FILE__));
+      $cmdlogic->setName(__('Statut', __FILE__));
       $cmdlogic->setEqLogic_id($this->getId());
       $cmdlogic->setLogicalId('status');
-		  $cmdlogic->setDisplay('generic_type', 'MODE_STATE');
+      $cmdlogic->setIsVisible(1);
+      $cmdlogic->setDisplay('generic_type', 'MODE_STATE');
     }
     $cmdlogic->setType('info');
     $cmdlogic->setSubType('string');
@@ -116,10 +117,11 @@ class kroomba extends eqLogic {
     $cmdlogic = kroombaCmd::byEqLogicIdAndLogicalId($this->getId(),'binFull');
     if (!is_object($cmdlogic)) {
       $cmdlogic = new kroombaCmd();
-      $cmdlogic->setName(__('binFull', __FILE__));
+      $cmdlogic->setName(__('Bac plein', __FILE__));
       $cmdlogic->setEqLogic_id($this->getId());
       $cmdlogic->setLogicalId('binFull');
-		  $cmdlogic->setDisplay('generic_type', 'GENERIC_INFO');
+      $cmdlogic->setIsVisible(1);
+      $cmdlogic->setDisplay('generic_type', 'GENERIC_INFO');
     }
     $cmdlogic->setType('info');
     $cmdlogic->setSubType('binary');
@@ -132,8 +134,8 @@ class kroomba extends eqLogic {
       $cmdlogic = new kroombaCmd();
       $cmdlogic->setName(__('Mission', __FILE__));
       $cmdlogic->setLogicalId('mission');
-      $cmdlogic->setIsVisible(1);
-		  $cmdlogic->setDisplay('generic_type', 'GENERIC_ACTION');
+      $cmdlogic->setIsVisible(0);
+      $cmdlogic->setDisplay('generic_type', 'GENERIC_ACTION');
     }
     $cmdlogic->setType('action');
     $cmdlogic->setEqLogic_id($this->getId());
@@ -143,10 +145,11 @@ class kroomba extends eqLogic {
     $cmdlogic = kroombaCmd::byEqLogicIdAndLogicalId($this->getId(),'start');
     if (!is_object($cmdlogic)) {
       $cmdlogic = new kroombaCmd();
-      $cmdlogic->setName(__('Start', __FILE__));
+      $cmdlogic->setName(__('Démarrer', __FILE__));
       $cmdlogic->setLogicalId('start');
       $cmdlogic->setIsVisible(1);
-		  $cmdlogic->setDisplay('generic_type', 'GENERIC_ACTION');
+      $cmdlogic->setDisplay('generic_type', 'GENERIC_ACTION');
+      $cmdlogic->setDisplay('icon', '<i class="fas fa-play"></i>');
     }
     $cmdlogic->setType('action');
     $cmdlogic->setEqLogic_id($this->getId());
@@ -159,7 +162,8 @@ class kroomba extends eqLogic {
       $cmdlogic->setName(__('Pause', __FILE__));
       $cmdlogic->setLogicalId('pause');
       $cmdlogic->setIsVisible(1);
-		  $cmdlogic->setDisplay('generic_type', 'GENERIC_ACTION');
+      $cmdlogic->setDisplay('generic_type', 'GENERIC_ACTION');
+      $cmdlogic->setDisplay('icon', '<i class="fas fa-pause"></i>');
     }
     $cmdlogic->setType('action');
     $cmdlogic->setEqLogic_id($this->getId());
@@ -172,7 +176,8 @@ class kroomba extends eqLogic {
       $cmdlogic->setName(__('Resume', __FILE__));
       $cmdlogic->setLogicalId('resume');
       $cmdlogic->setIsVisible(1);
-		  $cmdlogic->setDisplay('generic_type', 'GENERIC_ACTION');
+      $cmdlogic->setDisplay('generic_type', 'GENERIC_ACTION');
+      $cmdlogic->setDisplay('icon', '<i class="fas fa-step-forward"></i>');
     }
     $cmdlogic->setType('action');
     $cmdlogic->setEqLogic_id($this->getId());
@@ -185,7 +190,8 @@ class kroomba extends eqLogic {
       $cmdlogic->setName(__('Stop', __FILE__));
       $cmdlogic->setLogicalId('stop');
       $cmdlogic->setIsVisible(1);
-		  $cmdlogic->setDisplay('generic_type', 'GENERIC_ACTION');
+      $cmdlogic->setDisplay('generic_type', 'GENERIC_ACTION');
+      $cmdlogic->setDisplay('icon', '<i class="fas fa-stop"></i>');
     }
     $cmdlogic->setType('action');
     $cmdlogic->setEqLogic_id($this->getId());
@@ -195,10 +201,11 @@ class kroomba extends eqLogic {
     $cmdlogic = kroombaCmd::byEqLogicIdAndLogicalId($this->getId(),'dock');
     if (!is_object($cmdlogic)) {
       $cmdlogic = new kroombaCmd();
-      $cmdlogic->setName(__('Dock', __FILE__));
+      $cmdlogic->setName(__('Base', __FILE__));
       $cmdlogic->setLogicalId('dock');
       $cmdlogic->setIsVisible(1);
-		  $cmdlogic->setDisplay('generic_type', 'GENERIC_ACTION');
+      $cmdlogic->setDisplay('generic_type', 'GENERIC_ACTION');
+      $cmdlogic->setDisplay('icon', '<i class="fas fa-home"></i>');
     }
     $cmdlogic->setType('action');
     $cmdlogic->setEqLogic_id($this->getId());
@@ -211,7 +218,6 @@ class kroomba extends eqLogic {
     }
 
     $this->mission();
-    log::add('kroomba', 'debug', 'postSaveEnd:getStatus Battery: ' . $this->getStatus('battery', -2));
   }
 
   public function mission() {
@@ -220,56 +226,45 @@ class kroomba extends eqLogic {
       . $this->getConfiguration('roomba_ip','') . '" "'
       . $this->getConfiguration('username','') . '" "'
       . $this->getConfiguration('password','') . '"';
-    log::add('kroomba', 'debug', $cmd . ' : ' . str_replace($this->getConfiguration('password',''),'****',$cmd));
+    log::add('kroomba', 'debug', 'Mission command : ' . str_replace($this->getConfiguration('password',''),'****',$cmd));
     exec($cmd . ' 2>&1',$result1);
-    log::add('kroomba', 'debug', 'Result : ' . implode($result1));
+    // log::add('kroomba', 'debug', 'Mission result : ' . print_r($result1, true));
 
     $result = "{}";
-    foreach ($result1 as $res)
-    {
+    foreach ($result1 as $res) {
         json_decode($res);
         if (json_last_error() == JSON_ERROR_NONE)
           $result = $res;
     }
 
-    $cmdlogic = kroombaCmd::byEqLogicIdAndLogicalId($this->getId(),'mission');
-    if (array_key_exists ('state',json_decode($result,true))) {
-      if (is_array ($result)) { $cmdlogic->setConfiguration('value', implode($result));}
-      else {$cmdlogic->setConfiguration('value', $result);}
-      $cmdlogic->save();
-      if (is_array ($result)) {$cmdlogic->event(implode($result));}
-      else {$cmdlogic->event($result);}
-      
-      $phase = json_decode($result,true)['state']['reported']['cleanMissionStatus']['phase'];
-      $cmdlogic = kroombaCmd::byEqLogicIdAndLogicalId($this->getId(),'status');
-      $cmdlogic->setConfiguration('value', $phase);
-      $cmdlogic->save();
-      $cmdlogic->event($phase);
-
-      $battery = json_decode($result,true)['state']['reported']['batPct'];
-      $this->batteryStatus($battery);
-      $this->setStatus('battery', $battery);
-      $cmdlogic = kroombaCmd::byEqLogicIdAndLogicalId($this->getId(),'battery');
-      $cmdlogic->setConfiguration('value', $battery);
-      $cmdlogic->save();
-      $cmdlogic->event($battery);
-
-      $cmdlogic = kroombaCmd::byEqLogicIdAndLogicalId($this->getId(),'binFull');
-      if (is_object($cmdlogic)) {
-        $binFull = json_decode($result,true)['state']['reported']['bin']['full'];
-        $cmdlogic->setConfiguration('value', $binFull);
-        $cmdlogic->save();
-        $cmdlogic->event($binFull);
-      }
-
-      log::add('kroomba', 'debug', 'getStatus Battery: ' . $this->getStatus('battery', -2));
-    } else {
-      log::add('kroomba', 'debug', 'Wrong answer: ' . print_r(json_decode($result,true),true));
+    log::add('kroomba', 'debug', 'Mission result : ' . $result);
+    $tempo = json_decode($result, true);
+    if (!isset($tempo['state'])) {
+        log::add('kroomba', 'debug', 'Wrong answer : ' . print_r($tempo,true));
+        return;
     }
-    $this->toHtml('mobile');
-    $this->toHtml('dashboard');
-    $this->refreshWidget();
-    return ;
+    $changed = false;
+    if (isset($tempo['state']['reported']['cleanMissionStatus']['phase'])) {
+        $phase = $tempo['state']['reported']['cleanMissionStatus']['phase'];
+        log::add('kroomba', 'debug', 'phase : ' . $phase);
+        $changed = $this->checkAndUpdateCmd('status', $phase) || $changed;
+    }
+    if (isset($tempo['state']['reported']['batPct'])) {
+        $battery = $tempo['state']['reported']['batPct'];
+        log::add('kroomba', 'debug', 'battery : ' . $battery);
+        $changed = $this->checkAndUpdateCmd('battery', $battery) || $changed;
+        $this->batteryStatus($battery);
+        $this->setStatus('battery', $battery);
+    }
+    if (isset($tempo['state']['reported']['bin']['full'])) {
+        $binFull = $tempo['state']['reported']['bin']['full'];
+        log::add('kroomba', 'debug', 'binfull : ' . $binfull);
+        $changed = $this->checkAndUpdateCmd('binfull', $binfull) || $changed;
+    }
+    if ($changed == true) {
+        $this->refreshWidget();
+    }
+    // log::add('kroomba', 'debug', 'getStatus Battery: ' . $this->getStatus('battery', -2));
   }
 
   public function send_command($cmd) {
@@ -278,8 +273,9 @@ class kroomba extends eqLogic {
       . $this->getConfiguration('roomba_ip','') . '" "'
       . $this->getConfiguration('username','') . '" "'
       . $this->getConfiguration('password','') . '"';
-    log::add('kroomba', 'debug', $cmd . ' : ' . str_replace($this->getConfiguration('password',''),'****',$cmd));
+    log::add('kroomba', 'debug', 'Send command : ' . str_replace($this->getConfiguration('password',''),'****',$cmd));
     exec($cmd . ' 2>&1',$result);
+    log::add('kroomba', 'debug', 'Command result : ' . print_r($result, true));
     return ;
   }
 
@@ -363,23 +359,23 @@ class kroombaCmd extends cmd {
 		$eqLogic = $this->getEqLogic();
 		if ($this->getLogicalId() == 'start') {
 			$eqLogic->send_command("start");
-  		$eqLogic->mission();
+			$eqLogic->mission();
 		}
 		if ($this->getLogicalId() == 'pause') {
 			$eqLogic->send_command("pause");
-  		$eqLogic->mission();
+			$eqLogic->mission();
 		}
 		if ($this->getLogicalId() == 'resume') {
 			$eqLogic->send_command("resume");
-  		$eqLogic->mission();
+			$eqLogic->mission();
 		}
 		if ($this->getLogicalId() == 'stop') {
 			$eqLogic->send_command("stop");
-  		$eqLogic->mission();
+			$eqLogic->mission();
 		}
 		if ($this->getLogicalId() == 'dock') {
 			$eqLogic->send_command("dock");
-  		$eqLogic->mission();
+			$eqLogic->mission();
 		}
   }
 }
