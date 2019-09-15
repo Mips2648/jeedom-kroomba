@@ -1,3 +1,4 @@
+from __future__ import print_function
 import sys
 import socket, traceback
 import json
@@ -64,8 +65,8 @@ wrappedSocket.close()
 if len(data) > 0:
     import binascii
     print("received data: hex: %s, length: %d" % (binascii.hexlify(data), len(data)))
-'''
+''' 
 if len(data) <= 7:
     print('Error getting password, receive %d bytes. Follow the instructions and try again.' % len(data))
 else:
-    print('Password %s' % str(data[7:]))
+    print('Password %s' % str(data[7:].decode().rstrip()))

@@ -51,7 +51,7 @@
     },
     "plugins\/kroomba\/core\/class\/kroomba.class.php": {
         "Batterie": "Batterie",
-        "Statut": "Statut",
+        "Etat": "Etat",
         "Mission": "Mission",
         "Démarrer": "Démarrer",
         "Pause": "Pause",

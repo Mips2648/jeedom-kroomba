@@ -19,7 +19,7 @@
 function myDiscover() {
   $result = [];
   $resource_path = realpath(dirname(__FILE__) . '/../../resources');
-  $cmd = 'cd ' . $resource_path . ' && python discover.py';
+  $cmd = 'cd ' . $resource_path . ' && python3 discover.py';
   log::add('kroomba', 'debug', 'Discover');
   exec($cmd . ' 2>&1',$roombas);
   log::add('kroomba', 'debug', 'Result : ' . implode($roombas));
@@ -40,7 +40,7 @@ function myDiscover() {
 function getPassword($ip,$blid) {
   log::add('kroomba', 'debug', 'getPassword');
   $resource_path = realpath(dirname(__FILE__) . '/../../resources');
-  $cmd = 'cd ' . $resource_path . ' && python getPassword.py ' . $ip;
+  $cmd = 'cd ' . $resource_path . ' && python3 getPassword.py ' . $ip;
 
   log::add('kroomba', 'debug', 'getPassword:Getting password for ' . $ip . ' : ' . $cmd);
   exec($cmd . ' 2>&1',$result);
