@@ -82,24 +82,6 @@ class kroomba extends eqLogic {
 		}
   }
   public function postSave() {
-    $cmdlogic = kroombaCmd::byEqLogicIdAndLogicalId($this->getId(),'battery');
-    if (!is_object($cmdlogic)) {
-      $cmdlogic = new kroombaCmd();
-      $cmdlogic->setName(__('Batterie', __FILE__));
-      $cmdlogic->setEqLogic_id($this->getId());
-      $cmdlogic->setLogicalId('battery');
-      $cmdlogic->setDisplay('generic_type', 'BATTERY');
-      $cmdlogic->setIsVisible(0);
-    }
-    $cmdlogic->setType('info');
-    $cmdlogic->setSubType('numeric');
-    // On defini le template a appliquer par rapport à la version Jeedom utilisée
-    if (version_compare(jeedom::version(), '4.0.0') >= 0) {
-        $cmdlogic->setTemplate('dashboard','kroomba::battery');
-        $cmdlogic->setTemplate('mobile','kroomba::battery');
-    }
-    $cmdlogic->save();
-
     $cmdlogic = kroombaCmd::byEqLogicIdAndLogicalId($this->getId(),'status');
     if (!is_object($cmdlogic)) {
       $cmdlogic = new kroombaCmd();
@@ -133,6 +115,24 @@ class kroomba extends eqLogic {
     if (version_compare(jeedom::version(), '4.0.0') >= 0) {
         $cmdlogic->setTemplate('dashboard','kroomba::binfull');
         $cmdlogic->setTemplate('mobile','kroomba::binfull');
+    }
+    $cmdlogic->save();
+
+    $cmdlogic = kroombaCmd::byEqLogicIdAndLogicalId($this->getId(),'battery');
+    if (!is_object($cmdlogic)) {
+      $cmdlogic = new kroombaCmd();
+      $cmdlogic->setName(__('Batterie', __FILE__));
+      $cmdlogic->setEqLogic_id($this->getId());
+      $cmdlogic->setLogicalId('battery');
+      $cmdlogic->setDisplay('generic_type', 'BATTERY');
+      $cmdlogic->setIsVisible(0);
+    }
+    $cmdlogic->setType('info');
+    $cmdlogic->setSubType('numeric');
+    // On defini le template a appliquer par rapport à la version Jeedom utilisée
+    if (version_compare(jeedom::version(), '4.0.0') >= 0) {
+        $cmdlogic->setTemplate('dashboard','kroomba::battery');
+        $cmdlogic->setTemplate('mobile','kroomba::battery');
     }
     $cmdlogic->save();
 
@@ -301,6 +301,99 @@ class kroomba extends eqLogic {
   public static function dependancy_install() {
     log::remove(__CLASS__ . '_update');
     return array('script' => dirname(__FILE__) . '/../../resources/install_#stype#.sh ' . jeedom::getTmpFolder('kroomba') . '/dependance', 'log' => log::getPathToLog(__CLASS__ . '_update'));
+  }
+
+  public function toHtml($_version = 'dashboard') {
+    if (version_compare(jeedom::version(), '4.0.0') >= 0) {
+       return parent::toHtml($_version);
+    }
+
+    $parameters = $this->getDisplay('parameters');
+    if (is_array($parameters)) {
+        foreach ($parameters as $key => $value) {
+            $replace['#' . $key . '#'] = $value;
+        }
+    }
+
+    $replace = $this->preToHtml($_version);
+    if (!is_array($replace)) {
+      return $replace;
+    }
+    $version = jeedom::versionAlias($_version);
+    if ($this->getDisplay('hideOn' . $version) == 1) {
+      return '';
+    }
+    $img_path = "plugins/kroomba/core/img/kroomba_";
+
+    $statusCmd = kroombaCmd::byEqLogicIdAndLogicalId($this->getId(),'status');
+    $status = $statusCmd->execCmd();
+    log::add('kroomba', 'debug', 'toHtml status : ' . $status);
+    $replace['#kroomba_ip#'] = $this->getConfiguration('roomba_ip','');
+    $replace['#phase#'] = $status;
+    switch($status)
+    {
+      case 'charge':
+        $replace['#str_phase#'] = __('En charge', __FILE__);
+        break;
+
+      case 'home':
+      case 'hmUsrDock':
+        $replace['#str_phase#'] = __('Retour à la base', __FILE__);
+        break;
+
+      case 'run':
+        $replace['#str_phase#'] = __('Nettoyage', __FILE__);
+        break;
+
+      case 'stop':
+        $replace['#str_phase#'] = __('Arrété', __FILE__);
+        break;
+
+      case 'stuck':
+        $replace['#str_phase#'] = __('Bloqué', __FILE__);
+        break;
+
+      case 'unknown':
+      default:
+        $replace['#str_phase#'] = __('Inconnu', __FILE__).$status;
+        $status = 'unknown';
+        break;
+    }
+    $replace['#img_phase#'] = $img_path . $status . '.png';
+
+    $cmdlogic = kroombaCmd::byEqLogicIdAndLogicalId($this->getId(),'mission');
+    $replace['#refresh_id#'] = $cmdlogic->getId();
+    $replace['#str_refresh#'] = __('Refresh', __FILE__);
+
+    $cmdlogic = kroombaCmd::byEqLogicIdAndLogicalId($this->getId(),'start');
+    $replace['#start_id#'] = $cmdlogic->getId();
+    $replace['#str_start#'] = __('Start cleaning', __FILE__);
+
+    $cmdlogic = kroombaCmd::byEqLogicIdAndLogicalId($this->getId(),'stop');
+    $replace['#stop_id#'] = $cmdlogic->getId();
+    $replace['#str_stop#'] = __('Stop cleaning', __FILE__);
+
+    $cmdlogic = kroombaCmd::byEqLogicIdAndLogicalId($this->getId(),'dock');
+    $replace['#dock_id#'] = $cmdlogic->getId();
+    $replace['#str_dock#'] = __('Back to dock', __FILE__);
+
+    $cmdlogic = kroombaCmd::byEqLogicIdAndLogicalId($this->getId(),'resume');
+    $replace['#resume_id#'] = $cmdlogic->getId();
+    $replace['#str_resume#'] = __('Resume cleaning', __FILE__);
+
+    $cmdlogic = kroombaCmd::byEqLogicIdAndLogicalId($this->getId(),'pause');
+    $replace['#pause_id#'] = $cmdlogic->getId();
+    $replace['#str_pause#'] = __('Pause cleaning', __FILE__);
+
+    $vcolor = ($_version == 'mobile') ? 'mcmdColor' : 'cmdColor';
+		if ($this->getPrimaryCategory() == '') {
+			$replace['#cmdColor#'] = jeedom::getConfiguration('eqLogic:category:default:' . $vcolor);
+		} else {
+			$replace['#cmdColor#'] = jeedom::getConfiguration('eqLogic:category:' . $this->getPrimaryCategory() . ':' . $vcolor);
+		}
+
+    $html = $this->postToHtml($_version, template_replace($replace, getTemplate('core', $_version, 'kroomba', 'kroomba')));
+    return $html;
   }
 }
 
