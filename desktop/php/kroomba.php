@@ -180,7 +180,7 @@ $eqLogics = eqLogic::byType($plugin->getId());
   $('#md_modal_kroomba').dialog({
     autoOpen: false,
     buttons: {
-      "{{Continue}}": function() {
+      "{{Continuer}}": function() {
         $( this ).dialog( "close" );
         $.ajax({// fonction permettant de faire de l'ajax
             type: "POST", // methode de transmission des données au fichier php
@@ -204,7 +204,7 @@ $eqLogics = eqLogic::byType($plugin->getId());
             }
         });
       },
-      Cancel: function() {
+      "{{Annuler}}": function() {
         $( this ).dialog( "close" );
       }
     }
