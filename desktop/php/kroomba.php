@@ -173,7 +173,7 @@ $eqLogics = eqLogic::byType($plugin->getId());
     {{Puis restez appuyé sur le bouton HOME jusqu'à ce que votre roomba joue une série de sons (environ 2 secondes).}}<br />
     {{Pour les Roomba 960, il faut rester appuyé à la fois sur HOME et SPOT.}}<br />
     {{Relachez le bouton, votre roomba va faire clignoter son voyant WIFI.}}<br />
-    {{Puis appuyez sur \"Continuer\".}}
+    {{Puis appuyez sur "Continuer".}}
   </p>
 </div>
 <script>
@@ -200,7 +200,7 @@ $eqLogics = eqLogic::byType($plugin->getId());
                     return;
                 }
                 $('#password_input').value(data.result);
-                $('#div_alert').showAlert({message: '{{Synchronisation réussie}}', level: 'success'});
+                $('#div_alert').showAlert({message: '{{Synchronisation réussie. Pensez à sauvegarder !}}', level: 'success'});
             }
         });
       },
