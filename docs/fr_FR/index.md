@@ -6,7 +6,7 @@ Plugin permettant de piloter un aspirateur robot de la marque IRobot.
 Le plugin a été testé avec succès sur des modèles 960, 980 et i7.
 Si vous testez d'autres modèles, communiquez le résultat dans le fil officel du plugin sur le forum communautaire Jeedom.
 
-Ce plugin ne fonctionne pas avec les anciens modèles munis d'un extension matérielle (type RooWifi ou Thinking Cleaner), il ne fonctionne qu'avec les modèles récents dotés d'une liaison Wifi.
+Ce plugin ne fonctionne pas avec les anciens modèles d'aspirateurs robot Roomba munis d'un extension matérielle (type RooWifi ou Thinking Cleaner), il ne fonctionne qu'avec les modèles récents dotés d'une liaison Wifi.
 
 Fonctionnalités
 ===
@@ -34,15 +34,15 @@ Bloqué (<=> stuck en anglais)
 ![Inconnu](../images/kroomba_unknown.png)
 Statut inconnu
 
--   L'envoi des commandes start / stop / pause / resume / dock
+-   L'envoi des commandes Démarrer (start) / Stop / Pause / Continuer (resume) / Retour à la base (dock)
 
-Il comporte un Widget desktop & mobile.
+Il comporte un Widget desktop & mobile. Les widgets sont différents avec Jeedom V3 et Jeedom V4.
 
 Par défaut l'état de la batterie n'est pas visible sur le Widget mais  l'information est visible dans le suivi global des équipements (Menu Analyses > Equipements > Batteries).
 
-Si vous préférez vous pouvez également visualiser l'état de la batterie sur le widget en cochant la case "Afficher" de la commande "Batterie" dans l'onglet Commandes de l'équipement.
+Si vous préférez avec Jeedom V4 vous pouvez également visualiser l'état de la batterie sur le widget en cochant la case "Afficher" de la commande "Batterie" dans l'onglet Commandes de l'équipement.
 
-Dans l'onglet Commandes de l'équipement vous pouvez aussi réordonner les commandes par glisser/déposer, les afficher ou les masquer, les renommer, modifier leurs paramètres. N'oubliez pas de sauvegarder.
+Toujours avec Jeedom V4, dans l'onglet Commandes de l'équipement vous pouvez aussi réordonner les commandes par glisser/déposer, les afficher ou les masquer, les renommer, modifier leurs paramètres. N'oubliez pas de sauvegarder.
 
 Configuration du plugin 
 ===
@@ -66,9 +66,17 @@ En cas de problème : Merci d'activer le niveau de log "Debug", et de m'envoyer 
 
 N'hésitez pas à partager le fonctionnement du plugin chez vous sur le fil officel du plugin du forum communautaire Jeedom (qu'il fonctionne ou pas).
 
+Si les commandes ne sont pas dans l'ordre que vous souhaitez sur le widget, vous pouvez modifier cet ordre soit dans l'onglet "Commandes" de votre équipement KRoomba par glisser-déposer à la souris
+soit sur le dashboard en édition (là vous pouvez aussi modifier les dimensions de la tuile du widget).
+
+En Jeedom V4 il est aussi posible de changer le widget utilisé par chaque commande (ne marche pas avec Jeedom V3).
+
+Historique 
+===
+
 Ce plugin a été créé par kavod (Brice Grichy) d'où le nom kroomba.
 
 Son dépôt Github est là : https://github.com/kavod/kroomba . Brice n'ayant plus de Roomba il a accepté que je reprenne son plugin.
 
-Merci Brice pour tout ton travail (c'était son premier plugin Jeedom !) et pour toute l'aide apportée lors de la reprie du plugin. 
+Merci Brice pour tout ton travail (c'était son premier plugin Jeedom !) et pour toute l'aide apportée lors de la reprise du plugin. 
 

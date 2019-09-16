@@ -23,6 +23,9 @@ function kroomba_install() {
 }
 
 function kroomba_update() {
+    // Remove obsolete log.
+    log::remove('kroomba_dep');
+
     message::add('kroomba', 'Cette mise à jour nécessite absolument de relancer les dépendances même si elles apparaissent vertes');
 }
 
