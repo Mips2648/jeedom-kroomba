@@ -48,6 +48,11 @@
         "Historiser": "Archivieren",
         "Tester": "Tester"
     },
+    "plugins\/kroomba\/core\/ajax\/kroomba.ajax.php": {
+        "401 - Accès non autorisé": "401 - Accès non autorisé",
+        "Aucun signal du Roomba. Vérifiez les instructions et adresse IP.": "Aucun signal du Roomba. Vérifiez les instructions et adresse IP.",
+        "Aucune methode correspondante à : ": "Aucune methode correspondante à : "
+    },
     "plugins\/kroomba\/core\/class\/kroomba.class.php": {
         "Batterie": "Batterie",
         "Etat": "Etat",
