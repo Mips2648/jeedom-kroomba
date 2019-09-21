@@ -1,3 +1,5 @@
+from __future__ import print_function
+from pprint import pformat
 import socket, traceback
 import json
 import time
@@ -7,9 +9,9 @@ UDP_PORT = 5678
 MESSAGE = "irobotmcs"
 TIMEOUT = 10
 
-#print "UDP target IP:", UDP_IP
-#print "UDP target port:", UDP_PORT
-#print "message:", MESSAGE
+#print("UDP target IP:", UDP_IP)
+#print("UDP target port:", UDP_PORT)
+#print("message:", MESSAGE)
 
 sock = socket.socket(socket.AF_INET, # Internet
                      socket.SOCK_DGRAM) # UDP
@@ -17,17 +19,17 @@ sock = socket.socket(socket.AF_INET, # Internet
 sock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
 sock.bind(('',5678))
 sock.settimeout(TIMEOUT)
-sock.sendto(MESSAGE, (UDP_IP, UDP_PORT))
+sock.sendto(MESSAGE.encode(), (UDP_IP, UDP_PORT))
 
 start = time.time()
 
 try:
     while 1:
         try:
-            message, address = sock.recvfrom(1024)
-            if message != MESSAGE:
-                response = json.loads(message)
-                print "IP:{0},blid:{1}".format(response['ip'],response['hostname'][7:])
+            udp_data, address = sock.recvfrom(1024)
+            if udp_data.decode() != MESSAGE:
+                response = json.loads(udp_data.decode())
+                print("IP:{0},blid:{1}".format(response['ip'],response['hostname'][7:]))
         except (KeyboardInterrupt, SystemExit):
             raise
 #        except:
