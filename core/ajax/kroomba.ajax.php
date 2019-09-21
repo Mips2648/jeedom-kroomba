@@ -84,7 +84,7 @@ try {
         if ($password) {
           ajax::success($password);
         } else {
-          ajax::error('No signal from Roomba. Check instructions and IP',401);
+          ajax::error(__('Aucun signal du Roomba. Vérifiez les instructions et adresse IP.', __FILE__),401);
         }
       }
     }
