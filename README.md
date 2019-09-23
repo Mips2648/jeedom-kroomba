@@ -1,0 +1,16 @@
+![License](https://badgen.net/github/license/jmvedrine/kroomba) ![Language](https://badgen.net/badge/Language/PHP/blue)
+![Last Commit](https://badgen.net/github/last-commit/jmvedrine/kroomba)
+![Open Issues](https://badgen.net/github/open-issues/jmvedrine/kroomba) ![Open Issues](https://badgen.net/github/open-prs/jmvedrine/kroomba)
+
+# Jeedom plugin for Roomba.
+
+<img src="plugin_info/kroomba_icon.png" align="right">
+
+This is a plugin for the Jeedom (https://www.jeedom.com) open source (https://github.com/jeedom) home automation system.
+
+It will permit to control the iRobot Roomba robot vacuum cleaners from your Jeedom.
+
+It was originaly created by kavod (Brice Grichy) who gave  it its name kroomba (with a K as Kavod :) )
+Brice's Github repo is at  https://github.com/kavod/kroomba .
+
+If you find a bug or want to suggest a new feature, please open an issue.
