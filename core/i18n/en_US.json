@@ -1,22 +1,22 @@
 {
     "plugins\/kroomba\/plugin_info\/configuration.php": {
-        "Découvrir les roombas": "Découvrir les roombas",
-        "Synchronisation réussie": "Synchronisation réussie"
+        "Découvrir les roombas": "Discover the roombas",
+        "Synchronisation réussie": "Successful synchronization"
     },
     "plugins\/kroomba\/desktop\/php\/kroomba.php": {
-        "401 - Accès non autorisé": "401 - Accès non autorisé",
-        "Récupérer le mot de passe": "Récupérer le mot de passe",
+        "401 - Accès non autorisé": "401 - Unauthorized Access",
+        "Récupérer le mot de passe": "Get password",
         "Push_button": "Premièrement : assurez-vous qu'aucune application mobile iRobot est connectée au Roomba.<br \/>Assurez-vous que votre roomba est sur sa base et alimenté (LED vertes allumées).<br \/>Puis restez appuyé sur le bouton HOME jusqu'à ce que votre roomba joue une série de sons (environ 2 secondes).<br \/>Pour les Roomba 960, il faut rester appuyé à la fois sur HOME et SPOT.<br \/>Relachez le bouton, votre roomba va faire clignoter son voyant WIFI.<br \/>Puis appuyez sur \"Continuer\".",
         "Premièrement : assurez-vous qu'aucune application mobile iRobot est connectée au Roomba.": "Premièrement : assurez-vous qu'aucune application mobile iRobot est connectée au Roomba.",
         "Assurez-vous que votre roomba est sur sa base et alimenté (LED vertes allumées).": "Assurez-vous que votre roomba est sur sa base et alimenté (LED vertes allumées).",
         "Puis restez appuyé sur le bouton HOME jusqu'à ce que votre roomba joue une série de sons (environ 2 secondes).": "Puis restez appuyé sur le bouton HOME jusqu'à ce que votre roomba joue une série de sons (environ 2 secondes).",
         "Pour les Roomba 960, il faut rester appuyé à la fois sur HOME et SPOT.": "Pour les Roomba 960, il faut rester appuyé à la fois sur HOME et SPOT.",
         "Relachez le bouton, votre roomba va faire clignoter son voyant WIFI.": "Relachez le bouton, votre roomba va faire clignoter son voyant WIFI.",
-        "Puis appuyez sur \"Continuer\".": "Puis appuyez sur \"Continuer\".",
-        "Continuer": "Continuer",
-        "Annuler": "Annuler",
-        "Nom du roomba": "Nom du roomba",
-        "Mot de passe": "Mot de passe",
+        "Puis appuyez sur \"Continuer\".": "Then press \"Continue\".",
+        "Continuer": "Continue",
+        "Annuler": "Cancel",
+        "Nom du roomba": "Name of the roomba",
+        "Mot de passe": "Password",
         "Ajouter un équipement": "Add device",
         "Rechercher": "Search",
         "Mes Roombas": "Mes Roombas",
@@ -44,12 +44,12 @@
     },
     "plugins\/kroomba\/desktop\/js\/kroomba.js": {
         "Nom de la commande": "Command name",
-        "Afficher": "Afficher",
+        "Afficher": "Display",
         "Historiser": "Historize",
         "Tester": "Test"
     },
     "plugins\/kroomba\/core\/ajax\/kroomba.ajax.php": {
-        "401 - Accès non autorisé": "401 - Accès non autorisé",
+        "401 - Accès non autorisé": "401 - Unauthorized Access",
         "Aucun signal du Roomba. Vérifiez les instructions et adresse IP.": "Aucun signal du Roomba. Vérifiez les instructions et adresse IP.",
         "Aucune methode correspondante à : ": "Aucune methode correspondante à : "
     },
