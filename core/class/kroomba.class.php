@@ -25,23 +25,29 @@ class kroomba extends eqLogic {
 		$return = array('info' => array('string' => array(), 'numeric' => array(), 'binary' => array()));
 		$return['info']['string']['state'] = array(
 			'template' => 'tmplmultistate',
-			'replace' => array("#_width_#" => "80","#_height_#" => "80"),
+			'replace' => array("#_desktop_width_#" => "80","#_mobile_width_#" => "50"),
 			'test' => array(
-				array('operation' => "#value# == 'charge'",'state' => "<img src='plugins/kroomba/core/img/kroomba_charge.png' title ='" . __('En charge', __FILE__) . "'>"),
-				array('operation' => "#value# == 'home' || #value# == 'hmUsrDock'",'state' => "<img src='plugins/kroomba/core/img/kroomba_home.png' title ='" . __('Retour à la base', __FILE__) . "'>"),
-				array('operation' => "#value# == 'run'",'state' => "<img src='plugins/kroomba/core/img/kroomba_run.png' title ='" . __('Nettoyage', __FILE__) . "'>"),
-				array('operation' => "#value# == 'stop'",'state' => "<img src='plugins/kroomba/core/img/kroomba_stop.png' title ='" . __('Arrété', __FILE__) . "'>"),
-				array('operation' => "#value# == 'stuck'",'state' => "<img src='plugins/kroomba/core/img/kroomba_stuck.png' title ='" . __('Bloqué', __FILE__) . "'>"),
-				array('operation' => "#value# == 'unknown'|| #value# == ''",'state' => "<img src='plugins/kroomba/core/img/kroomba_unknown.png' title ='" . __('Inconnu', __FILE__) . "'>")
+				array('operation' => "#value# == 'charge'", 'state_light' => "<img src='plugins/kroomba/core/img/kroomba_charge.png' title ='" . __('En charge', __FILE__) . "'>",
+                        'state_dark' => "<img src='plugins/kroomba/core/img/kroomba_charge.png' title ='" . __('En charge', __FILE__) . "'>"),
+				array('operation' => "#value# == 'home' || #value# == 'hmUsrDock'",'state_light' => "<img src='plugins/kroomba/core/img/kroomba_home.png' title ='" . __('Retour à la base', __FILE__) . "'>",
+                        'state_dark' => "<img src='plugins/kroomba/core/img/kroomba_home.png' title ='" . __('Retour à la base', __FILE__) . "'>"),
+				array('operation' => "#value# == 'run'",'state_light' => "<img src='plugins/kroomba/core/img/kroomba_run.png' title ='" . __('Nettoyage', __FILE__) . "'>",
+                        'state_dark' => "<img src='plugins/kroomba/core/img/kroomba_run.png' title ='" . __('Nettoyage', __FILE__) . "'>"),
+				array('operation' => "#value# == 'stop'",'state_light' => "<img src='plugins/kroomba/core/img/kroomba_stop.png' title ='" . __('Arrété', __FILE__) . "'>",
+                        'state_dark' => "<img src='plugins/kroomba/core/img/kroomba_stop.png' title ='" . __('Arrété', __FILE__) . "'>"),
+				array('operation' => "#value# == 'stuck'",'state_light' => "<img src='plugins/kroomba/core/img/kroomba_stuck.png' title ='" . __('Bloqué', __FILE__) . "'>",
+                        'state_dark' => "<img src='plugins/kroomba/core/img/kroomba_stuck.png' title ='" . __('Bloqué', __FILE__) . "'>"),
+				array('operation' => "#value# == 'unknown'|| #value# == ''",'state_light' => "<img src='plugins/kroomba/core/img/kroomba_unknown.png' title ='" . __('Inconnu', __FILE__) . "'>",
+                        'state_dark' => "<img src='plugins/kroomba/core/img/kroomba_unknown.png' title ='" . __('Inconnu', __FILE__) . "'>")
 			)
 		);
 		$return['info']['numeric']['battery'] = array(
 			'template' => 'tmplmultistate',
 			'test' => array(
-				array('operation' => "#value# >75",'state' => '<i class="icon icon_green jeedom-batterie3"></i>'),
-				array('operation' => "#value# <= 75 && #value# > 50",'state' => '<i class="icon icon_green jeedom-batterie2"></i>'),
-				array('operation' => "#value# <= 50 && #value# > 25",'state' => '<i class="icon icon_yellow jeedom-batterie1"></i>'),
-				array('operation' => "#value# <= 25",'state' => '<i class="icon icon_red jeedom-batterie0"></i>')
+				array('operation' => "#value# >75", 'state_light' => '<i class="icon icon_green jeedom-batterie3"></i>', 'state_dark' => '<i class="icon icon_green jeedom-batterie3"></i>'),
+				array('operation' => "#value# <= 75 && #value# > 50",'state_light' => '<i class="icon icon_green jeedom-batterie2"></i>', 'state_dark' => '<i class="icon icon_green jeedom-batterie2"></i>'),
+				array('operation' => "#value# <= 50 && #value# > 25",'state_light' => '<i class="icon icon_yellow jeedom-batterie1"></i>', 'state_dark' => '<i class="icon icon_yellow jeedom-batterie1"></i>'),
+				array('operation' => "#value# <= 25", 'state_light' => '<i class="icon icon_red jeedom-batterie0"></i>', 'state_dark' => '<i class="icon icon_red jeedom-batterie0"></i>')
 			)
 		);
 		$return['info']['binary']['binfull'] = array(
