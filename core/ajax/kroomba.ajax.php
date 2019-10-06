@@ -26,10 +26,10 @@ function myDiscover() {
   log::add('kroomba', 'debug', 'Discover Results :' . implode($roombas));
 
   foreach ($roombas as $roomba) {
-    log::add('kroomba','debug','Dicover Result :' . $roomba);
+    log::add('kroomba','debug','Discover Result :' . $roomba);
     preg_match('/IP:(\d+\.\d+\.\d+\.\d+),blid:(\w+)/',$roomba,$matches);
-    log::add('kroomba','debug','Dicover ip :' . $matches[1]);
-    log::add('kroomba','debug','Dicover blid :' . $matches[2]);
+    log::add('kroomba','debug','Discover ip :' . $matches[1]);
+    log::add('kroomba','debug','Discover blid :' . $matches[2]);
     $result[] = array(
       "ip"   =>  $matches[1],
       "blid" =>  $matches[2]
