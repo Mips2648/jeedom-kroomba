@@ -29,7 +29,10 @@ try:
             udp_data, address = sock.recvfrom(1024)
             if udp_data.decode() != MESSAGE:
                 response = json.loads(udp_data.decode())
-                print("IP:{0},blid:{1}".format(response['ip'],response['hostname'][7:]))
+                hostname = response["hostname"].split('-')
+                if hostname[0] == 'Roomba' or hostname[0] == 'iRobot':  #for i7 robot name is now iRobot
+                    blid = hostname[1]
+                print("IP:{0},blid:{1}".format(response['ip'],blid))
         except (KeyboardInterrupt, SystemExit):
             raise
 #        except:
