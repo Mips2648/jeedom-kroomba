@@ -29,7 +29,7 @@ echo 62 > ${PROGRESS_FILE}
 sudo python3 -m pip install paho-mqtt
 echo 65 > ${PROGRESS_FILE}
 
-sudo git clone https://github.com/NickWaterton/Roomba980-Python.git
+sudo git clone https://github.com/zhouF96/Roomba980-Python.git
 sudo mv Roomba980-Python/roomba roomba
 sudo chown -R www-data roomba
 sudo chmod 777 -R roomba
