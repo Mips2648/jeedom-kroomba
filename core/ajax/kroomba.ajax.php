@@ -17,18 +17,19 @@
  */
 
 function myDiscover() {
+  log::add('kroomba', 'debug', 'myDiscover');
   $result = [];
   $resource_path = realpath(dirname(__FILE__) . '/../../resources');
   $cmd = 'cd ' . $resource_path . ' && python3 discover.py';
   log::add('kroomba', 'debug', 'Discover');
   exec($cmd . ' 2>&1',$roombas);
-  log::add('kroomba', 'debug', 'Result : ' . implode($roombas));
+  log::add('kroomba', 'debug', 'Discover Results :' . implode($roombas));
 
   foreach ($roombas as $roomba) {
-    log::add('kroomba','debug','Résultat :' . $roomba);
+    log::add('kroomba','debug','Dicover Result :' . $roomba);
     preg_match('/IP:(\d+\.\d+\.\d+\.\d+),blid:(\w+)/',$roomba,$matches);
-    log::add('kroomba','debug','ip :' . $matches[1]);
-    log::add('kroomba','debug','blid :' . $matches[2]);
+    log::add('kroomba','debug','Dicover ip :' . $matches[1]);
+    log::add('kroomba','debug','Dicover blid :' . $matches[2]);
     $result[] = array(
       "ip"   =>  $matches[1],
       "blid" =>  $matches[2]
@@ -38,25 +39,25 @@ function myDiscover() {
 }
 
 function getPassword($ip,$blid) {
-  log::add('kroomba', 'debug', 'getPassword');
+  log::add('kroomba', 'debug', 'getPassword ' . $ip . ' ' . $blid);
   $resource_path = realpath(dirname(__FILE__) . '/../../resources');
   $cmd = 'cd ' . $resource_path . ' && python3 getPassword.py ' . $ip;
 
-  log::add('kroomba', 'debug', 'getPassword:Getting password for ' . $ip . ' : ' . $cmd);
+  log::add('kroomba', 'debug', 'getPassword command : ' . $cmd);
   exec($cmd . ' 2>&1',$result);
-  $password="";
+  $password = '';
   foreach($result as $line)
   {
-    log::add('kroomba', 'debug', 'getPassword:Result: '.$line);
+    log::add('kroomba', 'debug', 'getPassword result :'.$line);
     if (preg_match('/Password (.+)/',$line,$matches)==1)
     {
       $password = $matches[1];
-      log::add('kroomba', 'debug', 'getPassword:Found: '.$password);
+      log::add('kroomba', 'debug', 'getPassword found :'.$password);
     }
   }
-  if ($password == "")
+  if ($password == '')
   {
-    log::add('kroomba', 'error', 'getPassword:Password not found');
+    log::add('kroomba', 'error', 'getPassword password not found.');
     return false;
   }
   return $password;

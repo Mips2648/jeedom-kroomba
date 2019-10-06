@@ -7,7 +7,7 @@ import ssl
 import struct
 
 if len(sys.argv) < 2:
-  print("Usage: roombaCmd.py <ip>")
+  print("Usage: getPassword.py <ip>")
   exit()
 
 addr = sys.argv[1]
