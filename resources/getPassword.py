@@ -32,7 +32,7 @@ sock.settimeout(10)
 
 #ssl wrap
 wrappedSocket = ssl.wrap_socket(
-    sock, ssl_version=ssl.PROTOCOL_TLSv1)
+    sock, ssl_version=ssl.PROTOCOL_TLS)
 #connect and send packet
 try:
     wrappedSocket.connect((addr, 8883))
