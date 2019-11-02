@@ -224,13 +224,6 @@ class kroomba extends eqLogic {
     $cmdlogic->setEqLogic_id($this->getId());
     $cmdlogic->setSubType('other');
     $cmdlogic->save();
-
-    $cmdlogic = kroombaCmd::byEqLogicIdAndLogicalId($this->getId(),'sys');
-    if (is_object($cmdlogic)) {
-      $cmdlogic->remove();
-    }
-
-    $this->mission();
   }
 
   public function mission() {
@@ -239,8 +232,11 @@ class kroomba extends eqLogic {
       . $this->getConfiguration('roomba_ip','') . '" "'
       . $this->getConfiguration('username','') . '" "'
       . $this->getConfiguration('password','') . '"';
-    // log::add('kroomba', 'debug', 'Mission command : ' . str_replace($this->getConfiguration('password',''),'****',$cmd));
-    log::add('kroomba', 'debug', 'Mission command : ' . $cmd);
+    log::add('kroomba', 'debug', 'Mission command : ' . str_replace($this->getConfiguration('password',''),'****',$cmd));
+    if ($this->getConfiguration('roomba_ip','') == '' || $this->getConfiguration('username','') == '' || $this->getConfiguration('password','') == '') {
+        log::add('kroomba', 'error', 'Missing arguments in mission');
+        return;
+    }
     exec($cmd . ' 2>&1',$result1);
     log::add('kroomba', 'debug', 'Mission raw result : ' . print_r($result1, true));
 
@@ -276,8 +272,13 @@ class kroomba extends eqLogic {
     }
     if (isset($result['state']['reported']['bin']['full'])) {
         $binFull = $result['state']['reported']['bin']['full'];
-        log::add('kroomba', 'debug', 'binfull : ' . $binfull);
-        $changed = $this->checkAndUpdateCmd('binfull', $binfull) || $changed;
+        if ($binFull == 0) {
+            $changed = $this->checkAndUpdateCmd('binfull', false) || $changed;
+            log::add('kroomba', 'debug', 'binfull : false');
+        } else {
+            $changed = $this->checkAndUpdateCmd('binfull', true) || $changed;
+            log::add('kroomba', 'debug', 'binfull : true');
+        }
     }
     if ($changed == true) {
         $this->refreshWidget();
