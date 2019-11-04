@@ -13,3 +13,8 @@
 - Nouveau script bash d'installation des dépendances
 - Templates pour Jeedom V4
 - Compatibilité Jeedom V3 et V4
+
+# 02/11/2019
+
+- Correction commande bac plein (j'espère que cette fois ci elle marche
+mais je dois avouer que je ne comprend pas pourquoi elle ne marchait pas ! )
