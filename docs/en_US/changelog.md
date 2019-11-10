@@ -18,3 +18,7 @@
 
 - Correction commande bac plein (j'espère que cette fois ci elle marche
 mais je dois avouer que je ne comprend pas pourquoi elle ne marchait pas ! )
+
+# 04/11/2019
+
+- Tag "v4" pour le market
