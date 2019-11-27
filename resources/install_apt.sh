@@ -9,6 +9,8 @@ echo 0 > ${PROGRESS_FILE}
 echo "********************************************************"
 echo "*             Installation des dépendances             *"
 echo "********************************************************"
+echo "Version de Python 3 installée :"
+sudo python3 --version
 cd ${BASEDIR};
 #remove old files
 sudo rm -rf roomba > /dev/null 2>&1
