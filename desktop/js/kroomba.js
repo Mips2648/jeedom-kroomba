@@ -18,6 +18,11 @@
 $('#typeEq').change(function(){
 });
 
+$('#bt_healthkroomba').on('click', function () {
+	$('#md_modal').dialog({title: "{{Santé K Roomba}}"});
+	$('#md_modal').load('index.php?v=d&plugin=kroomba&modal=health').dialog('open');
+});
+
 $('#bt_cronGenerator').on('click',function(){
    jeedom.getCronSelectModal({},function (result) {
        $('.eqLogicAttr[data-l1key=configuration][data-l2key=autorefresh]').value(result.value);

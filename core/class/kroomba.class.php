@@ -96,14 +96,15 @@ class kroomba extends eqLogic {
       $cmdlogic->setLogicalId('status');
       $cmdlogic->setIsVisible(1);
       $cmdlogic->setDisplay('generic_type', 'MODE_STATE');
+      // On definit le template a appliquer par rapport à la version Jeedom utilisée
+      if (version_compare(jeedom::version(), '4.0.0') >= 0) {
+          $cmdlogic->setTemplate('dashboard','kroomba::state');
+          $cmdlogic->setTemplate('mobile','kroomba::state');
+      }
     }
     $cmdlogic->setType('info');
     $cmdlogic->setSubType('string');
-    // On defini le template a appliquer par rapport à la version Jeedom utilisée
-    if (version_compare(jeedom::version(), '4.0.0') >= 0) {
-        $cmdlogic->setTemplate('dashboard','kroomba::state');
-        $cmdlogic->setTemplate('mobile','kroomba::state');
-    }
+
     $cmdlogic->save();
 
     $cmdlogic = kroombaCmd::byEqLogicIdAndLogicalId($this->getId(),'binFull');
@@ -114,14 +115,15 @@ class kroomba extends eqLogic {
       $cmdlogic->setLogicalId('binFull');
       $cmdlogic->setIsVisible(1);
       $cmdlogic->setDisplay('generic_type', 'GENERIC_INFO');
+      // On definit le template a appliquer par rapport à la version Jeedom utilisée
+      if (version_compare(jeedom::version(), '4.0.0') >= 0) {
+          $cmdlogic->setTemplate('dashboard','kroomba::binfull');
+          $cmdlogic->setTemplate('mobile','kroomba::binfull');
+      }
     }
     $cmdlogic->setType('info');
     $cmdlogic->setSubType('binary');
-    // On defini le template a appliquer par rapport à la version Jeedom utilisée
-    if (version_compare(jeedom::version(), '4.0.0') >= 0) {
-        $cmdlogic->setTemplate('dashboard','kroomba::binfull');
-        $cmdlogic->setTemplate('mobile','kroomba::binfull');
-    }
+
     $cmdlogic->save();
 
     $cmdlogic = kroombaCmd::byEqLogicIdAndLogicalId($this->getId(),'battery');
@@ -132,14 +134,14 @@ class kroomba extends eqLogic {
       $cmdlogic->setLogicalId('battery');
       $cmdlogic->setDisplay('generic_type', 'BATTERY');
       $cmdlogic->setIsVisible(0);
+      // On definit le template a appliquer par rapport à la version Jeedom utilisée
+      if (version_compare(jeedom::version(), '4.0.0') >= 0) {
+          $cmdlogic->setTemplate('dashboard','kroomba::battery');
+          $cmdlogic->setTemplate('mobile','kroomba::battery');
+      }
     }
     $cmdlogic->setType('info');
     $cmdlogic->setSubType('numeric');
-    // On defini le template a appliquer par rapport à la version Jeedom utilisée
-    if (version_compare(jeedom::version(), '4.0.0') >= 0) {
-        $cmdlogic->setTemplate('dashboard','kroomba::battery');
-        $cmdlogic->setTemplate('mobile','kroomba::battery');
-    }
     $cmdlogic->save();
 
     $cmdlogic = kroombaCmd::byEqLogicIdAndLogicalId($this->getId(),'mission');

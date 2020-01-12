@@ -24,6 +24,11 @@ $eqLogics = eqLogic::byType($plugin->getId());
             <br>
             <span>{{Configuration}}</span>
           </div>
+          <div class="cursor logoSecondary" id="bt_healthkroomba">
+            <i class="fas fa-medkit"></i>
+            <br />
+            <span>{{Santé}}</span>
+          </div>
         </div>
         <legend><i class="fas fa-table"></i> {{Mes Roombas}}</legend>
         <input class="form-control" placeholder="{{Rechercher}}" id="in_searchEqlogic" />
@@ -111,7 +116,7 @@ $eqLogics = eqLogic::byType($plugin->getId());
           </div>
 
           <div id="username" class="form-group">
-            <label class="col-sm-3 control-label">{{Nom du Roomba}}</label>
+            <label class="col-sm-3 control-label">{{Identifiant du Roomba}}</label>
             <div class="col-sm-3">
               <input type="text" class="eqLogicAttr configuration form-control" id="username_input" data-l1key="configuration" data-l2key="username"/>
             </div>
