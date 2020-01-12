@@ -69,4 +69,4 @@ if len(data) > 0:
 if len(data) <= 7:
     print('Error getting password, receive %d bytes. Follow the instructions and try again.' % len(data))
 else:
-    print('Password %s' % str(data[7:].decode().rstrip()))
+    print('Password %s' % str(data[7:].decode().rstrip('\x00'))) #for i7 - has null termination
