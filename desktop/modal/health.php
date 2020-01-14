@@ -19,9 +19,13 @@ if (!isConnect('admin')) {
 	throw new Exception('401 Unauthorized');
 }
 $eqLogics = kroomba::byType('kroomba');
+$cmd = 'sudo lsb_release -a';
+exec($cmd . ' 2>&1',$result);
+echo "<br><br>Version de Linux : " . implode(' ', $result);
+$result = '';
 $cmd = 'sudo python3 --version';
 exec($cmd . ' 2>&1',$result);
-echo "<br>Version de Python 3 : " . $result[0];
+echo "<br><br>Version de Python 3 : " . implode(' ', $result);
 echo "<br><br>Version de Jeedom : " . jeedom::version();
 echo "<br><br>";
 ?>
