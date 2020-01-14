@@ -26,7 +26,7 @@
         "Equipement": "Device",
         "Commandes": "Commands",
         "Nom": "Name",
-        "Nom du Roomba": "Roomba's Name",
+        "Identifiant du Roomba": "Identifiant du Roomba",
         "Objet parent": "Parent object",
         "Aucun": "None",
         "Catégorie": "Category",
