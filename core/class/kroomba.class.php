@@ -143,12 +143,12 @@ class kroomba extends eqLogic {
       $cmdlogic->save();
     }
 
-    $cmdlogic = $this->getCmd(null, 'mission');
+    $cmdlogic = $this->getCmd(null, 'refresh');
     if (!is_object($cmdlogic)) {
       $cmdlogic = new kroombaCmd();
       $cmdlogic->setName(__('Rafraichir', __FILE__));
       $cmdlogic->setEqLogic_id($this->getId());
-      $cmdlogic->setLogicalId('mission');
+      $cmdlogic->setLogicalId('refresh');
       $cmdlogic->setIsVisible(0);
       $cmdlogic->setDisplay('generic_type', 'GENERIC_ACTION');
       $cmdlogic->setType('action');
@@ -369,7 +369,7 @@ class kroomba extends eqLogic {
     }
     $replace['#img_phase#'] = $img_path . $status . '.png';
 
-    $cmdlogic = kroombaCmd::byEqLogicIdAndLogicalId($this->getId(),'mission');
+    $cmdlogic = kroombaCmd::byEqLogicIdAndLogicalId($this->getId(),'refresh');
     $replace['#refresh_id#'] = $cmdlogic->getId();
     $replace['#str_refresh#'] = __('Refresh', __FILE__);
 
