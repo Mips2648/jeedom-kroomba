@@ -426,18 +426,23 @@ class kroombaCmd extends cmd {
         case 'start':
           $eqLogic->send_command("start");
           sleep(4);
+          break;
         case 'pause':
           $eqLogic->send_command("pause");
           sleep(4);
+          break;
         case 'resume':
           $eqLogic->send_command("resume");
           sleep(4);
+          break;
         case 'stop':
           $eqLogic->send_command("stop");
           sleep(4);
+          break;
         case 'dock':
           $eqLogic->send_command("dock");
           sleep(8);
+          break;
       }
       $eqLogic->mission();
   }
