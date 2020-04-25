@@ -301,14 +301,27 @@ class kroomba extends eqLogic {
 
   public static function dependancy_info() {
     $return = array();
-    $return['progress_file'] = jeedom::getTmpFolder('kroomba') . '/dependance';
-    $return['state'] = 'ok';
+    $return['log'] = log::getPathToLog(__CLASS__.'_update');
+    $return['progress_file'] = jeedom::getTmpFolder(__CLASS__).'/dependance';
+    if (file_exists(jeedom::getTmpFolder(__CLASS__).'/dependance')) {
+      $return['state'] = 'in_progress';
+    } else {
+        if (exec(system::getCmdSudo() . system::get('cmd_check') . '-E "python3\-pip|python3\-setuptools" | wc -l') < 2) {
+            $return['state'] = 'nok';
+        } elseif (exec(system::getCmdSudo() . 'pip3 list | grep -E "setuptools|six|paho-mqtt" | wc -l') < 3) {
+            $return['state'] = 'nok';
+        } elseif (!file_exists(__DIR__.'/../../resources/roomba/roomba.py')) {
+            $return['state'] = 'nok';
+        } else {
+            $return['state'] = 'ok';
+        }
+    }
     return $return;
   }
 
   public static function dependancy_install() {
     log::remove(__CLASS__ . '_update');
-    return array('script' => dirname(__FILE__) . '/../../resources/install_#stype#.sh ' . jeedom::getTmpFolder('kroomba') . '/dependance', 'log' => log::getPathToLog(__CLASS__ . '_update'));
+    return array('script' => dirname(__FILE__) . '/../../resources/install_#stype#.sh ' . jeedom::getTmpFolder(__CLASS__).'/dependance', 'log' => log::getPathToLog(__CLASS__.'_update'));
   }
 
   public function toHtml($_version = 'dashboard') {

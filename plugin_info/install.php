@@ -33,7 +33,12 @@ function kroomba_update() {
         $cmdlogic->save();
     }
 
-    message::add('kroomba', 'Cette mise à jour nécessite absolument de relancer les dépendances même si elles apparaissent vertes');
+    $dependencyInfo = kroomba::dependancy_info();
+    if (!isset($dependencyInfo['state'])) {
+        message::add('kroomba', __('Veuilez vérifier les dépendances', __FILE__));
+    } elseif ($dependencyInfo['state'] == 'nok') {
+        message::add('kroomba', __('Cette mise à jour nécessite absolument de relancer les dépendances même si elles apparaissent vertes', __FILE__));
+    }
 }
 
 function template_remove() {
