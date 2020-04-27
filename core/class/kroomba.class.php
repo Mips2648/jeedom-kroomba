@@ -88,7 +88,7 @@ class kroomba extends eqLogic {
 		}
   }
 
-  public function postInsert() {
+  public function postSave() {
     $cmdlogic = $this->getCmd(null, 'status');
     if (!is_object($cmdlogic)) {
       $cmdlogic = new kroombaCmd();
