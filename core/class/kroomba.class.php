@@ -96,7 +96,7 @@ class kroomba extends eqLogic {
       $cmdlogic->setEqLogic_id($this->getId());
       $cmdlogic->setLogicalId('status');
       $cmdlogic->setIsVisible(1);
-      $cmdlogic->setDisplay('generic_type', 'MODE_STATE');
+      $cmdlogic->setGeneric_type('MODE_STATE');
       // On definit le template a appliquer par rapport à la version Jeedom utilisée
       if (version_compare(jeedom::version(), '4.0.0') >= 0) {
           $cmdlogic->setTemplate('dashboard','kroomba::state');
@@ -114,7 +114,7 @@ class kroomba extends eqLogic {
       $cmdlogic->setEqLogic_id($this->getId());
       $cmdlogic->setLogicalId('binFull');
       $cmdlogic->setIsVisible(1);
-      $cmdlogic->setDisplay('generic_type', 'GENERIC_INFO');
+      $cmdlogic->setGeneric_type('GENERIC_INFO');
       // On definit le template a appliquer par rapport à la version Jeedom utilisée
       if (version_compare(jeedom::version(), '4.0.0') >= 0) {
           $cmdlogic->setTemplate('dashboard','kroomba::binfull');
@@ -131,7 +131,7 @@ class kroomba extends eqLogic {
       $cmdlogic->setName(__('Batterie', __FILE__));
       $cmdlogic->setEqLogic_id($this->getId());
       $cmdlogic->setLogicalId('battery');
-      $cmdlogic->setDisplay('generic_type', 'BATTERY');
+      $cmdlogic->setGeneric_type('BATTERY');
       $cmdlogic->setIsVisible(0);
       // On definit le template a appliquer par rapport à la version Jeedom utilisée
       if (version_compare(jeedom::version(), '4.0.0') >= 0) {
@@ -150,7 +150,7 @@ class kroomba extends eqLogic {
       $cmdlogic->setEqLogic_id($this->getId());
       $cmdlogic->setLogicalId('refresh');
       $cmdlogic->setIsVisible(0);
-      $cmdlogic->setDisplay('generic_type', 'GENERIC_ACTION');
+      $cmdlogic->setGeneric_type('GENERIC_ACTION');
       $cmdlogic->setType('action');
       $cmdlogic->setSubType('other');
       $cmdlogic->save();
@@ -163,7 +163,7 @@ class kroomba extends eqLogic {
       $cmdlogic->setEqLogic_id($this->getId());
       $cmdlogic->setLogicalId('start');
       $cmdlogic->setIsVisible(1);
-      $cmdlogic->setDisplay('generic_type', 'GENERIC_ACTION');
+      $cmdlogic->setGeneric_type('MODE_SET_STATE');
       $cmdlogic->setDisplay('icon', '<i class="fas fa-play"></i>');
       $cmdlogic->setType('action');
       $cmdlogic->setSubType('other');
@@ -177,7 +177,7 @@ class kroomba extends eqLogic {
       $cmdlogic->setEqLogic_id($this->getId());
       $cmdlogic->setLogicalId('pause');
       $cmdlogic->setIsVisible(1);
-      $cmdlogic->setDisplay('generic_type', 'GENERIC_ACTION');
+      $cmdlogic->setGeneric_type('MODE_SET_STATE');
       $cmdlogic->setDisplay('icon', '<i class="fas fa-pause"></i>');
       $cmdlogic->setType('action');
       $cmdlogic->setSubType('other');
@@ -191,7 +191,7 @@ class kroomba extends eqLogic {
       $cmdlogic->setEqLogic_id($this->getId());
       $cmdlogic->setLogicalId('resume');
       $cmdlogic->setIsVisible(1);
-      $cmdlogic->setDisplay('generic_type', 'GENERIC_ACTION');
+      $cmdlogic->setGeneric_type('MODE_SET_STATE');
       $cmdlogic->setDisplay('icon', '<i class="fas fa-step-forward"></i>');
       $cmdlogic->setType('action');
       $cmdlogic->setSubType('other');
@@ -205,7 +205,7 @@ class kroomba extends eqLogic {
       $cmdlogic->setEqLogic_id($this->getId());
       $cmdlogic->setLogicalId('stop');
       $cmdlogic->setIsVisible(1);
-      $cmdlogic->setDisplay('generic_type', 'GENERIC_ACTION');
+      $cmdlogic->setGeneric_type('MODE_SET_STATE');
       $cmdlogic->setDisplay('icon', '<i class="fas fa-stop"></i>');
       $cmdlogic->setType('action');
       $cmdlogic->setSubType('other');
@@ -219,7 +219,7 @@ class kroomba extends eqLogic {
       $cmdlogic->setEqLogic_id($this->getId());
       $cmdlogic->setLogicalId('dock');
       $cmdlogic->setIsVisible(1);
-      $cmdlogic->setDisplay('generic_type', 'GENERIC_ACTION');
+      $cmdlogic->setGeneric_type('MODE_SET_STATE');
       $cmdlogic->setDisplay('icon', '<i class="fas fa-home"></i>');
       $cmdlogic->setType('action');
       $cmdlogic->setSubType('other');
@@ -238,11 +238,11 @@ class kroomba extends eqLogic {
         log::add('kroomba', 'error', 'Missing arguments in mission');
         return;
     }
-    exec($cmd . ' 2>&1',$result1);
-    log::add('kroomba', 'debug', 'Mission raw result : ' . print_r($result1, true));
+    exec($cmd . ' 2>&1',$rawResult);
+    log::add('kroomba', 'debug', 'Mission raw result : ' . print_r($rawResult, true));
 
-    $result = "{}";
-    foreach ($result1 as $res) {
+    $result = array();
+    foreach ($rawResult as $res) {
         $tempo = json_decode($res, true);
         if (json_last_error() == JSON_ERROR_NONE) {
             if (isset($tempo['state'])) {
@@ -269,7 +269,6 @@ class kroomba extends eqLogic {
         log::add('kroomba', 'debug', 'battery : ' . $battery);
         $changed = $this->checkAndUpdateCmd('battery', $battery) || $changed;
         $this->batteryStatus($battery);
-        $this->setStatus('battery', $battery);
     }
     if (isset($result['state']['reported']['bin']['full'])) {
         $binFull = $result['state']['reported']['bin']['full'];
@@ -284,7 +283,6 @@ class kroomba extends eqLogic {
     if ($changed == true) {
         $this->refreshWidget();
     }
-    // log::add('kroomba', 'debug', 'getStatus Battery: ' . $this->getStatus('battery', -2));
   }
 
   public function send_command($cmd) {
