@@ -149,7 +149,7 @@ class kroomba extends eqLogic {
       $cmdlogic->setName(__('Rafraichir', __FILE__));
       $cmdlogic->setEqLogic_id($this->getId());
       $cmdlogic->setLogicalId('refresh');
-      $cmdlogic->setIsVisible(0);
+      $cmdlogic->setIsVisible(1);
       $cmdlogic->setGeneric_type('GENERIC_ACTION');
       $cmdlogic->setType('action');
       $cmdlogic->setSubType('other');
@@ -263,6 +263,12 @@ class kroomba extends eqLogic {
         $phase = $result['state']['reported']['cleanMissionStatus']['phase'];
         log::add('kroomba', 'debug', 'phase : ' . $phase);
         $changed = $this->checkAndUpdateCmd('status', $phase) || $changed;
+    }
+    if ($this->getConfiguration('battery_type', 'undefined') == 'undefined' && isset($result['state']['reported']['batInfo']['mName'])) {
+      $batteryType = $result['state']['reported']['batInfo']['mName'];
+      log::add('kroomba', 'debug', 'batteryType : ' . $batteryType);
+      $this->setConfiguration('battery_type', $batteryType);
+      $this->save(true);
     }
     if (isset($result['state']['reported']['batPct'])) {
         $battery = $result['state']['reported']['batPct'];
