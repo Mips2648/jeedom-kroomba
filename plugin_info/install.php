@@ -19,19 +19,30 @@
 require_once dirname(__FILE__) . '/../../../core/php/core.inc.php';
 
 function kroomba_install() {
-    
+
 }
 
 function kroomba_update() {
     // Remove obsolete log.
     log::remove('kroomba_dep');
 
-    message::add('kroomba', 'Cette mise à jour nécessite absolument de relancer les dépendances même si elles apparaissent vertes');
+    foreach (eqLogic::byType('kroomba') as $eqLogic) {
+        $cmdlogic = $eqLogic->getCmd(null, 'mission');
+        if (!is_object($cmdlogic)) continue;
+        $cmdlogic->setLogicalId('refresh');
+        $cmdlogic->save();
+    }
+
+    $dependencyInfo = kroomba::dependancy_info();
+    if (!isset($dependencyInfo['state'])) {
+        message::add('kroomba', __('Veuilez vérifier les dépendances', __FILE__));
+    } elseif ($dependencyInfo['state'] == 'nok') {
+        message::add('kroomba', __('Cette mise à jour nécessite absolument de relancer les dépendances même si elles apparaissent vertes', __FILE__));
+    }
 }
 
-
 function template_remove() {
-    
+
 }
 
 ?>

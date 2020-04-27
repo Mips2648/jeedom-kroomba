@@ -58,11 +58,11 @@ class kroomba extends eqLogic {
 	}
 
   public static function cron() {
-    foreach (self::byType('kroomba') as $kroomba) {
+    foreach (self::byType('kroomba', true) as $kroomba) {
       $cron_isEnable = $kroomba->getConfiguration('cron_isEnable',0);
       $autorefresh = $kroomba->getConfiguration('autorefresh','');
       $password = $kroomba->getConfiguration('password','');
-      if ($kroomba->getIsEnable() == 1 && $cron_isEnable == 1 && $password != '' && $autorefresh != '') {
+      if ($cron_isEnable == 1 && $password != '' && $autorefresh != '') {
         try {
             $c = new Cron\CronExpression(checkAndFixCron($autorefresh), new Cron\FieldFactory);
             if ($c->isDue()) {
@@ -87,145 +87,144 @@ class kroomba extends eqLogic {
 			$this->setConfiguration('cron_isEnable', 1);
 		}
   }
+
   public function postSave() {
-    $cmdlogic = kroombaCmd::byEqLogicIdAndLogicalId($this->getId(),'status');
+    $cmdlogic = $this->getCmd(null, 'status');
     if (!is_object($cmdlogic)) {
       $cmdlogic = new kroombaCmd();
       $cmdlogic->setName(__('Etat', __FILE__));
       $cmdlogic->setEqLogic_id($this->getId());
       $cmdlogic->setLogicalId('status');
       $cmdlogic->setIsVisible(1);
-      $cmdlogic->setDisplay('generic_type', 'MODE_STATE');
+      $cmdlogic->setGeneric_type('MODE_STATE');
       // On definit le template a appliquer par rapport à la version Jeedom utilisée
       if (version_compare(jeedom::version(), '4.0.0') >= 0) {
           $cmdlogic->setTemplate('dashboard','kroomba::state');
           $cmdlogic->setTemplate('mobile','kroomba::state');
       }
+      $cmdlogic->setType('info');
+      $cmdlogic->setSubType('string');
+      $cmdlogic->save();
     }
-    $cmdlogic->setType('info');
-    $cmdlogic->setSubType('string');
 
-    $cmdlogic->save();
-
-    $cmdlogic = kroombaCmd::byEqLogicIdAndLogicalId($this->getId(),'binFull');
+    $cmdlogic = $this->getCmd(null, 'binFull');
     if (!is_object($cmdlogic)) {
       $cmdlogic = new kroombaCmd();
       $cmdlogic->setName(__('Bac plein', __FILE__));
       $cmdlogic->setEqLogic_id($this->getId());
       $cmdlogic->setLogicalId('binFull');
       $cmdlogic->setIsVisible(1);
-      $cmdlogic->setDisplay('generic_type', 'GENERIC_INFO');
+      $cmdlogic->setGeneric_type('GENERIC_INFO');
       // On definit le template a appliquer par rapport à la version Jeedom utilisée
       if (version_compare(jeedom::version(), '4.0.0') >= 0) {
           $cmdlogic->setTemplate('dashboard','kroomba::binfull');
           $cmdlogic->setTemplate('mobile','kroomba::binfull');
       }
+      $cmdlogic->setType('info');
+      $cmdlogic->setSubType('binary');
+      $cmdlogic->save();
     }
-    $cmdlogic->setType('info');
-    $cmdlogic->setSubType('binary');
 
-    $cmdlogic->save();
-
-    $cmdlogic = kroombaCmd::byEqLogicIdAndLogicalId($this->getId(),'battery');
+    $cmdlogic = $this->getCmd(null, 'battery');
     if (!is_object($cmdlogic)) {
       $cmdlogic = new kroombaCmd();
       $cmdlogic->setName(__('Batterie', __FILE__));
       $cmdlogic->setEqLogic_id($this->getId());
       $cmdlogic->setLogicalId('battery');
-      $cmdlogic->setDisplay('generic_type', 'BATTERY');
+      $cmdlogic->setGeneric_type('BATTERY');
       $cmdlogic->setIsVisible(0);
       // On definit le template a appliquer par rapport à la version Jeedom utilisée
       if (version_compare(jeedom::version(), '4.0.0') >= 0) {
           $cmdlogic->setTemplate('dashboard','kroomba::battery');
           $cmdlogic->setTemplate('mobile','kroomba::battery');
       }
+      $cmdlogic->setType('info');
+      $cmdlogic->setSubType('numeric');
+      $cmdlogic->save();
     }
-    $cmdlogic->setType('info');
-    $cmdlogic->setSubType('numeric');
-    $cmdlogic->save();
 
-    $cmdlogic = kroombaCmd::byEqLogicIdAndLogicalId($this->getId(),'mission');
+    $cmdlogic = $this->getCmd(null, 'refresh');
     if (!is_object($cmdlogic)) {
       $cmdlogic = new kroombaCmd();
       $cmdlogic->setName(__('Rafraichir', __FILE__));
-      $cmdlogic->setLogicalId('mission');
-      $cmdlogic->setIsVisible(0);
-      $cmdlogic->setDisplay('generic_type', 'GENERIC_ACTION');
+      $cmdlogic->setEqLogic_id($this->getId());
+      $cmdlogic->setLogicalId('refresh');
+      $cmdlogic->setIsVisible(1);
+      $cmdlogic->setGeneric_type('GENERIC_ACTION');
+      $cmdlogic->setType('action');
+      $cmdlogic->setSubType('other');
+      $cmdlogic->save();
     }
-    $cmdlogic->setType('action');
-    $cmdlogic->setEqLogic_id($this->getId());
-    $cmdlogic->setSubType('other');
-    $cmdlogic->save();
 
-    $cmdlogic = kroombaCmd::byEqLogicIdAndLogicalId($this->getId(),'start');
+    $cmdlogic = $this->getCmd(null, 'start');
     if (!is_object($cmdlogic)) {
       $cmdlogic = new kroombaCmd();
       $cmdlogic->setName(__('Démarrer', __FILE__));
+      $cmdlogic->setEqLogic_id($this->getId());
       $cmdlogic->setLogicalId('start');
       $cmdlogic->setIsVisible(1);
-      $cmdlogic->setDisplay('generic_type', 'GENERIC_ACTION');
+      $cmdlogic->setGeneric_type('MODE_SET_STATE');
       $cmdlogic->setDisplay('icon', '<i class="fas fa-play"></i>');
+      $cmdlogic->setType('action');
+      $cmdlogic->setSubType('other');
+      $cmdlogic->save();
     }
-    $cmdlogic->setType('action');
-    $cmdlogic->setEqLogic_id($this->getId());
-    $cmdlogic->setSubType('other');
-    $cmdlogic->save();
 
-    $cmdlogic = kroombaCmd::byEqLogicIdAndLogicalId($this->getId(),'pause');
+    $cmdlogic = $this->getCmd(null, 'pause');
     if (!is_object($cmdlogic)) {
       $cmdlogic = new kroombaCmd();
       $cmdlogic->setName(__('Pause', __FILE__));
+      $cmdlogic->setEqLogic_id($this->getId());
       $cmdlogic->setLogicalId('pause');
       $cmdlogic->setIsVisible(1);
-      $cmdlogic->setDisplay('generic_type', 'GENERIC_ACTION');
+      $cmdlogic->setGeneric_type('MODE_SET_STATE');
       $cmdlogic->setDisplay('icon', '<i class="fas fa-pause"></i>');
+      $cmdlogic->setType('action');
+      $cmdlogic->setSubType('other');
+      $cmdlogic->save();
     }
-    $cmdlogic->setType('action');
-    $cmdlogic->setEqLogic_id($this->getId());
-    $cmdlogic->setSubType('other');
-    $cmdlogic->save();
 
-    $cmdlogic = kroombaCmd::byEqLogicIdAndLogicalId($this->getId(),'resume');
+    $cmdlogic = $this->getCmd(null, 'resume');
     if (!is_object($cmdlogic)) {
       $cmdlogic = new kroombaCmd();
       $cmdlogic->setName(__('Continuer', __FILE__));
+      $cmdlogic->setEqLogic_id($this->getId());
       $cmdlogic->setLogicalId('resume');
       $cmdlogic->setIsVisible(1);
-      $cmdlogic->setDisplay('generic_type', 'GENERIC_ACTION');
+      $cmdlogic->setGeneric_type('MODE_SET_STATE');
       $cmdlogic->setDisplay('icon', '<i class="fas fa-step-forward"></i>');
+      $cmdlogic->setType('action');
+      $cmdlogic->setSubType('other');
+      $cmdlogic->save();
     }
-    $cmdlogic->setType('action');
-    $cmdlogic->setEqLogic_id($this->getId());
-    $cmdlogic->setSubType('other');
-    $cmdlogic->save();
 
-    $cmdlogic = kroombaCmd::byEqLogicIdAndLogicalId($this->getId(),'stop');
+    $cmdlogic = $this->getCmd(null, 'stop');
     if (!is_object($cmdlogic)) {
       $cmdlogic = new kroombaCmd();
       $cmdlogic->setName(__('Stop', __FILE__));
+      $cmdlogic->setEqLogic_id($this->getId());
       $cmdlogic->setLogicalId('stop');
       $cmdlogic->setIsVisible(1);
-      $cmdlogic->setDisplay('generic_type', 'GENERIC_ACTION');
+      $cmdlogic->setGeneric_type('MODE_SET_STATE');
       $cmdlogic->setDisplay('icon', '<i class="fas fa-stop"></i>');
+      $cmdlogic->setType('action');
+      $cmdlogic->setSubType('other');
+      $cmdlogic->save();
     }
-    $cmdlogic->setType('action');
-    $cmdlogic->setEqLogic_id($this->getId());
-    $cmdlogic->setSubType('other');
-    $cmdlogic->save();
 
-    $cmdlogic = kroombaCmd::byEqLogicIdAndLogicalId($this->getId(),'dock');
+    $cmdlogic = $this->getCmd(null, 'dock');
     if (!is_object($cmdlogic)) {
       $cmdlogic = new kroombaCmd();
       $cmdlogic->setName(__('Base', __FILE__));
+      $cmdlogic->setEqLogic_id($this->getId());
       $cmdlogic->setLogicalId('dock');
       $cmdlogic->setIsVisible(1);
-      $cmdlogic->setDisplay('generic_type', 'GENERIC_ACTION');
+      $cmdlogic->setGeneric_type('MODE_SET_STATE');
       $cmdlogic->setDisplay('icon', '<i class="fas fa-home"></i>');
+      $cmdlogic->setType('action');
+      $cmdlogic->setSubType('other');
+      $cmdlogic->save();
     }
-    $cmdlogic->setType('action');
-    $cmdlogic->setEqLogic_id($this->getId());
-    $cmdlogic->setSubType('other');
-    $cmdlogic->save();
   }
 
   public function mission() {
@@ -239,11 +238,11 @@ class kroomba extends eqLogic {
         log::add('kroomba', 'error', 'Missing arguments in mission');
         return;
     }
-    exec($cmd . ' 2>&1',$result1);
-    log::add('kroomba', 'debug', 'Mission raw result : ' . print_r($result1, true));
+    exec($cmd . ' 2>&1',$rawResult);
+    log::add('kroomba', 'debug', 'Mission raw result : ' . print_r($rawResult, true));
 
-    $result = "{}";
-    foreach ($result1 as $res) {
+    $result = array();
+    foreach ($rawResult as $res) {
         $tempo = json_decode($res, true);
         if (json_last_error() == JSON_ERROR_NONE) {
             if (isset($tempo['state'])) {
@@ -265,12 +264,17 @@ class kroomba extends eqLogic {
         log::add('kroomba', 'debug', 'phase : ' . $phase);
         $changed = $this->checkAndUpdateCmd('status', $phase) || $changed;
     }
+    if ($this->getConfiguration('battery_type', 'undefined') == 'undefined' && isset($result['state']['reported']['batInfo']['mName'])) {
+      $batteryType = $result['state']['reported']['batInfo']['mName'];
+      log::add('kroomba', 'debug', 'batteryType : ' . $batteryType);
+      $this->setConfiguration('battery_type', $batteryType);
+      $this->save(true);
+    }
     if (isset($result['state']['reported']['batPct'])) {
         $battery = $result['state']['reported']['batPct'];
         log::add('kroomba', 'debug', 'battery : ' . $battery);
         $changed = $this->checkAndUpdateCmd('battery', $battery) || $changed;
         $this->batteryStatus($battery);
-        $this->setStatus('battery', $battery);
     }
     if (isset($result['state']['reported']['bin']['full'])) {
         $binFull = $result['state']['reported']['bin']['full'];
@@ -285,7 +289,6 @@ class kroomba extends eqLogic {
     if ($changed == true) {
         $this->refreshWidget();
     }
-    // log::add('kroomba', 'debug', 'getStatus Battery: ' . $this->getStatus('battery', -2));
   }
 
   public function send_command($cmd) {
@@ -302,14 +305,27 @@ class kroomba extends eqLogic {
 
   public static function dependancy_info() {
     $return = array();
-    $return['progress_file'] = jeedom::getTmpFolder('kroomba') . '/dependance';
-    $return['state'] = 'ok';
+    $return['log'] = log::getPathToLog(__CLASS__.'_update');
+    $return['progress_file'] = jeedom::getTmpFolder(__CLASS__).'/dependance';
+    if (file_exists(jeedom::getTmpFolder(__CLASS__).'/dependance')) {
+      $return['state'] = 'in_progress';
+    } else {
+        if (exec(system::getCmdSudo() . system::get('cmd_check') . '-E "python3\-pip|python3\-setuptools" | wc -l') < 2) {
+            $return['state'] = 'nok';
+        } elseif (exec(system::getCmdSudo() . 'pip3 list | grep -E "setuptools|six|paho-mqtt" | wc -l') < 3) {
+            $return['state'] = 'nok';
+        } elseif (!file_exists(__DIR__.'/../../resources/roomba/roomba.py')) {
+            $return['state'] = 'nok';
+        } else {
+            $return['state'] = 'ok';
+        }
+    }
     return $return;
   }
 
   public static function dependancy_install() {
     log::remove(__CLASS__ . '_update');
-    return array('script' => dirname(__FILE__) . '/../../resources/install_#stype#.sh ' . jeedom::getTmpFolder('kroomba') . '/dependance', 'log' => log::getPathToLog(__CLASS__ . '_update'));
+    return array('script' => dirname(__FILE__) . '/../../resources/install_#stype#.sh ' . jeedom::getTmpFolder(__CLASS__).'/dependance', 'log' => log::getPathToLog(__CLASS__.'_update'));
   }
 
   public function toHtml($_version = 'dashboard') {
@@ -370,7 +386,7 @@ class kroomba extends eqLogic {
     }
     $replace['#img_phase#'] = $img_path . $status . '.png';
 
-    $cmdlogic = kroombaCmd::byEqLogicIdAndLogicalId($this->getId(),'mission');
+    $cmdlogic = kroombaCmd::byEqLogicIdAndLogicalId($this->getId(),'refresh');
     $replace['#refresh_id#'] = $cmdlogic->getId();
     $replace['#str_refresh#'] = __('Refresh', __FILE__);
 
@@ -407,41 +423,32 @@ class kroomba extends eqLogic {
 }
 
 class kroombaCmd extends cmd {
-	public static $_widgetPossibility = array('custom' => true);
+  public static $_widgetPossibility = array('custom' => true);
     public function execute($_options = null) {
-		if ($this->getType() == 'info') {
-			return;
-		}
-		$eqLogic = $this->getEqLogic();
-		if ($this->getLogicalId() == 'mission') {
-			$eqLogic->mission();
-		}
-		$eqLogic = $this->getEqLogic();
-		if ($this->getLogicalId() == 'start') {
-			$eqLogic->send_command("start");
-            sleep(4);
-			$eqLogic->mission();
-		}
-		if ($this->getLogicalId() == 'pause') {
-			$eqLogic->send_command("pause");
-            sleep(4);
-			$eqLogic->mission();
-		}
-		if ($this->getLogicalId() == 'resume') {
-			$eqLogic->send_command("resume");
-            sleep(4);
-			$eqLogic->mission();
-		}
-		if ($this->getLogicalId() == 'stop') {
-			$eqLogic->send_command("stop");
-            sleep(4);
-			$eqLogic->mission();
-		}
-		if ($this->getLogicalId() == 'dock') {
-			$eqLogic->send_command("dock");
-            sleep(8);
-			$eqLogic->mission();
-		}
+      $eqLogic = $this->getEqLogic();
+      switch ($this->getLogicalId()) {
+        case 'start':
+          $eqLogic->send_command("start");
+          sleep(4);
+          break;
+        case 'pause':
+          $eqLogic->send_command("pause");
+          sleep(4);
+          break;
+        case 'resume':
+          $eqLogic->send_command("resume");
+          sleep(4);
+          break;
+        case 'stop':
+          $eqLogic->send_command("stop");
+          sleep(4);
+          break;
+        case 'dock':
+          $eqLogic->send_command("dock");
+          sleep(8);
+          break;
+      }
+      $eqLogic->mission();
   }
 }
 
