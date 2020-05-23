@@ -31,6 +31,12 @@ Stoppé
 ![Bloqué](../images/kroomba_stuck.png)
 Bloqué (<=> stuck en anglais)
 
+![Completed](../images/kroomba_hmPostMsn.png)
+Tache achevée
+
+![Recharge](../images/kroomba_hmMidMsn.png)
+Recharge nécessaire
+
 ![Inconnu](../images/kroomba_unknown.png)
 Statut inconnu
 
