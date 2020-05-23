@@ -22,3 +22,7 @@ mais je dois avouer que je ne comprend pas pourquoi elle ne marchait pas ! )
 # 04/11/2019
 
 - Tag "v4" pour le market
+
+# 23/05/2020
+
+- Nouveaux états hmMidMsn (Recharge nécessaire) et hmPostMsn (tâche achevée)

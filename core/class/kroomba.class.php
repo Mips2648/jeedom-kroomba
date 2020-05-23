@@ -37,6 +37,10 @@ class kroomba extends eqLogic {
                         'state_dark' => "<img src='plugins/kroomba/core/img/kroomba_stop.png' title ='" . __('Arrété', __FILE__) . "'>"),
 				array('operation' => "#value# == 'stuck'",'state_light' => "<img src='plugins/kroomba/core/img/kroomba_stuck.png' title ='" . __('Bloqué', __FILE__) . "'>",
                         'state_dark' => "<img src='plugins/kroomba/core/img/kroomba_stuck.png' title ='" . __('Bloqué', __FILE__) . "'>"),
+				array('operation' => "#value# == 'hmPostMsn'", 'state_light' => "<img src='plugins/kroomba/core/img/kroomba_hmPostMsn.png' title ='" . __('Tâche achevée', __FILE__) . "'>",
+                        'state_dark' => "<img src='plugins/kroomba/core/img/kroomba_hmPostMsn.png' title ='" . __('Tâche achevée', __FILE__) . "'>"),
+				array('operation' => "#value# == 'hmMidMsn'", 'state_light' => "<img src='plugins/kroomba/core/img/kroomba_hmMidMsn.png' title ='" . __('Recharge nécessaire', __FILE__) . "'>",
+                        'state_dark' => "<img src='plugins/kroomba/core/img/kroomba_hmMidMsn.png' title ='" . __('Recharge nécessaire', __FILE__) . "'>"),
 				array('operation' => "#value# == 'unknown'|| #value# == ''",'state_light' => "<img src='plugins/kroomba/core/img/kroomba_unknown.png' title ='" . __('Inconnu', __FILE__) . "'>",
                         'state_dark' => "<img src='plugins/kroomba/core/img/kroomba_unknown.png' title ='" . __('Inconnu', __FILE__) . "'>")
 			)
@@ -376,6 +380,14 @@ class kroomba extends eqLogic {
 
       case 'stuck':
         $replace['#str_phase#'] = __('Bloqué', __FILE__);
+        break;
+
+      case 'hmPostMsn':
+        $replace['#str_phase#'] = __('Tâche achevée', __FILE__);
+        break;
+
+      case 'hmMidMsn':
+        $replace['#str_phase#'] = __('Recharge nécessaire', __FILE__);
         break;
 
       case 'unknown':
