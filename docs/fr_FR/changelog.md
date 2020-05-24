@@ -26,3 +26,10 @@ mais je dois avouer que je ne comprend pas pourquoi elle ne marchait pas ! )
 # 23/05/2020
 
 - Nouveaux états hmMidMsn (Recharge nécessaire) et hmPostMsn (tâche achevée)
+<<<<<<< HEAD
+=======
+
+# 24/05/2020
+
+- Nouvelles icônes pour les états par kiboost. Un grand merci à lui, avec Jeedom v4 c'est superbe.
+>>>>>>> master
