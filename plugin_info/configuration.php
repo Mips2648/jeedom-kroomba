@@ -18,36 +18,39 @@
 require_once dirname(__FILE__) . '/../../../core/php/core.inc.php';
 include_file('core', 'authentification', 'php');
 if (!isConnect()) {
-	include_file('desktop', '404', 'php');
-	die();
+    include_file('desktop', '404', 'php');
+    die();
 }
 ?>
 <form class="form-horizontal">
-  <fieldset>
-    <div class="form-group">
-        <label class="col-lg-2 control-label">{{Découvrir les roombas}}</label>
-        <div class="col-lg-2">
-        <a class="btn btn-warning" id="bt_discover_roomba"><i class='fas fa-refresh'></i> {{Découvrir les roombas}}</a>
+    <fieldset>
+        <div class="form-group">
+            <label class="col-lg-2 control-label">{{Découvrir les roombas}}</label>
+            <div class="col-lg-2">
+                <a class="btn btn-warning" id="bt_discover_roomba"><i class='fas fa-refresh'></i> {{Découvrir les roombas}}</a>
+            </div>
         </div>
-    </div>
-	</fieldset>
+    </fieldset>
 </form>
 
 <script>
-    $('#bt_discover_roomba').on('click', function () {
-        $.ajax({// fonction permettant de faire de l'ajax
+    $('#bt_discover_roomba').on('click', function() {
+        $.ajax({ // fonction permettant de faire de l'ajax
             type: "POST", // methode de transmission des données au fichier php
             url: "plugins/kroomba/core/ajax/kroomba.ajax.php", // url du fichier php
             data: {
                 action: "discover",
             },
             dataType: 'json',
-            error: function (request, status, error) {
+            error: function(request, status, error) {
                 handleAjaxError(request, status, error);
             },
-            success: function (data) { // si l'appel a bien fonctionné
+            success: function(data) { // si l'appel a bien fonctionné
                 if (data.state != 'ok') {
-                    $('#div_alert').showAlert({message: data.result, level: 'danger'});
+                    $('#div_alert').showAlert({
+                        message: data.result,
+                        level: 'danger'
+                    });
                     return;
                 }
                 loadPage('index.php?v=d&m=kroomba&p=kroomba&saveSuccessFull=1');

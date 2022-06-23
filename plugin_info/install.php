@@ -19,7 +19,6 @@
 require_once dirname(__FILE__) . '/../../../core/php/core.inc.php';
 
 function kroomba_install() {
-
 }
 
 function kroomba_update() {
@@ -42,7 +41,4 @@ function kroomba_update() {
 }
 
 function template_remove() {
-
 }
-
-?>

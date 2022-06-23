@@ -11,7 +11,7 @@ $eqLogics = eqLogic::byType($plugin->getId());
 
 <div class="row row-overflow">
   <div class="col-xs-12 eqLogicThumbnailDisplay">
-    <legend><i class="fas fa-cog"></i>  {{Gestion}}</legend>
+    <legend><i class="fas fa-cog"></i> {{Gestion}}</legend>
     <div class="eqLogicThumbnailContainer">
       <div class="cursor eqLogicAction logoPrimary" data-action="add">
         <i class="fas fa-plus-circle"></i>
@@ -32,16 +32,16 @@ $eqLogics = eqLogic::byType($plugin->getId());
     <legend><i class="fas fa-table"></i> {{Mes Roombas}}</legend>
     <input class="form-control" placeholder="{{Rechercher}}" id="in_searchEqlogic" />
     <div class="eqLogicThumbnailContainer">
-        <?php
-        foreach ($eqLogics as $eqLogic) {
-            $opacity = ($eqLogic->getIsEnable()) ? '' : 'disableCard';
-            echo '<div class="eqLogicDisplayCard cursor '.$opacity.'" data-eqLogic_id="' . $eqLogic->getId() . '">';
-            echo '<img src="' . $plugin->getPathImgIcon() . '"/>';
-            echo '<br>';
-            echo '<span class="name">' . $eqLogic->getHumanName(true, true) . '</span>';
-            echo '</div>';
-        }
-        ?>
+      <?php
+      foreach ($eqLogics as $eqLogic) {
+        $opacity = ($eqLogic->getIsEnable()) ? '' : 'disableCard';
+        echo '<div class="eqLogicDisplayCard cursor ' . $opacity . '" data-eqLogic_id="' . $eqLogic->getId() . '">';
+        echo '<img src="' . $plugin->getPathImgIcon() . '"/>';
+        echo '<br>';
+        echo '<span class="name">' . $eqLogic->getHumanName(true, true) . '</span>';
+        echo '</div>';
+      }
+      ?>
     </div>
   </div>
 
@@ -61,18 +61,18 @@ $eqLogics = eqLogic::byType($plugin->getId());
     </ul>
     <div class="tab-content" style="height:calc(100% - 50px);overflow:auto;overflow-x: hidden;">
       <div role="tabpanel" class="tab-pane active" id="eqlogictab">
-        <br/>
+        <br />
         <form class="form-horizontal">
           <fieldset>
             <div class="form-group">
               <label class="col-sm-3 control-label">{{Nom}}</label>
               <div class="col-sm-3">
                 <input type="text" class="eqLogicAttr form-control" data-l1key="id" style="display : none;" />
-                <input type="text" class="eqLogicAttr form-control" data-l1key="name" placeholder="{{Nom du Roomba}}"/>
+                <input type="text" class="eqLogicAttr form-control" data-l1key="name" placeholder="{{Nom du Roomba}}" />
               </div>
             </div>
             <div class="form-group">
-              <label class="col-sm-3 control-label" >{{Objet parent}}</label>
+              <label class="col-sm-3 control-label">{{Objet parent}}</label>
               <div class="col-sm-3">
                 <select class="form-control eqLogicAttr" data-l1key="object_id">
                   <option value="">{{Aucun}}</option>
@@ -100,35 +100,35 @@ $eqLogics = eqLogic::byType($plugin->getId());
             <div class="form-group">
               <label class="col-sm-3 control-label"></label>
               <div class="col-sm-8">
-                <label class="checkbox-inline"><input type="checkbox" class="eqLogicAttr" data-l1key="isEnable" checked/>{{Activer}}</label>
-                <label class="checkbox-inline"><input type="checkbox" class="eqLogicAttr" data-l1key="isVisible" checked/>{{Visible}}</label>
+                <label class="checkbox-inline"><input type="checkbox" class="eqLogicAttr" data-l1key="isEnable" checked />{{Activer}}</label>
+                <label class="checkbox-inline"><input type="checkbox" class="eqLogicAttr" data-l1key="isVisible" checked />{{Visible}}</label>
               </div>
             </div>
             <div class="form-group">
               <label class="col-sm-3 control-label">{{Commentaire}}</label>
               <div class="col-sm-3">
-                <textarea class="eqLogicAttr form-control" data-l1key="configuration" data-l2key="commentaire" ></textarea>
+                <textarea class="eqLogicAttr form-control" data-l1key="configuration" data-l2key="commentaire"></textarea>
               </div>
             </div>
 
             <div id="roomba_ip" class="form-group">
               <label class="col-sm-3 control-label">{{Adresse IP du Roomba}}</label>
               <div class="col-sm-3">
-                <input type="text" class="eqLogicAttr configuration form-control" id="roomba_ip_input" data-l1key="configuration" data-l2key="roomba_ip" placeholder="exemple 192.168.0.77"/>
+                <input type="text" class="eqLogicAttr configuration form-control" id="roomba_ip_input" data-l1key="configuration" data-l2key="roomba_ip" placeholder="exemple 192.168.0.77" />
               </div>
             </div>
 
             <div id="username" class="form-group">
               <label class="col-sm-3 control-label">{{Identifiant du Roomba}}</label>
               <div class="col-sm-3">
-                <input type="text" class="eqLogicAttr configuration form-control" id="username_input" data-l1key="configuration" data-l2key="username"/>
+                <input type="text" class="eqLogicAttr configuration form-control" id="username_input" data-l1key="configuration" data-l2key="username" />
               </div>
             </div>
 
             <div id="password" class="form-group">
               <label class="col-sm-3 control-label">{{Mot de passe}}</label>
               <div class="col-sm-3">
-                <input type="password" class="eqLogicAttr configuration form-control" id="password_input" data-l1key="configuration" data-l2key="password"/>
+                <input type="password" class="eqLogicAttr configuration form-control" id="password_input" data-l1key="configuration" data-l2key="password" />
               </div>
               <div class="col-lg-2">
                 <a class="btn btn-info bt_getPassword" id="bt_getPassword"><i class='fas fa-qrcode'></i> {{Récupérer le mot de passe}}</a>
@@ -138,18 +138,18 @@ $eqLogics = eqLogic::byType($plugin->getId());
             <div class="form-group">
               <label class="col-sm-3 control-label">{{Auto-actualisation (cron)}}</label>
               <div class="col-sm-3">
-                <input type="checkbox" class="eqLogicAttr" data-label-text="{{Activer}}" data-l1key="configuration" data-l2key="cron_isEnable" checked/>
+                <input type="checkbox" class="eqLogicAttr" data-label-text="{{Activer}}" data-l1key="configuration" data-l2key="cron_isEnable" checked />
               </div>
             </div>
             <div class="form-group">
               <label class="col-sm-3 control-label"></label>
               <div class="col-sm-3">
                 <div class="input-group">
-                  <input type="text" class="eqLogicAttr form-control" data-l1key="configuration" data-l2key="autorefresh" placeholder="{{Auto-actualisation (cron)}}"/>
+                  <input type="text" class="eqLogicAttr form-control" data-l1key="configuration" data-l2key="autorefresh" placeholder="{{Auto-actualisation (cron)}}" />
                   <span class="input-group-btn">
-                      <a class="btn btn-default cursor jeeHelper" data-helper="cron">
-                          <i class="fas fa-question-circle"></i>
-                      </a>
+                    <a class="btn btn-default cursor jeeHelper" data-helper="cron">
+                      <i class="fas fa-question-circle"></i>
+                    </a>
                   </span>
                 </div>
               </div>
