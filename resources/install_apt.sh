@@ -19,10 +19,6 @@ sudo apt-get update
 sudo apt install -y python3-pip
 echo 55 > ${PROGRESS_FILE}
 sudo apt-get install -y python3-setuptools
-echo 56 > ${PROGRESS_FILE}
-sudo python3 -m pip uninstall -y six
-echo 57 > ${PROGRESS_FILE}
-sudo python3 -m pip uninstall -y paho-mqtt
 echo 58 > ${PROGRESS_FILE}
 sudo python3 -m pip install setuptools
 echo 60 > ${PROGRESS_FILE}

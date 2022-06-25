@@ -22,9 +22,6 @@ function kroomba_install() {
 }
 
 function kroomba_update() {
-    // Remove obsolete log.
-    log::remove('kroomba_dep');
-
     foreach (eqLogic::byType('kroomba') as $eqLogic) {
         $cmdlogic = $eqLogic->getCmd(null, 'mission');
         if (!is_object($cmdlogic)) continue;
@@ -40,5 +37,5 @@ function kroomba_update() {
     }
 }
 
-function template_remove() {
+function kroomba_remove() {
 }
