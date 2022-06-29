@@ -1,0 +1,102 @@
+{
+    "commands": [
+        {
+            "logicalId": "start",
+            "name": "Démarrer",
+            "type": "action",
+            "subtype": "other",
+            "generic_type": "MODE_SET_STATE",
+            "isVisible": 1,
+            "value": "status",
+            "display": {
+                "icon": "<i class=\"fas fa-play\"><\/i>"
+            }
+        },
+        {
+            "logicalId": "stop",
+            "name": "Arrêter",
+            "type": "action",
+            "subtype": "other",
+            "generic_type": "MODE_SET_STATE",
+            "isVisible": 1,
+            "value": "status",
+            "display": {
+                "icon": "<i class=\"fas fa-stop\"><\/i>"
+            }
+        },
+        {
+            "logicalId": "pause",
+            "name": "Pause",
+            "type": "action",
+            "subtype": "other",
+            "generic_type": "MODE_SET_STATE",
+            "isVisible": 1,
+            "value": "status",
+            "display": {
+                "icon": "<i class=\"fas fa-pause\"><\/i>"
+            }
+        },
+        {
+            "logicalId": "resume",
+            "name": "Continuer",
+            "type": "action",
+            "subtype": "other",
+            "generic_type": "MODE_SET_STATE",
+            "isVisible": 1,
+            "value": "status",
+            "display": {
+                "icon": "<i class=\"fas fa-step-forward\"><\/i>"
+            }
+        },
+        {
+            "logicalId": "dock",
+            "name": "Retour à la base",
+            "type": "action",
+            "subtype": "other",
+            "generic_type": "MODE_SET_STATE",
+            "isVisible": 1,
+            "value": "status",
+            "display": {
+                "icon": "<i class=\"fas fa-home\"><\/i>"
+            }
+        },
+        {
+            "logicalId": "status",
+            "name": "Etat",
+            "type": "info",
+            "subtype": "string",
+            "generic_type": "MODE_STATE",
+            "isVisible": 1,
+            "isHistorized": 0,
+            "template": {
+                "dashboard": "kroomba::state",
+                "mobile": "kroomba::state"
+            }
+        },
+        {
+            "logicalId": "binFull",
+            "name": "Bac plein",
+            "type": "info",
+            "subtype": "binary",
+            "isVisible": 0,
+            "isHistorized": 0,
+            "template": {
+                "dashboard": "kroomba::binfull",
+                "mobile": "kroomba::binfull"
+            }
+        },
+        {
+            "logicalId": "battery",
+            "name": "Batterie",
+            "type": "info",
+            "subtype": "numeric",
+            "generic_type": "BATTERY",
+            "isVisible": 0,
+            "isHistorized": 0,
+            "template": {
+                "dashboard": "kroomba::battery",
+                "mobile": "kroomba::battery"
+            }
+        }
+    ]
+}

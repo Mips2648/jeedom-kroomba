@@ -65,18 +65,25 @@ function addCmdToTable(_cmd) {
   jeedom.cmd.changeType($('#table_cmd tbody tr:last'), init(_cmd.subType));
 }
 
+$('.pluginAction[data-action=openLocation]').on('click', function () {
+  window.open($(this).attr("data-location"), "_blank", null);
+});
+
 $('#md_modal_kroomba').dialog({
   autoOpen: false,
   buttons: {
+    "{{Annuler}}": function () {
+      $(this).dialog("close");
+    },
     "{{Continuer}}": function () {
       $(this).dialog("close");
       $.ajax({// fonction permettant de faire de l'ajax
         type: "POST", // methode de transmission des données au fichier php
         url: "plugins/kroomba/core/ajax/kroomba.ajax.php", // url du fichier php
         data: {
-          action: "getPassword",
-          ip: $('#roomba_ip_input').value(),
-          blid: $('#username_input').value(),
+          action: "discover",
+          login: $('#irobot_login').value(),
+          password: $('#irobot_password').value(),
         },
         dataType: 'json',
         error: function (request, status, error) {
@@ -87,18 +94,15 @@ $('#md_modal_kroomba').dialog({
             $('#div_alert').showAlert({ message: data.result, level: 'danger' });
             return;
           }
-          $('#password_input').value(data.result);
-          $('#div_alert').showAlert({ message: '{{Synchronisation réussie. Pensez à sauvegarder !}}', level: 'success' });
+          // $('#password_input').value(data.result);
+          $('#div_alert').showAlert({ message: '{{Découverte en cours, veuillez patienter.}}', level: 'success' });
         }
       });
-    },
-    "{{Annuler}}": function () {
-      $(this).dialog("close");
     }
   }
 });
 
-$('#bt_getPassword').on('click', function () {
+$('#bt_synckroomba').on('click', function () {
   $('#md_modal_kroomba').dialog('open');
   return false;
 });

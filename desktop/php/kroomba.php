@@ -13,32 +13,52 @@ $eqLogics = eqLogic::byType($plugin->getId());
   <div class="col-xs-12 eqLogicThumbnailDisplay">
     <legend><i class="fas fa-cog"></i> {{Gestion}}</legend>
     <div class="eqLogicThumbnailContainer">
-      <div class="cursor eqLogicAction logoPrimary" data-action="add">
-        <i class="fas fa-plus-circle"></i>
-        <br>
-        <span>{{Ajouter}}</span>
-      </div>
       <div class="cursor eqLogicAction logoSecondary" data-action="gotoPluginConf">
         <i class="fas fa-wrench"></i>
         <br>
         <span>{{Configuration}}</span>
       </div>
+      <div class="cursor pluginAction logoSecondary" data-action="openLocation" data-location="<?= $plugin->getDocumentation() ?>">
+        <i class="fas fa-book"></i>
+        <br>
+        <span>{{Documentation}}</span>
+      </div>
+      <div class="cursor pluginAction logoSecondary" data-action="openLocation" data-location="https://community.jeedom.com/tags/plugin-<?= $plugin->getId() ?>">
+        <i class="fas fa-comments"></i>
+        <br>
+        <span>Community</span>
+      </div>
+      <div class="cursor logoSecondary" id="bt_synckroomba">
+        <i class="fas fa-sync"></i>
+        <br>
+        <span>{{Découverte}}</span>
+      </div>
       <div class="cursor logoSecondary" id="bt_healthkroomba">
         <i class="fas fa-medkit"></i>
-        <br />
+        <br>
         <span>{{Santé}}</span>
       </div>
     </div>
-    <legend><i class="fas fa-table"></i> {{Mes Roombas}}</legend>
-    <input class="form-control" placeholder="{{Rechercher}}" id="in_searchEqlogic" />
+    <legend><i class="fas fa-robot"></i> {{Mes iRobots}}</legend>
+    <div class="input-group" style="margin:5px;">
+      <input class="form-control roundedLeft" placeholder="{{Rechercher}}" id="in_searchEqlogic" />
+      <div class="input-group-btn">
+        <a id="bt_resetSearch" class="btn" style="width:30px"><i class="fas fa-times"></i>
+        </a><a class="btn roundedRight hidden" id="bt_pluginDisplayAsTable" data-coreSupport="1" data-state="0"><i class="fas fa-grip-lines"></i></a>
+      </div>
+    </div>
     <div class="eqLogicThumbnailContainer">
       <?php
       foreach ($eqLogics as $eqLogic) {
         $opacity = ($eqLogic->getIsEnable()) ? '' : 'disableCard';
         echo '<div class="eqLogicDisplayCard cursor ' . $opacity . '" data-eqLogic_id="' . $eqLogic->getId() . '">';
-        echo '<img src="' . $plugin->getPathImgIcon() . '"/>';
-        echo '<br>';
+        echo '<img src="' . $eqLogic->getImage() . '">';
+        echo "<br>";
         echo '<span class="name">' . $eqLogic->getHumanName(true, true) . '</span>';
+        echo '<span class="hidden hiddenAsCard displayTableRight">';
+        echo $eqLogic->getConfiguration('deviceType') . ' | ' . $eqLogic->getConfiguration('modelId') . ' | ';
+        echo ($eqLogic->getIsVisible() == 1) ? '<i class="fas fa-eye" title="{{Equipement visible}}"></i>' : '<i class="fas fa-eye-slash" title="{{Equipement non visible}}"></i>';
+        echo '</span>';
         echo '</div>';
       }
       ?>
@@ -110,50 +130,6 @@ $eqLogics = eqLogic::byType($plugin->getId());
                 <textarea class="eqLogicAttr form-control" data-l1key="configuration" data-l2key="commentaire"></textarea>
               </div>
             </div>
-
-            <div id="roomba_ip" class="form-group">
-              <label class="col-sm-3 control-label">{{Adresse IP du Roomba}}</label>
-              <div class="col-sm-3">
-                <input type="text" class="eqLogicAttr configuration form-control" id="roomba_ip_input" data-l1key="configuration" data-l2key="roomba_ip" placeholder="exemple 192.168.0.77" />
-              </div>
-            </div>
-
-            <div id="username" class="form-group">
-              <label class="col-sm-3 control-label">{{Identifiant du Roomba}}</label>
-              <div class="col-sm-3">
-                <input type="text" class="eqLogicAttr configuration form-control" id="username_input" data-l1key="configuration" data-l2key="username" />
-              </div>
-            </div>
-
-            <div id="password" class="form-group">
-              <label class="col-sm-3 control-label">{{Mot de passe}}</label>
-              <div class="col-sm-3">
-                <input type="password" class="eqLogicAttr configuration form-control" id="password_input" data-l1key="configuration" data-l2key="password" />
-              </div>
-              <div class="col-lg-2">
-                <a class="btn btn-info bt_getPassword" id="bt_getPassword"><i class='fas fa-qrcode'></i> {{Récupérer le mot de passe}}</a>
-              </div>
-            </div>
-
-            <div class="form-group">
-              <label class="col-sm-3 control-label">{{Auto-actualisation (cron)}}</label>
-              <div class="col-sm-3">
-                <input type="checkbox" class="eqLogicAttr" data-label-text="{{Activer}}" data-l1key="configuration" data-l2key="cron_isEnable" checked />
-              </div>
-            </div>
-            <div class="form-group">
-              <label class="col-sm-3 control-label"></label>
-              <div class="col-sm-3">
-                <div class="input-group">
-                  <input type="text" class="eqLogicAttr form-control" data-l1key="configuration" data-l2key="autorefresh" placeholder="{{Auto-actualisation (cron)}}" />
-                  <span class="input-group-btn">
-                    <a class="btn btn-default cursor jeeHelper" data-helper="cron">
-                      <i class="fas fa-question-circle"></i>
-                    </a>
-                  </span>
-                </div>
-              </div>
-            </div>
           </fieldset>
         </form>
       </div>
@@ -175,16 +151,22 @@ $eqLogics = eqLogic::byType($plugin->getId());
     </div>
   </div>
 
-  <div id="md_modal_kroomba" title="{{Récupérer le mot de passe}}">
-    <p>
-      <span class="glyphicon glyphicon-warning-sign" style="float:left; margin:12px 12px 20px 0;"></span>
-      {{Premièrement : assurez-vous qu'aucune application mobile iRobot est connectée au Roomba.}}<br />
-      {{Assurez-vous que votre roomba est sur sa base et alimenté (LED vertes allumées).}}<br />
-      {{Puis restez appuyé sur le bouton HOME jusqu'à ce que votre roomba joue une série de sons (environ 2 secondes).}}<br />
-      {{Pour les Roomba 960, il faut rester appuyé à la fois sur HOME et SPOT.}}<br />
-      {{Relachez le bouton, votre roomba va faire clignoter son voyant WIFI.}}<br />
-      {{Puis appuyez sur "Continuer".}}
-    </p>
+  <div id="md_modal_kroomba" title="{{Découverte des robots}}">
+    <form class="form-horizontal" style="overflow:hidden !important;">
+      <div class="form-group">
+        <label class="col-sm-6 control-label">{{Identifiant (email)}}</label>
+        <div class="col-sm-6">
+          <input type="text" class="form-control" id="irobot_login" />
+        </div>
+      </div>
+
+      <div id="password" class="form-group">
+        <label class="col-sm-6 control-label">{{Mot de passe}}</label>
+        <div class="col-sm-6">
+          <input type="password" class="form-control" id="irobot_password" />
+        </div>
+      </div>
+    </form>
   </div>
 
 </div>
