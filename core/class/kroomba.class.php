@@ -200,7 +200,6 @@ class kroomba extends eqLogic {
             foreach ($message as $key => $value) {
                 log::add(__CLASS__, 'debug', "Message for roomba: {$key}");
                 $roomba = self::getRoomba($key);
-                $changed = false;
                 foreach ($value as $key => $value) {
 
                     switch ($key) {
@@ -209,8 +208,10 @@ class kroomba extends eqLogic {
                             //     $roomba->save(true);
                             //     break;
                         case 'state':
-                            log::add(__CLASS__, 'debug', "{$key}={$value}");
-                            $changed = $roomba->checkAndUpdateCmd('status', $value) || $changed;
+                            if (!in_array($value, ['Charging', 'User Docking', 'Running', 'Stopped'])) {
+                                log::add(__CLASS__, 'warning', "Unknown value for state: {$value}");
+                            }
+                            $roomba->checkAndUpdateCmd('status', $value);
                             break;
                         case 'batInfo_mName':
                             if ($roomba->getConfiguration('battery_type', 'undefined') == 'undefined') {
@@ -219,11 +220,11 @@ class kroomba extends eqLogic {
                             }
                             break;
                         case 'batPct':
-                            $changed = $roomba->checkAndUpdateCmd('battery', $value) || $changed;
+                            $roomba->checkAndUpdateCmd('battery', $value);
                             $roomba->batteryStatus($value);
                             break;
                         case 'bin_full':
-                            $changed = $roomba->checkAndUpdateCmd('binfull', $value == 'False' ? 0 : 1) || $changed;
+                            $roomba->checkAndUpdateCmd('binfull', $value == 'False' ? 0 : 1);
                             break;
                         default:
                             log::add(__CLASS__, 'debug', "Message sub-topic: {$key}={$value}");
@@ -234,8 +235,6 @@ class kroomba extends eqLogic {
         } else {
             log::add(__CLASS__, 'debug', 'Message is not for kroomba');
             return;
-        }
-        foreach ($message as $key => $value) {
         }
     }
 
