@@ -25,7 +25,7 @@ try {
   }
 
   if (init('action') == 'discover') {
-    kroomba::discoverRobots(init('login'), init('password'));
+    kroomba::discoverRobots(init('login'), init('password'), init('address'));
     ajax::success();
   } elseif (init('action') == 'delete_config') {
     $configFile = __DIR__ . '/../../data/config.ini';

@@ -150,25 +150,30 @@ $eqLogics = eqLogic::byType($plugin->getId());
       </div>
     </div>
   </div>
+</div>
 
-  <div id="md_modal_kroomba" title="{{Découverte des robots}}">
-    <form class="form-horizontal" style="overflow:hidden !important;">
-      <div class="form-group">
-        <label class="col-sm-6 control-label">{{Identifiant (email)}}</label>
-        <div class="col-sm-6">
-          <input type="text" class="form-control" id="irobot_login" />
-        </div>
+<div id="md_modal_kroomba" title="{{Découverte des robots}}">
+  <form class="form-horizontal" style="overflow:hidden !important;">
+    <div class="form-group">
+      <label class="col-sm-6 control-label">{{Identifiant}}</label>
+      <div class="col-sm-6">
+        <input type="text" class="form-control" id="irobot_login" placeholder="{{Adresse eMail iRobot}}" />
       </div>
+    </div>
 
-      <div id="password" class="form-group">
-        <label class="col-sm-6 control-label">{{Mot de passe}}</label>
-        <div class="col-sm-6">
-          <input type="password" class="form-control" id="irobot_password" />
-        </div>
+    <div id="password" class="form-group">
+      <label class="col-sm-6 control-label">{{Mot de passe}}</label>
+      <div class="col-sm-6">
+        <input type="password" class="form-control" id="irobot_password" placeholder="{{Mot de passe iRobot}}" />
       </div>
-    </form>
-  </div>
-
+    </div>
+    <div id="password" class="form-group">
+      <label class="col-sm-6 control-label help" data-help="{{uniquement nécessaire si le robot n'est pas sur le même lan que Jeedom}}">{{IP du robot (optionelle)}}</label>
+      <div class="col-sm-6">
+        <input type="text" class="form-control" id="irobot_ip" placeholder="255.255.255.255" />
+      </div>
+    </div>
+  </form>
 </div>
 
 <?php include_file('desktop', 'kroomba', 'js', 'kroomba'); ?>

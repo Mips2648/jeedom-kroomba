@@ -42,11 +42,11 @@ try {
             sleep(2);
             kroomba::deamon_start();
         } else {
-            log::add('kroomba', 'info', 'Echec de la découverte, veuillez consulter le log');
+            log::add('kroomba', 'info', 'Echec de la découverte, veuillez consulter le log du démon');
             event::add('jeedom::alert', array(
                 'level' => 'warning',
                 'page' => 'kroomba',
-                'message' => __('Echec de la découverte, veuillez consulter le log', __FILE__),
+                'message' => __('Echec de la découverte, veuillez consulter le log du démon', __FILE__),
             ));
         }
     } elseif (isset($result['msg'])) {

@@ -82,6 +82,7 @@ $('body').off('kroomba::newDevice').on('kroomba::newDevice', function (_event, _
 
 $('#md_modal_kroomba').dialog({
   autoOpen: false,
+  width: '600',
   buttons: {
     "{{Annuler}}": function () {
       $(this).dialog("close");
@@ -95,6 +96,7 @@ $('#md_modal_kroomba').dialog({
           action: "discover",
           login: $('#irobot_login').value(),
           password: $('#irobot_password').value(),
+          address: $('#irobot_ip').value(),
         },
         dataType: 'json',
         error: function (request, status, error) {
@@ -114,6 +116,9 @@ $('#md_modal_kroomba').dialog({
 });
 
 $('#bt_synckroomba').on('click', function () {
+  $('#irobot_login').val('');
+  $('#irobot_password').val('');
+  $('#irobot_ip').val('');
   $('#md_modal_kroomba').dialog('open');
   return false;
 });

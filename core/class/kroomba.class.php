@@ -166,15 +166,21 @@ class kroomba extends eqLogic {
         sleep(1);
     }
 
-    public static function discoverRobots($login, $password) {
+    public static function discoverRobots($login, $password, $address = '255.255.255.255') {
         if (empty($login) || empty($password)) {
             throw new Exception(__('Vous devez entrer votre adresse email et votre mot de passe', __FILE__));
         }
-        log::add(__CLASS__, 'info', 'Découverte des robots...');
+        if ($address == '') $address = '255.255.255.255';
+        if ($address == '255.255.255.255') {
+            log::add(__CLASS__, 'info', 'Découverte des robots sur tout le réseau...');
+        } else {
+            log::add(__CLASS__, 'info', "Découverte du robot avec l'ip {$address}");
+        }
         self::sendToDaemon(array(
             'action' => 'discover',
             'login' => $login,
-            'password' => $password
+            'password' => $password,
+            'address' => $address
         ));
     }
 

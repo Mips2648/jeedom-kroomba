@@ -76,6 +76,7 @@ class kroomba:
                     try:
                         self._get_password.login = message['login']
                         self._get_password.password = message['password']
+                        self._get_password.address = message['address']
                         result = self._get_password.get_password()
                         response = {}
                         response["discover"] = result
