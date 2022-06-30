@@ -116,8 +116,9 @@ class Password(object):
         if self.login and self.password:
             self.log.info("Getting Roomba information from iRobot aws cloud...")
             from .getcloudpassword import irobotAuth
-            iRobot = irobotAuth(self.login, self.password)
+            iRobot = irobotAuth(self.login, self.password, self.log)
             iRobot.login()
+            self.log.info("Login done, getting robots from iRobot aws cloud...")
             cloud_roombas = iRobot.get_robots()
             self.log.info("Got cloud info: {}".format(json.dumps(cloud_roombas, indent=2)))
             self.log.info("Found {} roombas defined in the cloud".format(len(cloud_roombas)))

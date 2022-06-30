@@ -48,7 +48,7 @@ class kroomba:
             _LOGGER.warning('No roomba or config file defined, please run discovery from plugin page')
             tmp = {}
             tmp["msg"] = "NO_ROOMBA"
-            self.__send_async(tmp)
+            asyncio.get_event_loop().create_task(self.__send_async(tmp))
         else:
             _LOGGER.debug(all_roombas)
             for ip in all_roombas.keys():
@@ -73,12 +73,15 @@ class kroomba:
                 return
             try:
                 if message['action'] == 'discover':
-                    self._get_password.login = message['login']
-                    self._get_password.password = message['password']
-                    result = self._get_password.get_password()
-                    response = {}
-                    response["discover"] = result
-                    await self.__send_async(response)
+                    try:
+                        self._get_password.login = message['login']
+                        self._get_password.password = message['password']
+                        result = self._get_password.get_password()
+                        response = {}
+                        response["discover"] = result
+                        await self.__send_async(response)
+                    except Exception as e:
+                        _LOGGER.error('Error during discovery: %s', e)
             except Exception as e:
                 _LOGGER.error('Send command to demon error: %s', e)
 
@@ -162,7 +165,7 @@ _apikey = args.apikey
 # jeedom_utils.set_log_level(_log_level)
 _LOGGER.setLevel(jeedom_utils.convert_log_level(_log_level))
 logging.getLogger('asyncio').setLevel(logging.WARNING)
-logging.getLogger('Roomba').setLevel(logging.INFO)
+logging.getLogger('Roomba').setLevel(jeedom_utils.convert_log_level(_log_level))
 
 signal.signal(signal.SIGINT, handler)
 signal.signal(signal.SIGTERM, handler)

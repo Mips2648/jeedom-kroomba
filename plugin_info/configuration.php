@@ -21,3 +21,31 @@ if (!isConnect()) {
     include_file('desktop', '404', 'php');
     die();
 }
+?>
+<form class="form-horizontal">
+    <fieldset>
+        <legend><i class="fas fa-wifi"></i> {{MQTT}}</legend>
+        <div class="form-group">
+            <label class="col-sm-4 control-label">{{Topic préfixe}}</label>
+            <div class="col-sm-2">
+                <input class="configKey form-control" data-l1key="topic_prefix" placeholder="kroomba" />
+            </div>
+        </div>
+        <legend><i class="fas fa-university"></i> {{Démon}}</legend>
+        <div class="form-group">
+            <label class="col-sm-4 control-label">{{Port socket interne}}</label>
+            <div class="col-sm-2">
+                <input class="configKey form-control" data-l1key="socketport" placeholder="55072" />
+            </div>
+        </div>
+        <legend><i class="fas fa-skull-crossbones"></i> {{Zone danger}}</legend>
+        <div class="form-group">
+            <label class="col-sm-4 control-label">{{Configuration robots}}</label>
+            <div class="col-sm-2">
+                <a class="btn btn-danger" id="bt_deleteConfig"><i class="fas fa-sync-alt"></i> {{Supprimer toutes les configurations connues des robots}}</a>
+            </div>
+        </div>
+    </fieldset>
+</form>
+
+<?php include_file('desktop', 'configuration', 'js', 'kroomba'); ?>

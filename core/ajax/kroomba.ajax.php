@@ -27,6 +27,16 @@ try {
   if (init('action') == 'discover') {
     kroomba::discoverRobots(init('login'), init('password'));
     ajax::success();
+  } elseif (init('action') == 'delete_config') {
+    $configFile = __DIR__ . '/../../data/config.ini';
+    if (!file_exists($configFile)) {
+      ajax::success('Le fichier n\'existe pas');
+    } elseif (unlink($configFile)) {
+      kroomba::deamon_start();
+      ajax::success();
+    } else {
+      ajax::error('Impossible de supprimer le fichier de configuration');
+    }
   }
 
   throw new Exception(__('Aucune methode correspondante à : ', __FILE__) . init('action'));

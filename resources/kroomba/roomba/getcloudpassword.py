@@ -25,6 +25,7 @@ import random
 import requests
 import time
 import urllib.parse
+import logging
 
 
 class awsRequest:
@@ -77,9 +78,13 @@ class awsRequest:
 
 
 class irobotAuth:
-    def __init__(self, username, password):
+    def __init__(self, username, password, logger=None):
         self.username = username
         self.password = password
+        if logger:
+            self._logger = logger
+        else:
+            self._logger = logging.getLogger()
 
     def login(self):
         r = requests.get("https://disc-prod.iot.irobotapi.com/v1/discover/endpoints?country_code=US")
@@ -102,9 +107,10 @@ class irobotAuth:
                 "targetEnv": "mobile",
                 }
 
+        self._logger.debug("Post accounts.login request")
         r = requests.post("https://accounts.%s/accounts.login" % self.gigyaBase, data=data)
-
         response = r.json()
+        self._logger.debug("response: %s", response)
         '''
         data = {"timestamp": int(time.time()),
                 "nonce": "%d_%d" % (int(time.time()), random.randint(0, 2147483647)),
@@ -125,9 +131,11 @@ class irobotAuth:
             }
         }
 
+        self._logger.debug("Post login request to %s with data %s", self.httpBase, data)
         r = requests.post("%s/v2/login" % self.httpBase, json=data)
 
         response = r.json()
+        self._logger.debug("response: %s", response)
         access_key = response['credentials']['AccessKeyId']
         secret_key = response['credentials']['SecretKey']
         session_token = response['credentials']['SessionToken']

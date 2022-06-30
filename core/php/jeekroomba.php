@@ -34,7 +34,12 @@ try {
     } elseif (isset($result['discover'])) {
         if ($result['discover']) {
             log::add('kroomba', 'info', 'Découverte réussie, relance du démon');
-            sleep(1);
+            event::add('jeedom::alert', array(
+                'level' => 'success',
+                'page' => 'kroomba',
+                'message' => __('Découverte réussie, relance du démon', __FILE__),
+            ));
+            sleep(2);
             kroomba::deamon_start();
         }
     } elseif (isset($result['msg'])) {

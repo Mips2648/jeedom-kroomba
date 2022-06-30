@@ -69,6 +69,17 @@ $('.pluginAction[data-action=openLocation]').on('click', function () {
   window.open($(this).attr("data-location"), "_blank", null);
 });
 
+$('body').off('kroomba::newDevice').on('kroomba::newDevice', function (_event, _options) {
+  if (modifyWithoutSave) {
+    $('#div_alert').showAlert({ message: '{{Un nouveau robot a été ajouté. Veuillez réactualiser la page}}', level: 'warning' });
+  } else {
+    $('#div_alert').showAlert({ message: '{{Un nouveau robot a été ajouté. Actualisation de la page dans 5s...}}', level: 'success' });
+    setTimeout(function () {
+      window.location.replace("index.php?v=d&m=kroomba&p=kroomba");
+    }, 5000);
+  }
+});
+
 $('#md_modal_kroomba').dialog({
   autoOpen: false,
   buttons: {

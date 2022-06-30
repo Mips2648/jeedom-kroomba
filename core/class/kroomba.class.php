@@ -170,6 +170,7 @@ class kroomba extends eqLogic {
         if (empty($login) || empty($password)) {
             throw new Exception(__('Vous devez entrer votre adresse email et votre mot de passe', __FILE__));
         }
+        log::add(__CLASS__, 'info', 'Découverte des robots...');
         self::sendToDaemon(array(
             'action' => 'discover',
             'login' => $login,
@@ -189,6 +190,8 @@ class kroomba extends eqLogic {
             $eqLogic->setName($name);
 
             $eqLogic->save();
+
+            event::add('kroomba::newDevice');
         }
         return $eqLogic;
     }
