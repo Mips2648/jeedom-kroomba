@@ -5,7 +5,8 @@
   },
   "pip3": {
     "requests": {},
-    "paho-mqtt": {}
+    "paho-mqtt": {},
+    "aiohttp": {}
   },
   "npm": {},
   "yarn": {},
