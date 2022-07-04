@@ -61,7 +61,7 @@
             }
         },
         {
-            "logicalId": "status",
+            "logicalId": "state",
             "name": "Etat",
             "type": "info",
             "subtype": "string",
@@ -74,7 +74,7 @@
             }
         },
         {
-            "logicalId": "binFull",
+            "logicalId": "bin_full",
             "name": "Bac plein",
             "type": "info",
             "subtype": "binary",
@@ -86,13 +86,26 @@
             }
         },
         {
-            "logicalId": "battery",
+            "logicalId": "bin_present",
+            "name": "Bac présent",
+            "type": "info",
+            "subtype": "binary",
+            "isVisible": 0,
+            "isHistorized": 0
+        },
+        {
+            "logicalId": "batPct",
             "name": "Batterie",
             "type": "info",
             "subtype": "numeric",
             "generic_type": "BATTERY",
             "isVisible": 0,
             "isHistorized": 0,
+            "unite": "%",
+            "configuration": {
+                "minValue": 0,
+                "maxValue": 100
+            },
             "template": {
                 "dashboard": "kroomba::battery",
                 "mobile": "kroomba::battery"

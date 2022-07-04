@@ -85,7 +85,7 @@ class kroomba extends eqLogic {
     }
 
     private static function getTopicPrefix() {
-        return config::byKey('topic_prefix', __CLASS__, 'kroomba');
+        return config::byKey('topic_prefix', __CLASS__, 'iRobot', true);
     }
 
     public static function deamon_info() {
@@ -113,8 +113,32 @@ class kroomba extends eqLogic {
         return $return;
     }
 
+    public static function preConfig_topic_prefix($value) {
+        log::add(__CLASS__, 'debug', 'preConfig_topic_prefix');
+        if (self::getTopicPrefix() != $value) {
+            self::removeMQTTTopicRegistration();
+        }
+        return $value;
+    }
+
+    public static function postConfig_topic_prefix($value) {
+        log::add(__CLASS__, 'debug', 'postConfig_topic_prefix');
+        $deamon_info = self::deamon_info();
+        if ($deamon_info['state'] === 'ok') {
+            self::deamon_start();
+        }
+    }
+
+    public static function removeMQTTTopicRegistration() {
+        $topic = self::getTopicPrefix();
+        log::add(__CLASS__, 'debug', "Stop listening to topic:'{$topic}'");
+        self::$_MQTT2::removePluginTopic($topic);
+    }
+
     public static function deamon_start() {
-        self::$_MQTT2::addPluginTopic(__CLASS__, self::getTopicPrefix());
+        $topic = self::getTopicPrefix();
+        self::$_MQTT2::addPluginTopic(__CLASS__, $topic);
+        log::add(__CLASS__, 'debug', "Listening to topic:'{$topic}'");
         self::deamon_stop();
         $deamon_info = self::deamon_info();
         if ($deamon_info['launchable'] != 'ok') {
@@ -184,6 +208,28 @@ class kroomba extends eqLogic {
         ));
     }
 
+    public function migrateCommands() {
+        /** @var cmd */
+        foreach ($this->getCmd() as $cmd) {
+
+            switch ($cmd->getLogicalId()) {
+                case 'binFull':
+                    $cmd->setLogicalId('bin_full');
+                    $cmd->save(true);
+                    break;
+                case 'status':
+                    $cmd->setLogicalId('state');
+                    $cmd->save(true);
+                    break;
+                case 'battery':
+                    $cmd->setLogicalId('batPct');
+                    $cmd->save(true);
+                    break;
+            }
+        }
+        $this->createCommands();
+    }
+
     private static function getRoomba($name) {
         $eqLogic = eqLogic::byLogicalId($name, __CLASS__);
         if (!is_object($eqLogic)) {
@@ -220,7 +266,7 @@ class kroomba extends eqLogic {
                             if (!in_array($value, ['Charging', 'User Docking', 'Running', 'Stopped'])) {
                                 log::add(__CLASS__, 'warning', "Unknown value for state: {$value}");
                             }
-                            $roomba->checkAndUpdateCmd('status', $value);
+                            $roomba->checkAndUpdateCmd('state', $value);
                             break;
                         case 'batInfo_mName':
                             if ($roomba->getConfiguration('battery_type', 'undefined') == 'undefined') {
@@ -229,11 +275,20 @@ class kroomba extends eqLogic {
                             }
                             break;
                         case 'batPct':
-                            $roomba->checkAndUpdateCmd('battery', $value);
+                            $roomba->checkAndUpdateCmd('batPct', $value);
                             $roomba->batteryStatus($value);
                             break;
                         case 'bin_full':
-                            $roomba->checkAndUpdateCmd('binfull', $value == 'False' ? 0 : 1);
+                        case 'bin_present':
+                            $roomba->checkAndUpdateCmd($key, $value == 'False' ? 0 : 1);
+                            break;
+                        case 'netinfo_addr':
+                        case 'netinfo_mask':
+                        case 'netinfo_gw':
+                        case 'netinfo_dns1':
+                        case 'netinfo_dns2':
+                            $roomba->setConfiguration($key, long2ip($value));
+                            $roomba->save(true);
                             break;
                         default:
                             log::add(__CLASS__, 'debug', "Message sub-topic: {$key}={$value}");
@@ -247,8 +302,12 @@ class kroomba extends eqLogic {
         }
     }
 
-    public function postInsert() {
+    public function createCommands() {
         $this->createCommandsFromConfigFile(__DIR__ . '/../config/commands.json', 'commands');
+    }
+
+    public function postInsert() {
+        $this->createCommands();
     }
 
     public function send_command($cmd) {
