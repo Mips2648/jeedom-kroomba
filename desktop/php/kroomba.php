@@ -137,6 +137,12 @@ $eqLogics = eqLogic::byType($plugin->getId());
                                 </div>
                             </div> -->
                             <div class="form-group">
+                                <label class="col-sm-4 control-label">{{MAC}}</label>
+                                <div class="col-sm-8">
+                                    <span class="label label-default eqLogicAttr" data-l1key="configuration" data-l2key="mac"></span>
+                                </div>
+                            </div>
+                            <div class="form-group">
                                 <label class="col-sm-4 control-label">{{IP}}</label>
                                 <div class="col-sm-8">
                                     <span class="label label-default eqLogicAttr" data-l1key="configuration" data-l2key="netinfo_addr"></span>

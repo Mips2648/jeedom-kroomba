@@ -191,6 +191,10 @@ class kroomba extends eqLogic {
     }
 
     public static function discoverRobots($login, $password, $address = '255.255.255.255') {
+        $deamon_info = self::deamon_info();
+        if ($deamon_info['state'] != 'ok') {
+            throw new RuntimeException(__('Le démon n\'est pas démarré', __FILE__));
+        }
         if (empty($login) || empty($password)) {
             throw new Exception(__('Vous devez entrer votre adresse email et votre mot de passe', __FILE__));
         }
@@ -258,10 +262,6 @@ class kroomba extends eqLogic {
                 foreach ($value as $key => $value) {
 
                     switch ($key) {
-                            // case 'mac':
-                            //     $roomba->setConfiguration($key, $value);
-                            //     $roomba->save(true);
-                            //     break;
                         case 'state':
                             if (!in_array($value, ['Charging', 'User Docking', 'Running', 'Stopped'])) {
                                 log::add(__CLASS__, 'warning', "Unknown value for state: {$value}");
@@ -287,7 +287,18 @@ class kroomba extends eqLogic {
                         case 'netinfo_gw':
                         case 'netinfo_dns1':
                         case 'netinfo_dns2':
-                            $roomba->setConfiguration($key, long2ip($value));
+                            if (filter_var($value, FILTER_VALIDATE_IP) !== false) {
+                                $roomba->setConfiguration($key, $value);
+                                $roomba->save(true);
+                            } elseif (filter_var($value, FILTER_VALIDATE_INT) !== false) {
+                                $roomba->setConfiguration($key, long2ip($value));
+                                $roomba->save(true);
+                            } else {
+                                log::add(__CLASS__, 'warning', "Unknown format: {$key}={$value}");
+                            }
+                            break;
+                        case 'mac':
+                            $roomba->setConfiguration($key, $value);
                             $roomba->save(true);
                             break;
                         default:
