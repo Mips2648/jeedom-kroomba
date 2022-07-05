@@ -105,6 +105,7 @@ $('#bt_createCommands').on('click', function () {
 $('#md_modal_kroomba').dialog({
   autoOpen: false,
   width: '600',
+  closeText: '',
   buttons: {
     "{{Annuler}}": function () {
       $(this).dialog("close");
