@@ -15,12 +15,6 @@
  * along with Jeedom. If not, see <http://www.gnu.org/licenses/>.
  */
 
-$('#bt_healthkroomba').on('click', function () {
-  $('#md_modal').dialog({ title: "{{Santé K Roomba}}" });
-  $('#md_modal').load('index.php?v=d&plugin=kroomba&modal=health').dialog('open');
-});
-
-
 $("#table_cmd").sortable({ axis: "y", cursor: "move", items: ".cmd", placeholder: "ui-state-highlight", tolerance: "intersect", forcePlaceholderSize: true });
 
 function addCmdToTable(_cmd) {
@@ -69,6 +63,11 @@ $('.pluginAction[data-action=openLocation]').on('click', function () {
   window.open($(this).attr("data-location"), "_blank", null);
 });
 
+$('#bt_healthkroomba').on('click', function () {
+  $('#md_modal').dialog({ title: "{{Santé iRobot}}" });
+  $('#md_modal').load('index.php?v=d&plugin=kroomba&modal=health').dialog('open');
+});
+
 $('body').off('kroomba::newDevice').on('kroomba::newDevice', function (_event, _options) {
   if (modifyWithoutSave) {
     $('#div_alert').showAlert({ message: '{{Un nouveau robot a été ajouté. Veuillez réactualiser la page}}', level: 'warning' });
@@ -78,6 +77,29 @@ $('body').off('kroomba::newDevice').on('kroomba::newDevice', function (_event, _
       window.location.replace("index.php?v=d&m=kroomba&p=kroomba");
     }, 5000);
   }
+});
+
+$('#bt_createCommands').on('click', function () {
+  $.ajax({
+    type: "POST",
+    url: "plugins/kroomba/core/ajax/kroomba.ajax.php",
+    data: {
+      action: "createCommands",
+      id: $('.eqLogicAttr[data-l1key=id]').value()
+    },
+    dataType: 'json',
+    error: function (request, status, error) {
+      handleAjaxError(request, status, error);
+    },
+    success: function (data) {
+      if (data.state != 'ok') {
+        $('#div_alert').showAlert({ message: data.result, level: 'danger' });
+        return;
+      }
+      $('#div_alert').showAlert({ message: '{{Opération réalisée avec succès}}', level: 'success' });
+      $('.eqLogicDisplayCard[data-eqLogic_id=' + $('.eqLogicAttr[data-l1key=id]').value() + ']').click();
+    }
+  });
 });
 
 $('#md_modal_kroomba').dialog({
@@ -120,5 +142,4 @@ $('#bt_synckroomba').on('click', function () {
   $('#irobot_password').val('');
   $('#irobot_ip').val('');
   $('#md_modal_kroomba').dialog('open');
-  return false;
 });

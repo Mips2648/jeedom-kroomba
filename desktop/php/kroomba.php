@@ -130,12 +130,12 @@ $eqLogics = eqLogic::byType($plugin->getId());
                         <div class="col-lg-4">
                             <legend><i class="fas fa-info"></i> {{Informations}}</legend>
 
-                            <!-- <div class="form-group">
+                            <div class="form-group">
                                 <label class="col-sm-4 control-label"></label>
                                 <div class="col-sm-8">
                                     <a id="bt_createCommands" class="btn btn-default"><i class="fas fa-search"></i> {{Créer les commandes manquantes}}</a>
                                 </div>
-                            </div> -->
+                            </div>
                             <div class="form-group">
                                 <label class="col-sm-4 control-label">{{MAC}}</label>
                                 <div class="col-sm-8">
@@ -218,7 +218,10 @@ $eqLogics = eqLogic::byType($plugin->getId());
             </div>
         </div>
         <div id="password" class="form-group">
-            <label class="col-sm-6 control-label help" data-help="{{uniquement nécessaire si le robot n'est pas sur le même lan que Jeedom}}">{{IP du robot (optionelle)}}</label>
+            <label class="col-sm-6 control-label">
+                {{IP du robot (optionelle)}}
+                <sup><i class="fas fa-question-circle" title="{{uniquement nécessaire si le robot n'est pas sur le même lan que Jeedom}}"></i></sup>
+            </label>
             <div class="col-sm-6">
                 <input type="text" class="form-control" id="irobot_ip" placeholder="255.255.255.255" />
             </div>

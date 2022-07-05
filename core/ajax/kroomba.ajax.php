@@ -37,6 +37,21 @@ try {
     } else {
       ajax::error('Impossible de supprimer le fichier de configuration');
     }
+  } elseif (init('action') == 'createCommands') {
+    /**
+     * @var kroomba
+     */
+    $eqLogic = eqLogic::byId(init('id'));
+    if (!is_object($eqLogic)) {
+      throw new Exception(__('kroomba eqLogic non trouvé : ', __FILE__) . init('id'));
+    }
+
+    try {
+      $eqLogic->createCommands();
+      ajax::success();
+    } catch (\Throwable $th) {
+      throw new Exception(__('Erreur lors de la création des commandes: ', __FILE__) . $th->getMessage());
+    }
   }
 
   throw new Exception(__('Aucune methode correspondante à : ', __FILE__) . init('action'));
