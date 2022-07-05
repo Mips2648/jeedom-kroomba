@@ -16,58 +16,33 @@
  */
 
 if (!isConnect('admin')) {
-     throw new Exception('401 Unauthorized');
+    throw new Exception('401 Unauthorized');
 }
-$eqLogics = kroomba::byType('kroomba');
-$cmd = 'sudo lsb_release -a';
-exec($cmd . ' 2>&1', $result);
-echo "<br><br>Version de Linux : " . implode(' ', $result);
-$cmd = 'sudo python3 --version';
-exec($cmd . ' 2>&1', $result);
-echo "<br><br>Version de Python 3 : " . implode(' ', $result);
-echo "<br><br>Version de Jeedom : " . jeedom::version();
-echo "<br><br>";
 ?>
 
 <table class="table table-condensed tablesorter" id="table_healthkroomba">
-     <thead>
-          <tr>
-               <th>{{Nom}}</th>
-               <th>{{IP}}</th>
-               <th>{{Identifiant}}</th>
-               <th>{{Mot de passe}}</th>
-               <th>{{Status}}</th>
-               <th>{{Bac plein}}</th>
-               <th>{{Batterie}}</th>
-          </tr>
-     </thead>
-     <tbody>
-          <?php
-          foreach ($eqLogics as $eqLogic) {
-               echo '<tr><td><a href="' . $eqLogic->getLinkToConfiguration() . '" style="text-decoration: none;">' . $eqLogic->getHumanName(true) . '</a></td>';
-               echo '<td><span class="label label-info" style="font-size : 1em;">' . $eqLogic->getConfiguration('roomba_ip') . '</span></td>';
-               echo '<td><span class="label label-info" style="font-size : 1em;">' . $eqLogic->getConfiguration('username') . '</span></td>';
-               echo '<td><span class="label label-info" style="font-size : 1em;">' . $eqLogic->getConfiguration('password') . '</span></td>';
-               $roombacmd = $eqLogic->getCmd('info', 'status');
-               $value = '';
-               if (is_object($roombacmd)) {
-                    $value = $roombacmd->execCmd();
-               }
-               echo '<td><span class="label label-info" style="font-size : 1em;">' . $value . '</span></td>';
-               $roombacmd = $eqLogic->getCmd('info', 'binfull');
-               $value = '';
-               if (is_object($roombacmd)) {
-                    $value = $roombacmd->execCmd() ? 'Oui' : 'Non';
-               }
-               echo '<td><span class="label label-info" style="font-size : 1em;">' . $value . '</span></td>';
-               $roombacmd = $eqLogic->getCmd('info', 'battery');
-               $value = '';
-               if (is_object($roombacmd)) {
-                    $value = $roombacmd->execCmd();
-               }
-               echo '<td><span class="label label-info" style="font-size : 1em;">' . $value . '%</span></td>';
-               echo '</tr>';
-          }
-          ?>
-     </tbody>
+    <thead>
+        <tr>
+            <th>{{Nom}}</th>
+            <th>{{MAC}}</th>
+            <th>{{IP}}</th>
+            <th>{{Status}}</th>
+            <th>{{Bac plein}}</th>
+            <th>{{Batterie}}</th>
+        </tr>
+    </thead>
+    <tbody>
+        <?php
+        /** @var kroomba */
+        foreach (kroomba::byType('kroomba', true) as $eqLogic) {
+            echo '<tr><td><a href="' . $eqLogic->getLinkToConfiguration() . '" style="text-decoration: none;">' . $eqLogic->getHumanName(true) . '</a></td>';
+            echo '<td><span class="label label-info" style="font-size : 1em;">' . $eqLogic->getConfiguration('mac') . '</span></td>';
+            echo '<td><span class="label label-info" style="font-size : 1em;">' . $eqLogic->getConfiguration('netinfo_addr') . '</span></td>';
+            echo '<td><span class="label label-info" style="font-size : 1em;">' . $eqLogic->getCmdInfoValue('state') . '</span></td>';
+            echo '<td><span class="label label-info" style="font-size : 1em;">' . $eqLogic->getCmdInfoValue('bin_full') . '</span></td>';
+            echo '<td><span class="label label-info" style="font-size : 1em;">' . $eqLogic->getCmdInfoValue('batPct') . '%</span></td>';
+            echo '</tr>';
+        }
+        ?>
+    </tbody>
 </table>
