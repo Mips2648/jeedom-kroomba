@@ -74,6 +74,14 @@
             }
         },
         {
+            "logicalId": "error_message",
+            "name": "Erreur",
+            "type": "info",
+            "subtype": "string",
+            "isVisible": 0,
+            "isHistorized": 0
+        },
+        {
             "logicalId": "bin_full",
             "name": "Bac plein",
             "type": "info",

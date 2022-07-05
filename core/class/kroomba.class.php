@@ -268,6 +268,9 @@ class kroomba extends eqLogic {
                             }
                             $roomba->checkAndUpdateCmd('state', $value);
                             break;
+                        case 'error_message':
+                            $roomba->checkAndUpdateCmd('error_message', $value == 'None' ? '' : $value);
+                            break;
                         case 'batInfo_mName':
                             if ($roomba->getConfiguration('battery_type', 'undefined') == 'undefined') {
                                 $roomba->setConfiguration('battery_type', $value);
