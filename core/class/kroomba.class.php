@@ -35,37 +35,45 @@ class kroomba extends eqLogic {
             'replace' => array("#_desktop_width_#" => "80", "#_mobile_width_#" => "50"),
             'test' => array(
                 array(
-                    'operation' => "#value# == 'Charging'", 'state_light' => "<img src='plugins/kroomba/core/img/kroomba_charge.png' title ='" . __('En charge', __FILE__) . "'>",
+                    'operation' => "true",
+                    'state_light' => "<img src='plugins/kroomba/core/img/kroomba_unknown.png' title ='" . __('Inconnu', __FILE__) . "'>",
+                    'state_dark' => "<img src='plugins/kroomba/core/img/kroomba_unknown.png' title ='" . __('Inconnu', __FILE__) . "'>"
+                ),
+                array(
+                    'operation' => "#value# == 'Charging' || #value# == 'Recharging'",
+                    'state_light' => "<img src='plugins/kroomba/core/img/kroomba_charging.png' title ='" . __('En charge', __FILE__) . "'>",
                     'state_dark' => "<img src='plugins/kroomba/core/img/kroomba_charge.png' title ='" . __('En charge', __FILE__) . "'>"
                 ),
                 array(
-                    'operation' => "#value# == 'home' || #value# == 'User Docking'", 'state_light' => "<img src='plugins/kroomba/core/img/kroomba_home.png' title ='" . __('Retour à la base', __FILE__) . "'>",
-                    'state_dark' => "<img src='plugins/kroomba/core/img/kroomba_home.png' title ='" . __('Retour à la base', __FILE__) . "'>"
-                ),
-                array(
-                    'operation' => "#value# == 'Running'", 'state_light' => "<img src='plugins/kroomba/core/img/kroomba_run.png' title ='" . __('Nettoyage', __FILE__) . "'>",
-                    'state_dark' => "<img src='plugins/kroomba/core/img/kroomba_run.png' title ='" . __('Nettoyage', __FILE__) . "'>"
-                ),
-                array(
-                    'operation' => "#value# == 'Stopped'", 'state_light' => "<img src='plugins/kroomba/core/img/kroomba_stop.png' title ='" . __('Arrété', __FILE__) . "'>",
-                    'state_dark' => "<img src='plugins/kroomba/core/img/kroomba_stop.png' title ='" . __('Arrété', __FILE__) . "'>"
-                ),
-                array(
-                    'operation' => "#value# == 'stuck'", 'state_light' => "<img src='plugins/kroomba/core/img/kroomba_stuck.png' title ='" . __('Bloqué', __FILE__) . "'>",
-                    'state_dark' => "<img src='plugins/kroomba/core/img/kroomba_stuck.png' title ='" . __('Bloqué', __FILE__) . "'>"
-                ),
-                array(
-                    'operation' => "#value# == 'Mission Completed'", 'state_light' => "<img src='plugins/kroomba/core/img/kroomba_hmPostMsn.png' title ='" . __('Tâche achevée', __FILE__) . "'>",
+                    'operation' => "#value# == 'Docking - End Mission' || #value# == 'Mission Completed'",
+                    'state_light' => "<img src='plugins/kroomba/core/img/kroomba_completed.png' title ='" . __('Tâche achevée', __FILE__) . "'>",
                     'state_dark' => "<img src='plugins/kroomba/core/img/kroomba_hmPostMsn.png' title ='" . __('Tâche achevée', __FILE__) . "'>"
                 ),
                 array(
-                    'operation' => "#value# == 'hmMidMsn'", 'state_light' => "<img src='plugins/kroomba/core/img/kroomba_hmMidMsn.png' title ='" . __('Recharge nécessaire', __FILE__) . "'>",
-                    'state_dark' => "<img src='plugins/kroomba/core/img/kroomba_hmMidMsn.png' title ='" . __('Recharge nécessaire', __FILE__) . "'>"
+                    'operation' => "#value# == 'Docking' || #value# == 'User Docking'",
+                    'state_light' => "<img src='plugins/kroomba/core/img/kroomba_docking.png' title ='" . __('Retour à la base', __FILE__) . "'>",
+                    'state_dark' => "<img src='plugins/kroomba/core/img/kroomba_home.png' title ='" . __('Retour à la base', __FILE__) . "'>"
                 ),
                 array(
-                    'operation' => "#value# == 'unknown'|| #value# == ''", 'state_light' => "<img src='plugins/kroomba/core/img/kroomba_unknown.png' title ='" . __('Inconnu', __FILE__) . "'>",
-                    'state_dark' => "<img src='plugins/kroomba/core/img/kroomba_unknown.png' title ='" . __('Inconnu', __FILE__) . "'>"
-                )
+                    'operation' => "#value# == 'Paused'",
+                    'state_light' => "<img src='plugins/kroomba/core/img/kroomba_paused.png' title ='" . __('Mis en pause', __FILE__) . "'>",
+                    'state_dark' => "<img src='plugins/kroomba/core/img/kroomba_run.png' title ='" . __('Mis en pause', __FILE__) . "'>"
+                ),
+                array(
+                    'operation' => "#value# == 'Running'",
+                    'state_light' => "<img src='plugins/kroomba/core/img/kroomba_running.png' title ='" . __('Nettoyage', __FILE__) . "'>",
+                    'state_dark' => "<img src='plugins/kroomba/core/img/kroomba_run.png' title ='" . __('Nettoyage', __FILE__) . "'>"
+                ),
+                array(
+                    'operation' => "#value# == 'Stopped'",
+                    'state_light' => "<img src='plugins/kroomba/core/img/kroomba_stopped.png' title ='" . __('Arrêté', __FILE__) . "'>",
+                    'state_dark' => "<img src='plugins/kroomba/core/img/kroomba_stop.png' title ='" . __('Arrêté', __FILE__) . "'>"
+                ),
+                array(
+                    'operation' => "#value# == 'Stuck' || #value# == 'Base Unplugged'",
+                    'state_light' => "<img src='plugins/kroomba/core/img/kroomba_stuck.png' title ='" . __('Bloqué', __FILE__) . "'>",
+                    'state_dark' => "<img src='plugins/kroomba/core/img/kroomba_stuck.png' title ='" . __('Bloqué', __FILE__) . "'>"
+                ),
             )
         );
         $return['info']['numeric']['battery'] = array(
@@ -263,7 +271,7 @@ class kroomba extends eqLogic {
 
                     switch ($key) {
                         case 'state':
-                            if (!in_array($value, ['Charging', 'User Docking', 'Running', 'Stopped', 'Mission Completed'])) {
+                            if (!in_array($value, ['Charging', 'User Docking', 'Running', 'Stopped', 'Mission Completed', 'Docking - End Mission'])) {
                                 log::add(__CLASS__, 'warning', "Unknown value for state: {$value}");
                             }
                             $roomba->checkAndUpdateCmd('state', $value);
