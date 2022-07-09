@@ -184,19 +184,22 @@ $eqLogics = eqLogic::byType($plugin->getId());
                 </form>
             </div>
             <div role="tabpanel" class="tab-pane" id="commandtab">
-                <table id="table_cmd" class="table table-bordered table-condensed">
-                    <thead>
-                        <tr>
-                            <th style="width: 50px;">#</th>
-                            <th>{{Nom}}</th>
-                            <th style="width: 100px;">{{Type}}</th>
-                            <th style="width: 300px;">{{Options}}</th>
-                            <th style="width: 150px;">{{Action}}</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                    </tbody>
-                </table>
+                <div class="table-responsive">
+                    <table id="table_cmd" class="table table-bordered table-condensed">
+                        <thead>
+                            <tr>
+                                <th>{{Nom}}</th>
+                                <th>{{Type}}</th>
+                                <th></th>
+                                <th>{{Paramètres}}</th>
+                                <th>{{Options}}</th>
+                                <th>{{Action}}</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
     </div>
