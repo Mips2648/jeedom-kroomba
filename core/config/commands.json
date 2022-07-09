@@ -118,6 +118,54 @@
                 "dashboard": "kroomba::battery",
                 "mobile": "kroomba::battery"
             }
+        },
+        {
+            "logicalId": "bbmssn_nMssn",
+            "name": "Nombre de tâches de nettoyage",
+            "type": "info",
+            "subtype": "numeric",
+            "isVisible": 0,
+            "isHistorized": 0
+        },
+        {
+            "logicalId": "bbmssn_nMssnOK",
+            "name": "Nombre de tâches réussies",
+            "type": "info",
+            "subtype": "numeric",
+            "isVisible": 0,
+            "isHistorized": 0
+        },
+        {
+            "logicalId": "bbmssn_nMssnF",
+            "name": "Nombre de tâches échouées",
+            "type": "info",
+            "subtype": "numeric",
+            "isVisible": 0,
+            "isHistorized": 0
+        },
+        {
+            "logicalId": "bbrun_nEvacs",
+            "name": "Nombre de vidages automatiques",
+            "type": "info",
+            "subtype": "numeric",
+            "isVisible": 0,
+            "isHistorized": 0
+        },
+        {
+            "logicalId": "bbrun_nScrubs",
+            "name": "Nombre de détections de saleté",
+            "type": "info",
+            "subtype": "numeric",
+            "isVisible": 0,
+            "isHistorized": 0
+        },
+        {
+            "logicalId": "bbrun_nStuck",
+            "name": "Nombre de blocages",
+            "type": "info",
+            "subtype": "numeric",
+            "isVisible": 0,
+            "isHistorized": 0
         }
     ]
 }

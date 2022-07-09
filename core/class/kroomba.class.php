@@ -312,7 +312,12 @@ class kroomba extends eqLogic {
                             $roomba->setConfiguration($key, $value);
                             $roomba->save(true);
                             break;
+                        case 'signal_rssi':
+                        case 'signal_snr':
+                        case 'signal_noise':
+                            break;
                         default:
+                            $roomba->checkAndUpdateCmd($key, $value);
                             log::add(__CLASS__, 'debug', "Message sub-topic: {$key}={$value}");
                             break;
                     }
