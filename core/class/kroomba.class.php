@@ -242,6 +242,11 @@ class kroomba extends eqLogic {
         $this->createCommands();
     }
 
+    /**
+     *
+     * @param string $name
+     * @return eqLogic
+     */
     private static function getRoomba($name) {
         $eqLogic = eqLogic::byLogicalId($name, __CLASS__);
         if (!is_object($eqLogic)) {
@@ -291,7 +296,8 @@ class kroomba extends eqLogic {
                             break;
                         case 'bin_full':
                         case 'bin_present':
-                            $roomba->checkAndUpdateCmd($key, $value == 'False' ? 0 : 1);
+                        case 'childLock':
+                            $roomba->checkAndUpdateCmd($key, $value === 'False' ? 0 : 1);
                             break;
                         case 'netinfo_addr':
                         case 'netinfo_mask':
@@ -309,7 +315,8 @@ class kroomba extends eqLogic {
                             }
                             break;
                         case 'mac':
-                            $roomba->setConfiguration($key, $value);
+                        case 'hwPartsRev_wlan0HwAddr':
+                            $roomba->setConfiguration('mac', $value);
                             $roomba->save(true);
                             break;
                         case 'signal_rssi':
@@ -317,8 +324,9 @@ class kroomba extends eqLogic {
                         case 'signal_noise':
                             break;
                         default:
-                            $roomba->checkAndUpdateCmd($key, $value);
-                            log::add(__CLASS__, 'debug', "Message sub-topic: {$key}={$value}");
+                            if (!$roomba->checkAndUpdateCmd($key, $value)) {
+                                log::add(__CLASS__, 'debug', "Message sub-topic: {$key}={$value}");
+                            }
                             break;
                     }
                 }

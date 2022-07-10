@@ -91,7 +91,8 @@
             "template": {
                 "dashboard": "kroomba::binfull",
                 "mobile": "kroomba::binfull"
-            }
+            },
+            "initialValue": 0
         },
         {
             "logicalId": "bin_present",
@@ -100,6 +101,19 @@
             "subtype": "binary",
             "isVisible": 0,
             "isHistorized": 0
+        },
+        {
+            "logicalId": "childLock",
+            "name": "Sécurité enfant",
+            "type": "info",
+            "subtype": "binary",
+            "isVisible": 0,
+            "isHistorized": 0,
+            "template": {
+                "dashboard": "core::lock",
+                "mobile": "core::lock"
+            },
+            "initialValue": 0
         },
         {
             "logicalId": "batPct",
@@ -138,6 +152,14 @@
         {
             "logicalId": "bbmssn_nMssnF",
             "name": "Nombre de tâches échouées",
+            "type": "info",
+            "subtype": "numeric",
+            "isVisible": 0,
+            "isHistorized": 0
+        },
+        {
+            "logicalId": "bbmssn_nMssnC",
+            "name": "Nombre de tâches annulées",
             "type": "info",
             "subtype": "numeric",
             "isVisible": 0,
