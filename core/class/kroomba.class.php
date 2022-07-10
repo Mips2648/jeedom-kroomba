@@ -275,12 +275,6 @@ class kroomba extends eqLogic {
                 foreach ($value as $key => $value) {
 
                     switch ($key) {
-                        case 'state':
-                            if (!in_array($value, ['Charging', 'User Docking', 'Running', 'Stopped', 'Mission Completed', 'Docking - End Mission'])) {
-                                log::add(__CLASS__, 'warning', "Unknown value for state: {$value}");
-                            }
-                            $roomba->checkAndUpdateCmd('state', $value);
-                            break;
                         case 'error_message':
                             $roomba->checkAndUpdateCmd('error_message', $value == 'None' ? '' : $value);
                             break;
