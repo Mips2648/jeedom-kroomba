@@ -174,9 +174,9 @@ $eqLogics = eqLogic::byType($plugin->getId());
                             </div>
 
                             <div class="form-group">
-                                <label class="col-sm-4 control-label">{{Commentaire}}</label>
+                                <label class="col-sm-4 control-label">{{Modèle}}</label>
                                 <div class="col-sm-8">
-                                    <textarea class="form-control eqLogicAttr autogrow" data-l1key="comment"></textarea>
+                                    <span class="label label-default eqLogicAttr" data-l1key="configuration" data-l2key="sku"></span>
                                 </div>
                             </div>
                         </div>

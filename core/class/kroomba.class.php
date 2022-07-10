@@ -313,6 +313,9 @@ class kroomba extends eqLogic {
                             $roomba->setConfiguration('mac', $value);
                             $roomba->save(true);
                             break;
+                        case 'sku':
+                            $roomba->setConfiguration($key, $value);
+                            $roomba->save(true);
                         case 'signal_rssi':
                         case 'signal_snr':
                         case 'signal_noise':
