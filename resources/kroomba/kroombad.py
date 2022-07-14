@@ -55,7 +55,7 @@ class kroomba:
                 new_roomba = Roomba(address=ip, file=self._roomba_configFile)
                 new_roomba.setup_mqtt_client(self._config.host, self._config.port, self._config.user, self._config.password, self._config.topic_prefix+'/feedback', self._config.topic_prefix+'/command', self._config.topic_prefix+'/setting')
                 new_roomba.connect()
-                _LOGGER.info("Roomba %s with ip %s connected", new_roomba.roombaName, new_roomba.address)
+                _LOGGER.info("Try to connect to iRobot %s with ip %s", new_roomba.roombaName, new_roomba.address)
                 self._roombas[new_roomba.blid] = new_roomba
 
     def disconnect_all_roombas(self):
