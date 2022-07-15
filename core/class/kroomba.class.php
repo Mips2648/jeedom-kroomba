@@ -25,7 +25,7 @@ class kroomba extends eqLogic {
     private static $_MQTT2 = 'mqtt2';
 
     protected static function getSocketPort() {
-        return config::byKey('socketport', __CLASS__, 55072);;
+        return config::byKey('socketport', __CLASS__, 55072);
     }
 
     public static function templateWidget() {
