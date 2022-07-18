@@ -61,6 +61,18 @@
             }
         },
         {
+            "logicalId": "evac",
+            "name": "Vidange",
+            "type": "action",
+            "subtype": "other",
+            "generic_type": "MODE_SET_STATE",
+            "isVisible": 1,
+            "value": "status",
+            "display": {
+                "icon": "<i class=\"fas fa-trash-restore\"><\/i>"
+            }
+        },
+        {
             "logicalId": "state",
             "name": "Etat",
             "type": "info",
