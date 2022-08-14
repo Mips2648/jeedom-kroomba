@@ -163,7 +163,7 @@ class kroomba extends eqLogic {
         $cmd .= ' --port ' . $mqttInfos['port'];
         $cmd .= ' --user "' . trim(str_replace('"', '\"', $mqttInfos['user'])) . '"';
         $cmd .= ' --password "' . trim(str_replace('"', '\"', $mqttInfos['password'])) . '"';
-        $cmd .= ' --topic_prefix "' . trim(str_replace('"', '\"', self::getTopicPrefix())) . '"';
+        $cmd .= ' --topic_prefix "' . trim(str_replace('"', '\"', $topic)) . '"';
         $cmd .= ' --socketport ' . self::getSocketPort();
         $cmd .= ' --callback ' . network::getNetworkAccess('internal', 'proto:127.0.0.1:port:comp') . '/plugins/kroomba/core/php/jeekroomba.php';
         $cmd .= ' --apikey ' . jeedom::getApiKey(__CLASS__);
