@@ -81,12 +81,12 @@ function addCmdToTable(_cmd) {
     },
     success: function (result) {
       $tr.find('.cmdAttr[data-l1key=value]').append(result);
+      $tr.setValues(_cmd, '.cmdAttr');
+      jeedom.cmd.changeType($tr, init(_cmd.subType));
+
+      $tr.find('.cmdAttr[data-l1key=type],.cmdAttr[data-l1key=subType]').prop("disabled", true);
     }
   });
-  $tr.setValues(_cmd, '.cmdAttr');
-  jeedom.cmd.changeType($tr, init(_cmd.subType));
-
-  $tr.find('.cmdAttr[data-l1key=type],.cmdAttr[data-l1key=subType]').prop("disabled", true);
 }
 
 $('.pluginAction[data-action=openLocation]').on('click', function () {
