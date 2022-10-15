@@ -1,7 +1,7 @@
 {
 	"id": "kroomba",
 	"name": "Roomba",
-	"description": "Plugin pour contrôler les aspirateurs Roomba",
+	"description": "Plugin permettant de piloter les robots aspirateurs et laveurs de sols de la marque iRobot.",
 	"licence": "AGPL",
 	"author": "Mips",
 	"require": "4.2",
@@ -14,6 +14,7 @@
 	],
 	"compatibility": [
 		"smart",
+		"atlas",
 		"rpi",
 		"diy",
 		"v4",
