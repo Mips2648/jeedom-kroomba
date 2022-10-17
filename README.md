@@ -1,6 +1,6 @@
 ![License](https://badgen.net/github/license/Mips2648/jeedom-kroomba) ![Language](https://badgen.net/badge/Language/PHP/blue)
 ![Last Commit](https://badgen.net/github/last-commit/Mips2648/jeedom-kroomba)
-![Open Issues](https://badgen.net/github/open-issues/Mips2648/jeedom-kroomba) ![Open Issues](https://badgen.net/github/open-prs/jmvedrine/kroomba)
+![Open Issues](https://badgen.net/github/open-issues/Mips2648/jeedom-kroomba) ![Open Issues](https://badgen.net/github/open-prs/Mips2648/jeedom-kroomba)
 
 # Jeedom plugin for Roomba.
 
