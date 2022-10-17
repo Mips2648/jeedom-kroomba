@@ -14,5 +14,3 @@ It was originaly created by kavod (Brice Grichy) who gave  it its name kroomba (
 Brice's Github repo is at  https://github.com/kavod/kroomba .
 
 It uses the Python library Roomba980-Python written by Nick Waterton to communicate with the robot. See https://github.com/NickWaterton/Roomba980-Python
-
-If you find a bug or want to suggest a new feature, please open an issue.
