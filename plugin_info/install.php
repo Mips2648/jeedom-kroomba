@@ -19,30 +19,24 @@
 require_once dirname(__FILE__) . '/../../../core/php/core.inc.php';
 
 function kroomba_install() {
-
+    $pluginId = 'kroomba';
+    config::save('api', config::genKey(), $pluginId);
+    config::save("api::{$pluginId}::mode", 'localhost');
+    config::save("api::{$pluginId}::restricted", 1);
 }
 
 function kroomba_update() {
-    // Remove obsolete log.
-    log::remove('kroomba_dep');
-
-    foreach (eqLogic::byType('kroomba') as $eqLogic) {
-        $cmdlogic = $eqLogic->getCmd(null, 'mission');
-        if (!is_object($cmdlogic)) continue;
-        $cmdlogic->setLogicalId('refresh');
-        $cmdlogic->save();
-    }
-
-    $dependencyInfo = kroomba::dependancy_info();
-    if (!isset($dependencyInfo['state'])) {
-        message::add('kroomba', __('Veuilez vérifier les dépendances', __FILE__));
-    } elseif ($dependencyInfo['state'] == 'nok') {
-        message::add('kroomba', __('Cette mise à jour nécessite absolument de relancer les dépendances même si elles apparaissent vertes', __FILE__));
-    }
+    $pluginId = 'kroomba';
+    config::save('api', config::genKey(), $pluginId);
+    config::save("api::{$pluginId}::mode", 'localhost');
+    config::save("api::{$pluginId}::restricted", 1);
 }
 
-function template_remove() {
+function kroomba_remove() {
+    $pluginId = 'kroomba';
+    config::remove('api', $pluginId);
+    config::remove("api::{$pluginId}::mode");
+    config::remove("api::{$pluginId}::restricted");
 
+    kroomba::removeMQTTTopicRegistration();
 }
-
-?>

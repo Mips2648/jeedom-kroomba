@@ -18,40 +18,34 @@
 require_once dirname(__FILE__) . '/../../../core/php/core.inc.php';
 include_file('core', 'authentification', 'php');
 if (!isConnect()) {
-	include_file('desktop', '404', 'php');
-	die();
+    include_file('desktop', '404', 'php');
+    die();
 }
 ?>
 <form class="form-horizontal">
-  <fieldset>
-    <div class="form-group">
-        <label class="col-lg-2 control-label">{{Découvrir les roombas}}</label>
-        <div class="col-lg-2">
-        <a class="btn btn-warning" id="bt_discover_roomba"><i class='fas fa-refresh'></i> {{Découvrir les roombas}}</a>
+    <fieldset>
+        <legend><i class="fas fa-wifi"></i> {{MQTT}}</legend>
+        <div class="form-group">
+            <label class="col-sm-4 control-label">{{Topic préfixe}}</label>
+            <div class="col-sm-2">
+                <input class="configKey form-control" data-l1key="topic_prefix" placeholder="iRobot" />
+            </div>
         </div>
-    </div>
-	</fieldset>
+        <legend><i class="fas fa-university"></i> {{Démon}}</legend>
+        <div class="form-group">
+            <label class="col-sm-4 control-label">{{Port socket interne}}</label>
+            <div class="col-sm-2">
+                <input class="configKey form-control" data-l1key="socketport" placeholder="55072" />
+            </div>
+        </div>
+        <legend><i class="fas fa-skull-crossbones"></i> {{Zone danger}}</legend>
+        <div class="form-group">
+            <label class="col-sm-4 control-label">{{Configuration robots}}</label>
+            <div class="col-sm-2">
+                <a class="btn btn-danger" id="bt_deleteConfig"><i class="fas fa-sync-alt"></i> {{Supprimer toutes les configurations connues des robots}}</a>
+            </div>
+        </div>
+    </fieldset>
 </form>
 
-<script>
-    $('#bt_discover_roomba').on('click', function () {
-        $.ajax({// fonction permettant de faire de l'ajax
-            type: "POST", // methode de transmission des données au fichier php
-            url: "plugins/kroomba/core/ajax/kroomba.ajax.php", // url du fichier php
-            data: {
-                action: "discover",
-            },
-            dataType: 'json',
-            error: function (request, status, error) {
-                handleAjaxError(request, status, error);
-            },
-            success: function (data) { // si l'appel a bien fonctionné
-                if (data.state != 'ok') {
-                    $('#div_alert').showAlert({message: data.result, level: 'danger'});
-                    return;
-                }
-                loadPage('index.php?v=d&m=kroomba&p=kroomba&saveSuccessFull=1');
-            }
-        });
-    });
-</script>
+<?php include_file('desktop', 'configuration', 'js', 'kroomba'); ?>

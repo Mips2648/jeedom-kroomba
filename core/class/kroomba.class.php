@@ -17,451 +17,317 @@
 */
 require_once dirname(__FILE__) . '/../../../../core/php/core.inc.php';
 
+require_once __DIR__ . '/../../vendor/autoload.php';
+
 class kroomba extends eqLogic {
+    use MipsEqLogicTrait;
 
-  public static $_widgetPossibility = array('custom' => true);
+    private static $_MQTT2 = 'mqtt2';
 
-	public static function templateWidget(){
-		$return = array('info' => array('string' => array(), 'numeric' => array(), 'binary' => array()));
-		$return['info']['string']['state'] = array(
-			'template' => 'tmplmultistate',
-			'replace' => array("#_desktop_width_#" => "80","#_mobile_width_#" => "50"),
-			'test' => array(
-				array('operation' => "#value# == 'charge'", 'state_light' => "<img src='plugins/kroomba/core/img/kroomba_charge.png' title ='" . __('En charge', __FILE__) . "'>",
-                        'state_dark' => "<img src='plugins/kroomba/core/img/kroomba_charge.png' title ='" . __('En charge', __FILE__) . "'>"),
-				array('operation' => "#value# == 'home' || #value# == 'hmUsrDock'",'state_light' => "<img src='plugins/kroomba/core/img/kroomba_home.png' title ='" . __('Retour à la base', __FILE__) . "'>",
-                        'state_dark' => "<img src='plugins/kroomba/core/img/kroomba_home.png' title ='" . __('Retour à la base', __FILE__) . "'>"),
-				array('operation' => "#value# == 'run'",'state_light' => "<img src='plugins/kroomba/core/img/kroomba_run.png' title ='" . __('Nettoyage', __FILE__) . "'>",
-                        'state_dark' => "<img src='plugins/kroomba/core/img/kroomba_run.png' title ='" . __('Nettoyage', __FILE__) . "'>"),
-				array('operation' => "#value# == 'stop'",'state_light' => "<img src='plugins/kroomba/core/img/kroomba_stop.png' title ='" . __('Arrété', __FILE__) . "'>",
-                        'state_dark' => "<img src='plugins/kroomba/core/img/kroomba_stop.png' title ='" . __('Arrété', __FILE__) . "'>"),
-				array('operation' => "#value# == 'stuck'",'state_light' => "<img src='plugins/kroomba/core/img/kroomba_stuck.png' title ='" . __('Bloqué', __FILE__) . "'>",
-                        'state_dark' => "<img src='plugins/kroomba/core/img/kroomba_stuck.png' title ='" . __('Bloqué', __FILE__) . "'>"),
-				array('operation' => "#value# == 'hmPostMsn'", 'state_light' => "<img src='plugins/kroomba/core/img/kroomba_hmPostMsn.png' title ='" . __('Tâche achevée', __FILE__) . "'>",
-                        'state_dark' => "<img src='plugins/kroomba/core/img/kroomba_hmPostMsn.png' title ='" . __('Tâche achevée', __FILE__) . "'>"),
-				array('operation' => "#value# == 'hmMidMsn'", 'state_light' => "<img src='plugins/kroomba/core/img/kroomba_hmMidMsn.png' title ='" . __('Recharge nécessaire', __FILE__) . "'>",
-                        'state_dark' => "<img src='plugins/kroomba/core/img/kroomba_hmMidMsn.png' title ='" . __('Recharge nécessaire', __FILE__) . "'>"),
-				array('operation' => "#value# == 'unknown'|| #value# == ''",'state_light' => "<img src='plugins/kroomba/core/img/kroomba_unknown.png' title ='" . __('Inconnu', __FILE__) . "'>",
-                        'state_dark' => "<img src='plugins/kroomba/core/img/kroomba_unknown.png' title ='" . __('Inconnu', __FILE__) . "'>")
-			)
-		);
-		$return['info']['numeric']['battery'] = array(
-			'template' => 'tmplmultistate',
-			'test' => array(
-				array('operation' => "#value# >75", 'state_light' => '<i class="icon icon_green jeedom-batterie3"></i>', 'state_dark' => '<i class="icon icon_green jeedom-batterie3"></i>'),
-				array('operation' => "#value# <= 75 && #value# > 50",'state_light' => '<i class="icon icon_green jeedom-batterie2"></i>', 'state_dark' => '<i class="icon icon_green jeedom-batterie2"></i>'),
-				array('operation' => "#value# <= 50 && #value# > 25",'state_light' => '<i class="icon icon_yellow jeedom-batterie1"></i>', 'state_dark' => '<i class="icon icon_yellow jeedom-batterie1"></i>'),
-				array('operation' => "#value# <= 25", 'state_light' => '<i class="icon icon_red jeedom-batterie0"></i>', 'state_dark' => '<i class="icon icon_red jeedom-batterie0"></i>')
-			)
-		);
-		$return['info']['binary']['binfull'] = array(
-			'template' => 'tmplicon',
-            'replace' => array('#_icon_on_#' => '<i class=\'icon icon_red maison-poubelle\'></i>','#_icon_off_#' => '<i class=\'icon icon_green fas fa-check\'></i>')
+    protected static function getSocketPort() {
+        return config::byKey('socketport', __CLASS__, 55072);
+    }
+
+    public static function templateWidget() {
+        $return = array('info' => array('string' => array()));
+        $return['info']['string']['state'] = array(
+            'template' => 'tmplmultistate',
+            'replace' => array("#_desktop_width_#" => "80", "#_mobile_width_#" => "50"),
+            'test' => array(
+                array(
+                    'operation' => "true",
+                    'state_light' => "<img src='plugins/kroomba/core/img/kroomba_unknown.png' title ='" . __('Inconnu', __FILE__) . "'>",
+                    'state_dark' => "<img src='plugins/kroomba/core/img/kroomba_unknown.png' title ='" . __('Inconnu', __FILE__) . "'>"
+                ),
+                array(
+                    'operation' => "#value# == 'Charging' || #value# == 'Recharging'",
+                    'state_light' => "<img src='plugins/kroomba/core/img/kroomba_charging.png' title ='" . __('En charge', __FILE__) . "'>",
+                    'state_dark' => "<img src='plugins/kroomba/core/img/kroomba_charging.png' title ='" . __('En charge', __FILE__) . "'>"
+                ),
+                array(
+                    'operation' => "#value# == 'Docking - End Mission' || #value# == 'Mission Completed'",
+                    'state_light' => "<img src='plugins/kroomba/core/img/kroomba_completed.png' title ='" . __('Tâche achevée', __FILE__) . "'>",
+                    'state_dark' => "<img src='plugins/kroomba/core/img/kroomba_completed.png' title ='" . __('Tâche achevée', __FILE__) . "'>"
+                ),
+                array(
+                    'operation' => "#value# == 'Docking' || #value# == 'User Docking'",
+                    'state_light' => "<img src='plugins/kroomba/core/img/kroomba_docking.png' title ='" . __('Retour à la base', __FILE__) . "'>",
+                    'state_dark' => "<img src='plugins/kroomba/core/img/kroomba_docking.png' title ='" . __('Retour à la base', __FILE__) . "'>"
+                ),
+                array(
+                    'operation' => "#value# == 'Paused'",
+                    'state_light' => "<img src='plugins/kroomba/core/img/kroomba_paused.png' title ='" . __('Mis en pause', __FILE__) . "'>",
+                    'state_dark' => "<img src='plugins/kroomba/core/img/kroomba_paused.png' title ='" . __('Mis en pause', __FILE__) . "'>"
+                ),
+                array(
+                    'operation' => "#value# == 'Running'",
+                    'state_light' => "<img src='plugins/kroomba/core/img/kroomba_running.png' title ='" . __('Nettoyage', __FILE__) . "'>",
+                    'state_dark' => "<img src='plugins/kroomba/core/img/kroomba_running.png' title ='" . __('Nettoyage', __FILE__) . "'>"
+                ),
+                array(
+                    'operation' => "#value# == 'Stopped'",
+                    'state_light' => "<img src='plugins/kroomba/core/img/kroomba_stopped.png' title ='" . __('Arrêté', __FILE__) . "'>",
+                    'state_dark' => "<img src='plugins/kroomba/core/img/kroomba_stopped.png' title ='" . __('Arrêté', __FILE__) . "'>"
+                ),
+                array(
+                    'operation' => "#value# == 'Stuck' || #value# == 'Base Unplugged'",
+                    'state_light' => "<img src='plugins/kroomba/core/img/kroomba_stuck.png' title ='" . __('Bloqué', __FILE__) . "'>",
+                    'state_dark' => "<img src='plugins/kroomba/core/img/kroomba_stuck.png' title ='" . __('Bloqué', __FILE__) . "'>"
+                ),
+            )
         );
-		return $return;
-	}
+        $return['info']['numeric']['battery'] = array(
+            'template' => 'tmplmultistate',
+            'test' => array(
+                array('operation' => "#value# >75", 'state_light' => '<i class="icon icon_green jeedom-batterie3"></i>', 'state_dark' => '<i class="icon icon_green jeedom-batterie3"></i>'),
+                array('operation' => "#value# <= 75 && #value# > 50", 'state_light' => '<i class="icon icon_green jeedom-batterie2"></i>', 'state_dark' => '<i class="icon icon_green jeedom-batterie2"></i>'),
+                array('operation' => "#value# <= 50 && #value# > 25", 'state_light' => '<i class="icon icon_yellow jeedom-batterie1"></i>', 'state_dark' => '<i class="icon icon_yellow jeedom-batterie1"></i>'),
+                array('operation' => "#value# <= 25", 'state_light' => '<i class="icon icon_red jeedom-batterie0"></i>', 'state_dark' => '<i class="icon icon_red jeedom-batterie0"></i>')
+            )
+        );
+        $return['info']['binary']['binfull'] = array(
+            'template' => 'tmplicon',
+            'replace' => array('#_icon_on_#' => '<i class=\'icon icon_red maison-poubelle\'></i>', '#_icon_off_#' => '<i class=\'icon icon_green fas fa-check\'></i>')
+        );
+        return $return;
+    }
 
-  public static function cron() {
-    foreach (self::byType('kroomba', true) as $kroomba) {
-      $cron_isEnable = $kroomba->getConfiguration('cron_isEnable',0);
-      $autorefresh = $kroomba->getConfiguration('autorefresh','');
-      $password = $kroomba->getConfiguration('password','');
-      if ($cron_isEnable == 1 && $password != '' && $autorefresh != '') {
-        try {
-            $c = new Cron\CronExpression(checkAndFixCron($autorefresh), new Cron\FieldFactory);
-            if ($c->isDue()) {
-                try {
-                    $kroomba->mission();
-                } catch (Exception $exc) {
-                    log::add('kroomba', 'error', __('Error in ', __FILE__) . $kroomba->getHumanName() . ' : ' . $exc->getMessage());
+    private static function getTopicPrefix() {
+        return config::byKey('topic_prefix', __CLASS__, 'iRobot', true);
+    }
+
+    public static function deamon_info() {
+        $return = array();
+        $return['log'] = __CLASS__;
+        $return['launchable'] = 'ok';
+        $return['state'] = 'nok';
+        $pid_file = jeedom::getTmpFolder(__CLASS__) . '/daemon.pid';
+        if (file_exists($pid_file)) {
+            if (@posix_getsid(trim(file_get_contents($pid_file)))) {
+                $return['state'] = 'ok';
+            } else {
+                shell_exec(system::getCmdSudo() . 'rm -rf ' . $pid_file . ' 2>&1 > /dev/null');
+            }
+        }
+        if (!class_exists(self::$_MQTT2)) {
+            $return['launchable'] = 'nok';
+            $return['launchable_message'] = __('Le plugin mqtt2 n\'est pas installé', __FILE__);
+        } else {
+            if (self::$_MQTT2::deamon_info()['state'] != 'ok') {
+                $return['launchable'] = 'nok';
+                $return['launchable_message'] = __('Le démon mqtt2 n\'est pas demarré', __FILE__);
+            }
+        }
+        return $return;
+    }
+
+    public static function preConfig_topic_prefix($value) {
+        log::add(__CLASS__, 'debug', 'preConfig_topic_prefix');
+        if (self::getTopicPrefix() != $value) {
+            self::removeMQTTTopicRegistration();
+        }
+        return $value;
+    }
+
+    public static function postConfig_topic_prefix($value) {
+        log::add(__CLASS__, 'debug', 'postConfig_topic_prefix');
+        $deamon_info = self::deamon_info();
+        if ($deamon_info['state'] === 'ok') {
+            self::deamon_start();
+        }
+    }
+
+    public static function removeMQTTTopicRegistration() {
+        $topic = self::getTopicPrefix();
+        log::add(__CLASS__, 'debug', "Stop listening to topic:'{$topic}'");
+        self::$_MQTT2::removePluginTopic($topic);
+    }
+
+    public static function deamon_start() {
+        $topic = self::getTopicPrefix();
+        self::$_MQTT2::addPluginTopic(__CLASS__, $topic);
+        log::add(__CLASS__, 'debug', "Listening to topic:'{$topic}'");
+        self::deamon_stop();
+        $deamon_info = self::deamon_info();
+        if ($deamon_info['launchable'] != 'ok') {
+            throw new Exception(__('Veuillez vérifier la configuration', __FILE__));
+        }
+        message::removeAll(__CLASS__, 'kroomba_no_robot');
+
+        $mqttInfos = self::$_MQTT2::getFormatedInfos();
+
+        $path = realpath(dirname(__FILE__) . '/../../resources/kroomba');
+        $cmd = "/usr/bin/python3 {$path}/kroombad.py";
+        $cmd .= ' --loglevel ' . log::convertLogLevel(log::getLogLevel(__CLASS__));
+        $cmd .= ' --host ' . $mqttInfos['ip'];
+        $cmd .= ' --port ' . $mqttInfos['port'];
+        $cmd .= ' --user "' . trim(str_replace('"', '\"', $mqttInfos['user'])) . '"';
+        $cmd .= ' --password "' . trim(str_replace('"', '\"', $mqttInfos['password'])) . '"';
+        $cmd .= ' --topic_prefix "' . trim(str_replace('"', '\"', $topic)) . '"';
+        $cmd .= ' --socketport ' . self::getSocketPort();
+        $cmd .= ' --callback ' . network::getNetworkAccess('internal', 'proto:127.0.0.1:port:comp') . '/plugins/kroomba/core/php/jeekroomba.php';
+        $cmd .= ' --apikey ' . jeedom::getApiKey(__CLASS__);
+        $cmd .= ' --pid ' . jeedom::getTmpFolder(__CLASS__) . '/daemon.pid';
+        log::add(__CLASS__, 'info', 'Lancement démon');
+        $result = exec($cmd . ' >> ' . log::getPathToLog(__CLASS__ . '_daemon') . ' 2>&1 &');
+        $i = 0;
+        while ($i < 10) {
+            $deamon_info = self::deamon_info();
+            if ($deamon_info['state'] == 'ok') {
+                break;
+            }
+            sleep(1);
+            $i++;
+        }
+        if ($i >= 10) {
+            log::add(__CLASS__, 'error', __('Impossible de lancer le démon', __FILE__), 'unableStartDeamon');
+            return false;
+        }
+        message::removeAll(__CLASS__, 'unableStartDeamon');
+    }
+
+    public static function deamon_stop() {
+        $pid_file = jeedom::getTmpFolder(__CLASS__) . '/daemon.pid';
+        if (file_exists($pid_file)) {
+            $pid = intval(trim(file_get_contents($pid_file)));
+            system::kill($pid);
+        }
+        sleep(1);
+        system::kill('roombad.py');
+        // system::fuserk(config::byKey('socketport', __CLASS__));
+        sleep(1);
+    }
+
+    public static function discoverRobots($login, $password, $address = '255.255.255.255') {
+        $deamon_info = self::deamon_info();
+        if ($deamon_info['state'] != 'ok') {
+            throw new RuntimeException(__('Le démon n\'est pas démarré', __FILE__));
+        }
+        if (empty($login) || empty($password)) {
+            throw new Exception(__('Vous devez entrer votre adresse email et votre mot de passe', __FILE__));
+        }
+        if ($address == '') $address = '255.255.255.255';
+        if ($address == '255.255.255.255') {
+            log::add(__CLASS__, 'info', 'Découverte des robots sur tout le réseau...');
+        } else {
+            log::add(__CLASS__, 'info', "Découverte du robot avec l'ip {$address}");
+        }
+        self::sendToDaemon(array(
+            'action' => 'discover',
+            'login' => $login,
+            'password' => $password,
+            'address' => $address
+        ));
+    }
+
+    /**
+     *
+     * @param string $name
+     * @return eqLogic
+     */
+    private static function getRoomba($name) {
+        $eqLogic = eqLogic::byLogicalId($name, __CLASS__);
+        if (!is_object($eqLogic)) {
+            log::add(__CLASS__, 'info', "Creating new roomba with logicalId={$name}");
+            $eqLogic = new self();
+            $eqLogic->setLogicalId($name);
+            $eqLogic->setEqType_name(__CLASS__);
+            $eqLogic->setIsEnable(1);
+            $eqLogic->setIsVisible(1);
+            $eqLogic->setName($name);
+
+            $eqLogic->save();
+
+            event::add('kroomba::newDevice');
+        }
+        return $eqLogic;
+    }
+
+    public static function handleMqttMessage($_message) {
+        log::add(__CLASS__, 'debug', 'handle Mqtt Message:' . json_encode($_message));
+        if (isset($_message[self::getTopicPrefix()]) && isset($_message[self::getTopicPrefix()]['feedback'])) {
+            $message = $_message[self::getTopicPrefix()]['feedback'];
+            foreach ($message as $key => $value) {
+                log::add(__CLASS__, 'debug', "Message for roomba: {$key}");
+                $roomba = self::getRoomba($key);
+                foreach ($value as $key => $value) {
+
+                    switch ($key) {
+                        case 'error_message':
+                            $roomba->checkAndUpdateCmd('error_message', $value == 'None' ? '' : $value);
+                            break;
+                        case 'batInfo_mName':
+                            if ($roomba->getConfiguration('battery_type', 'undefined') == 'undefined') {
+                                $roomba->setConfiguration('battery_type', $value);
+                                $roomba->save(true);
+                            }
+                            break;
+                        case 'batPct':
+                            $roomba->checkAndUpdateCmd('batPct', $value);
+                            $roomba->batteryStatus($value);
+                            break;
+                        case 'bin_full':
+                        case 'bin_present':
+                        case 'childLock':
+                            $roomba->checkAndUpdateCmd($key, $value === 'False' ? 0 : 1);
+                            break;
+                        case 'netinfo_addr':
+                        case 'netinfo_mask':
+                        case 'netinfo_gw':
+                        case 'netinfo_dns1':
+                        case 'netinfo_dns2':
+                            if (filter_var($value, FILTER_VALIDATE_IP) !== false) {
+                                $roomba->setConfiguration($key, $value);
+                                $roomba->save(true);
+                            } elseif (filter_var($value, FILTER_VALIDATE_INT) !== false) {
+                                $roomba->setConfiguration($key, long2ip($value));
+                                $roomba->save(true);
+                            } else {
+                                log::add(__CLASS__, 'warning', "Unknown format: {$key}={$value}");
+                            }
+                            break;
+                        case 'mac':
+                        case 'hwPartsRev_wlan0HwAddr':
+                            $roomba->setConfiguration('mac', $value);
+                            $roomba->save(true);
+                            break;
+                        case 'sku':
+                            $roomba->setConfiguration($key, $value);
+                            $roomba->save(true);
+                        case 'signal_rssi':
+                        case 'signal_snr':
+                        case 'signal_noise':
+                            break;
+                        default:
+                            if (!$roomba->checkAndUpdateCmd($key, $value)) {
+                                log::add(__CLASS__, 'debug', "Message sub-topic: {$key}={$value}");
+                            }
+                            break;
+                    }
                 }
             }
-        } catch (Exception $exc) {
-            log::add('kroomba', 'error', __('Expression cron non valide pour ', __FILE__) . $kroomba->getHumanName() . ' : ' . $autorefresh);
-        }
-      }
-    }
-  }
-
-  public function preSave() {
-		if ($this->getConfiguration('autorefresh') == '') {
-			$this->setConfiguration('autorefresh', '*/5 * * * *');
-		}
-		if ($this->getConfiguration('cron_isEnable',"initial") == 'initial') {
-			$this->setConfiguration('cron_isEnable', 1);
-		}
-  }
-
-  public function postSave() {
-    $cmdlogic = $this->getCmd(null, 'status');
-    if (!is_object($cmdlogic)) {
-      $cmdlogic = new kroombaCmd();
-      $cmdlogic->setName(__('Etat', __FILE__));
-      $cmdlogic->setEqLogic_id($this->getId());
-      $cmdlogic->setLogicalId('status');
-      $cmdlogic->setIsVisible(1);
-      $cmdlogic->setGeneric_type('MODE_STATE');
-      // On definit le template a appliquer par rapport à la version Jeedom utilisée
-      if (version_compare(jeedom::version(), '4.0.0') >= 0) {
-          $cmdlogic->setTemplate('dashboard','kroomba::state');
-          $cmdlogic->setTemplate('mobile','kroomba::state');
-      }
-      $cmdlogic->setType('info');
-      $cmdlogic->setSubType('string');
-      $cmdlogic->save();
-    }
-
-    $cmdlogic = $this->getCmd(null, 'binFull');
-    if (!is_object($cmdlogic)) {
-      $cmdlogic = new kroombaCmd();
-      $cmdlogic->setName(__('Bac plein', __FILE__));
-      $cmdlogic->setEqLogic_id($this->getId());
-      $cmdlogic->setLogicalId('binFull');
-      $cmdlogic->setIsVisible(1);
-      $cmdlogic->setGeneric_type('GENERIC_INFO');
-      // On definit le template a appliquer par rapport à la version Jeedom utilisée
-      if (version_compare(jeedom::version(), '4.0.0') >= 0) {
-          $cmdlogic->setTemplate('dashboard','kroomba::binfull');
-          $cmdlogic->setTemplate('mobile','kroomba::binfull');
-      }
-      $cmdlogic->setType('info');
-      $cmdlogic->setSubType('binary');
-      $cmdlogic->save();
-    }
-
-    $cmdlogic = $this->getCmd(null, 'battery');
-    if (!is_object($cmdlogic)) {
-      $cmdlogic = new kroombaCmd();
-      $cmdlogic->setName(__('Batterie', __FILE__));
-      $cmdlogic->setEqLogic_id($this->getId());
-      $cmdlogic->setLogicalId('battery');
-      $cmdlogic->setGeneric_type('BATTERY');
-      $cmdlogic->setIsVisible(0);
-      // On definit le template a appliquer par rapport à la version Jeedom utilisée
-      if (version_compare(jeedom::version(), '4.0.0') >= 0) {
-          $cmdlogic->setTemplate('dashboard','kroomba::battery');
-          $cmdlogic->setTemplate('mobile','kroomba::battery');
-      }
-      $cmdlogic->setType('info');
-      $cmdlogic->setSubType('numeric');
-      $cmdlogic->save();
-    }
-
-    $cmdlogic = $this->getCmd(null, 'refresh');
-    if (!is_object($cmdlogic)) {
-      $cmdlogic = new kroombaCmd();
-      $cmdlogic->setName(__('Rafraichir', __FILE__));
-      $cmdlogic->setEqLogic_id($this->getId());
-      $cmdlogic->setLogicalId('refresh');
-      $cmdlogic->setIsVisible(1);
-      $cmdlogic->setGeneric_type('GENERIC_ACTION');
-      $cmdlogic->setType('action');
-      $cmdlogic->setSubType('other');
-      $cmdlogic->save();
-    }
-
-    $cmdlogic = $this->getCmd(null, 'start');
-    if (!is_object($cmdlogic)) {
-      $cmdlogic = new kroombaCmd();
-      $cmdlogic->setName(__('Démarrer', __FILE__));
-      $cmdlogic->setEqLogic_id($this->getId());
-      $cmdlogic->setLogicalId('start');
-      $cmdlogic->setIsVisible(1);
-      $cmdlogic->setGeneric_type('MODE_SET_STATE');
-      $cmdlogic->setDisplay('icon', '<i class="fas fa-play"></i>');
-      $cmdlogic->setType('action');
-      $cmdlogic->setSubType('other');
-      $cmdlogic->save();
-    }
-
-    $cmdlogic = $this->getCmd(null, 'pause');
-    if (!is_object($cmdlogic)) {
-      $cmdlogic = new kroombaCmd();
-      $cmdlogic->setName(__('Pause', __FILE__));
-      $cmdlogic->setEqLogic_id($this->getId());
-      $cmdlogic->setLogicalId('pause');
-      $cmdlogic->setIsVisible(1);
-      $cmdlogic->setGeneric_type('MODE_SET_STATE');
-      $cmdlogic->setDisplay('icon', '<i class="fas fa-pause"></i>');
-      $cmdlogic->setType('action');
-      $cmdlogic->setSubType('other');
-      $cmdlogic->save();
-    }
-
-    $cmdlogic = $this->getCmd(null, 'resume');
-    if (!is_object($cmdlogic)) {
-      $cmdlogic = new kroombaCmd();
-      $cmdlogic->setName(__('Continuer', __FILE__));
-      $cmdlogic->setEqLogic_id($this->getId());
-      $cmdlogic->setLogicalId('resume');
-      $cmdlogic->setIsVisible(1);
-      $cmdlogic->setGeneric_type('MODE_SET_STATE');
-      $cmdlogic->setDisplay('icon', '<i class="fas fa-step-forward"></i>');
-      $cmdlogic->setType('action');
-      $cmdlogic->setSubType('other');
-      $cmdlogic->save();
-    }
-
-    $cmdlogic = $this->getCmd(null, 'stop');
-    if (!is_object($cmdlogic)) {
-      $cmdlogic = new kroombaCmd();
-      $cmdlogic->setName(__('Stop', __FILE__));
-      $cmdlogic->setEqLogic_id($this->getId());
-      $cmdlogic->setLogicalId('stop');
-      $cmdlogic->setIsVisible(1);
-      $cmdlogic->setGeneric_type('MODE_SET_STATE');
-      $cmdlogic->setDisplay('icon', '<i class="fas fa-stop"></i>');
-      $cmdlogic->setType('action');
-      $cmdlogic->setSubType('other');
-      $cmdlogic->save();
-    }
-
-    $cmdlogic = $this->getCmd(null, 'dock');
-    if (!is_object($cmdlogic)) {
-      $cmdlogic = new kroombaCmd();
-      $cmdlogic->setName(__('Base', __FILE__));
-      $cmdlogic->setEqLogic_id($this->getId());
-      $cmdlogic->setLogicalId('dock');
-      $cmdlogic->setIsVisible(1);
-      $cmdlogic->setGeneric_type('MODE_SET_STATE');
-      $cmdlogic->setDisplay('icon', '<i class="fas fa-home"></i>');
-      $cmdlogic->setType('action');
-      $cmdlogic->setSubType('other');
-      $cmdlogic->save();
-    }
-  }
-
-  public function mission() {
-    $resource_path = realpath(dirname(__FILE__) . '/../../resources');
-    $cmd = 'cd ' . $resource_path . ' && python3 roombaStatus.py "'
-      . $this->getConfiguration('roomba_ip','') . '" "'
-      . $this->getConfiguration('username','') . '" "'
-      . $this->getConfiguration('password','') . '"';
-    log::add('kroomba', 'debug', 'Mission command : ' . str_replace($this->getConfiguration('password',''),'****',$cmd));
-    if ($this->getConfiguration('roomba_ip','') == '' || $this->getConfiguration('username','') == '' || $this->getConfiguration('password','') == '') {
-        log::add('kroomba', 'error', 'Missing arguments in mission');
-        return;
-    }
-    exec($cmd . ' 2>&1',$rawResult);
-    log::add('kroomba', 'debug', 'Mission raw result : ' . print_r($rawResult, true));
-
-    $result = array();
-    foreach ($rawResult as $res) {
-        $tempo = json_decode($res, true);
-        if (json_last_error() == JSON_ERROR_NONE) {
-            if (isset($tempo['state'])) {
-                log::add('kroomba', 'debug', 'Roomba state : ' . $res);
-                $result = $tempo;
-            } else {
-                log::add('kroomba', 'debug', 'Mission result : ' . $res);
-            }
-        }
-    }
-
-    if (!isset($result['state'])) {
-        log::add('kroomba', 'debug', 'Wrong answer : ' . print_r($result,true));
-        return;
-    }
-    $changed = false;
-    if (isset($result['state']['reported']['cleanMissionStatus']['phase'])) {
-        $phase = $result['state']['reported']['cleanMissionStatus']['phase'];
-        log::add('kroomba', 'debug', 'phase : ' . $phase);
-        $changed = $this->checkAndUpdateCmd('status', $phase) || $changed;
-    }
-    if ($this->getConfiguration('battery_type', 'undefined') == 'undefined' && isset($result['state']['reported']['batInfo']['mName'])) {
-      $batteryType = $result['state']['reported']['batInfo']['mName'];
-      log::add('kroomba', 'debug', 'batteryType : ' . $batteryType);
-      $this->setConfiguration('battery_type', $batteryType);
-      $this->save(true);
-    }
-    if (isset($result['state']['reported']['batPct'])) {
-        $battery = $result['state']['reported']['batPct'];
-        log::add('kroomba', 'debug', 'battery : ' . $battery);
-        $changed = $this->checkAndUpdateCmd('battery', $battery) || $changed;
-        $this->batteryStatus($battery);
-    }
-    if (isset($result['state']['reported']['bin']['full'])) {
-        $binFull = $result['state']['reported']['bin']['full'];
-        if ($binFull == 0) {
-            $changed = $this->checkAndUpdateCmd('binfull', false) || $changed;
-            log::add('kroomba', 'debug', 'binfull : false');
         } else {
-            $changed = $this->checkAndUpdateCmd('binfull', true) || $changed;
-            log::add('kroomba', 'debug', 'binfull : true');
-        }
-    }
-    if ($changed == true) {
-        $this->refreshWidget();
-    }
-  }
-
-  public function send_command($cmd) {
-    $resource_path = realpath(dirname(__FILE__) . '/../../resources');
-    $cmd = 'cd ' . $resource_path . ' && python3 roombaCmd.py ' . $cmd . ' "'
-      . $this->getConfiguration('roomba_ip','') . '" "'
-      . $this->getConfiguration('username','') . '" "'
-      . $this->getConfiguration('password','') . '"';
-    log::add('kroomba', 'debug', 'Send command : ' . str_replace($this->getConfiguration('password',''),'****',$cmd));
-    exec($cmd . ' 2>&1',$result);
-    log::add('kroomba', 'debug', 'Send command result : ' . print_r($result, true));
-    return ;
-  }
-
-  public static function dependancy_info() {
-    $return = array();
-    $return['log'] = log::getPathToLog(__CLASS__.'_update');
-    $return['progress_file'] = jeedom::getTmpFolder(__CLASS__).'/dependance';
-    if (file_exists(jeedom::getTmpFolder(__CLASS__).'/dependance')) {
-      $return['state'] = 'in_progress';
-    } else {
-        if (exec(system::getCmdSudo() . system::get('cmd_check') . '-E "python3\-pip|python3\-setuptools" | wc -l') < 2) {
-            $return['state'] = 'nok';
-        } elseif (exec(system::getCmdSudo() . 'pip3 list | grep -E "setuptools|six|paho-mqtt" | wc -l') < 3) {
-            $return['state'] = 'nok';
-        } elseif (!file_exists(__DIR__.'/../../resources/roomba/roomba.py')) {
-            $return['state'] = 'nok';
-        } else {
-            $return['state'] = 'ok';
-        }
-    }
-    return $return;
-  }
-
-  public static function dependancy_install() {
-    log::remove(__CLASS__ . '_update');
-    return array('script' => dirname(__FILE__) . '/../../resources/install_#stype#.sh ' . jeedom::getTmpFolder(__CLASS__).'/dependance', 'log' => log::getPathToLog(__CLASS__.'_update'));
-  }
-
-  public function toHtml($_version = 'dashboard') {
-    if (version_compare(jeedom::version(), '4.0.0') >= 0) {
-       return parent::toHtml($_version);
-    }
-
-    $parameters = $this->getDisplay('parameters');
-    if (is_array($parameters)) {
-        foreach ($parameters as $key => $value) {
-            $replace['#' . $key . '#'] = $value;
+            log::add(__CLASS__, 'debug', 'Message is not for kroomba');
+            return;
         }
     }
 
-    $replace = $this->preToHtml($_version);
-    if (!is_array($replace)) {
-      return $replace;
+    public function createCommands() {
+        $this->createCommandsFromConfigFile(__DIR__ . '/../config/commands.json', 'commands');
     }
-    $version = jeedom::versionAlias($_version);
-    if ($this->getDisplay('hideOn' . $version) == 1) {
-      return '';
+
+    public function postInsert() {
+        $this->createCommands();
     }
-    $img_path = "plugins/kroomba/core/img/kroomba_";
 
-    $statusCmd = kroombaCmd::byEqLogicIdAndLogicalId($this->getId(),'status');
-    $status = $statusCmd->execCmd();
-    log::add('kroomba', 'debug', 'toHtml status : ' . $status);
-    $replace['#kroomba_ip#'] = $this->getConfiguration('roomba_ip','');
-    $replace['#phase#'] = $status;
-    switch($status)
-    {
-      case 'charge':
-        $replace['#str_phase#'] = __('En charge', __FILE__);
-        break;
-
-      case 'home':
-      case 'hmUsrDock':
-        $replace['#str_phase#'] = __('Retour à la base', __FILE__);
-        break;
-
-      case 'run':
-        $replace['#str_phase#'] = __('Nettoyage', __FILE__);
-        break;
-
-      case 'stop':
-        $replace['#str_phase#'] = __('Arrété', __FILE__);
-        break;
-
-      case 'stuck':
-        $replace['#str_phase#'] = __('Bloqué', __FILE__);
-        break;
-
-      case 'hmPostMsn':
-        $replace['#str_phase#'] = __('Tâche achevée', __FILE__);
-        break;
-
-      case 'hmMidMsn':
-        $replace['#str_phase#'] = __('Recharge nécessaire', __FILE__);
-        break;
-
-      case 'unknown':
-      default:
-        $replace['#str_phase#'] = __('Inconnu', __FILE__).$status;
-        $status = 'unknown';
-        break;
+    public function send_command($cmd) {
+        self::$_MQTT2::publish(kroomba::getTopicPrefix() . '/command/' . $this->getLogicalId(), $cmd);
     }
-    $replace['#img_phase#'] = $img_path . $status . '.png';
-
-    $cmdlogic = kroombaCmd::byEqLogicIdAndLogicalId($this->getId(),'refresh');
-    $replace['#refresh_id#'] = $cmdlogic->getId();
-    $replace['#str_refresh#'] = __('Refresh', __FILE__);
-
-    $cmdlogic = kroombaCmd::byEqLogicIdAndLogicalId($this->getId(),'start');
-    $replace['#start_id#'] = $cmdlogic->getId();
-    $replace['#str_start#'] = __('Start cleaning', __FILE__);
-
-    $cmdlogic = kroombaCmd::byEqLogicIdAndLogicalId($this->getId(),'stop');
-    $replace['#stop_id#'] = $cmdlogic->getId();
-    $replace['#str_stop#'] = __('Stop cleaning', __FILE__);
-
-    $cmdlogic = kroombaCmd::byEqLogicIdAndLogicalId($this->getId(),'dock');
-    $replace['#dock_id#'] = $cmdlogic->getId();
-    $replace['#str_dock#'] = __('Back to dock', __FILE__);
-
-    $cmdlogic = kroombaCmd::byEqLogicIdAndLogicalId($this->getId(),'resume');
-    $replace['#resume_id#'] = $cmdlogic->getId();
-    $replace['#str_resume#'] = __('Resume cleaning', __FILE__);
-
-    $cmdlogic = kroombaCmd::byEqLogicIdAndLogicalId($this->getId(),'pause');
-    $replace['#pause_id#'] = $cmdlogic->getId();
-    $replace['#str_pause#'] = __('Pause cleaning', __FILE__);
-
-    $vcolor = ($_version == 'mobile') ? 'mcmdColor' : 'cmdColor';
-		if ($this->getPrimaryCategory() == '') {
-			$replace['#cmdColor#'] = jeedom::getConfiguration('eqLogic:category:default:' . $vcolor);
-		} else {
-			$replace['#cmdColor#'] = jeedom::getConfiguration('eqLogic:category:' . $this->getPrimaryCategory() . ':' . $vcolor);
-		}
-
-    $html = $this->postToHtml($_version, template_replace($replace, getTemplate('core', $_version, 'kroomba', 'kroomba')));
-    return $html;
-  }
 }
 
 class kroombaCmd extends cmd {
-  public static $_widgetPossibility = array('custom' => true);
     public function execute($_options = null) {
-      $eqLogic = $this->getEqLogic();
-      switch ($this->getLogicalId()) {
-        case 'start':
-          $eqLogic->send_command("start");
-          sleep(4);
-          break;
-        case 'pause':
-          $eqLogic->send_command("pause");
-          sleep(4);
-          break;
-        case 'resume':
-          $eqLogic->send_command("resume");
-          sleep(4);
-          break;
-        case 'stop':
-          $eqLogic->send_command("stop");
-          sleep(4);
-          break;
-        case 'dock':
-          $eqLogic->send_command("dock");
-          sleep(8);
-          break;
-      }
-      $eqLogic->mission();
-  }
+        $eqLogic = $this->getEqLogic();
+        $eqLogic->send_command($this->getLogicalId());
+    }
 }
-
-?>

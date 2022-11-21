@@ -1,0 +1,17 @@
+{
+  "pre-install": {},
+  "apt": {
+    "python3-requests": {}
+  },
+  "pip3": {
+    "requests": {},
+    "paho-mqtt": {},
+    "aiohttp": {}
+  },
+  "npm": {},
+  "yarn": {},
+  "plugin": {
+    "mqtt2": {}
+  },
+  "post-install": {}
+}

@@ -1,0 +1,218 @@
+{
+    "commands": [
+        {
+            "logicalId": "start",
+            "name": "Démarrer",
+            "type": "action",
+            "subtype": "other",
+            "generic_type": "MODE_SET_STATE",
+            "isVisible": 1,
+            "value": "status",
+            "display": {
+                "icon": "<i class=\"fas fa-play\"><\/i>"
+            }
+        },
+        {
+            "logicalId": "stop",
+            "name": "Arrêter",
+            "type": "action",
+            "subtype": "other",
+            "generic_type": "MODE_SET_STATE",
+            "isVisible": 1,
+            "value": "status",
+            "display": {
+                "icon": "<i class=\"fas fa-stop\"><\/i>"
+            }
+        },
+        {
+            "logicalId": "pause",
+            "name": "Pause",
+            "type": "action",
+            "subtype": "other",
+            "generic_type": "MODE_SET_STATE",
+            "isVisible": 1,
+            "value": "status",
+            "display": {
+                "icon": "<i class=\"fas fa-pause\"><\/i>"
+            }
+        },
+        {
+            "logicalId": "resume",
+            "name": "Continuer",
+            "type": "action",
+            "subtype": "other",
+            "generic_type": "MODE_SET_STATE",
+            "isVisible": 1,
+            "value": "status",
+            "display": {
+                "icon": "<i class=\"fas fa-step-forward\"><\/i>"
+            }
+        },
+        {
+            "logicalId": "dock",
+            "name": "Retour à la base",
+            "type": "action",
+            "subtype": "other",
+            "generic_type": "MODE_SET_STATE",
+            "isVisible": 1,
+            "value": "status",
+            "display": {
+                "icon": "<i class=\"fas fa-home\"><\/i>"
+            }
+        },
+        {
+            "logicalId": "evac",
+            "name": "Vidange",
+            "type": "action",
+            "subtype": "other",
+            "generic_type": "MODE_SET_STATE",
+            "isVisible": 1,
+            "value": "status",
+            "display": {
+                "icon": "<i class=\"fas fa-trash-restore\"><\/i>"
+            }
+        },
+        {
+            "logicalId": "state",
+            "name": "Etat",
+            "type": "info",
+            "subtype": "string",
+            "generic_type": "MODE_STATE",
+            "isVisible": 1,
+            "isHistorized": 0,
+            "template": {
+                "dashboard": "kroomba::state",
+                "mobile": "kroomba::state"
+            }
+        },
+        {
+            "logicalId": "error_message",
+            "name": "Erreur",
+            "type": "info",
+            "subtype": "string",
+            "isVisible": 0,
+            "isHistorized": 0
+        },
+        {
+            "logicalId": "bin_full",
+            "name": "Bac plein",
+            "type": "info",
+            "subtype": "binary",
+            "isVisible": 0,
+            "isHistorized": 0,
+            "template": {
+                "dashboard": "kroomba::binfull",
+                "mobile": "kroomba::binfull"
+            },
+            "initialValue": 0
+        },
+        {
+            "logicalId": "bin_present",
+            "name": "Bac présent",
+            "type": "info",
+            "subtype": "binary",
+            "isVisible": 0,
+            "isHistorized": 0
+        },
+        {
+            "logicalId": "childLock",
+            "name": "Sécurité enfant",
+            "type": "info",
+            "subtype": "binary",
+            "isVisible": 0,
+            "isHistorized": 0,
+            "template": {
+                "dashboard": "core::lock",
+                "mobile": "core::lock"
+            },
+            "initialValue": 0
+        },
+        {
+            "logicalId": "batPct",
+            "name": "Batterie",
+            "type": "info",
+            "subtype": "numeric",
+            "generic_type": "BATTERY",
+            "isVisible": 0,
+            "isHistorized": 0,
+            "unite": "%",
+            "configuration": {
+                "minValue": 0,
+                "maxValue": 100
+            },
+            "template": {
+                "dashboard": "kroomba::battery",
+                "mobile": "kroomba::battery"
+            }
+        },
+        {
+            "logicalId": "tankLvl",
+            "name": "Réservoir",
+            "type": "info",
+            "subtype": "numeric",
+            "isVisible": 0,
+            "isHistorized": 0,
+            "unite": "%",
+            "configuration": {
+                "minValue": 0,
+                "maxValue": 100
+            }
+        },
+        {
+            "logicalId": "bbmssn_nMssn",
+            "name": "Nombre de tâches de nettoyage",
+            "type": "info",
+            "subtype": "numeric",
+            "isVisible": 0,
+            "isHistorized": 0
+        },
+        {
+            "logicalId": "bbmssn_nMssnOK",
+            "name": "Nombre de tâches réussies",
+            "type": "info",
+            "subtype": "numeric",
+            "isVisible": 0,
+            "isHistorized": 0
+        },
+        {
+            "logicalId": "bbmssn_nMssnF",
+            "name": "Nombre de tâches échouées",
+            "type": "info",
+            "subtype": "numeric",
+            "isVisible": 0,
+            "isHistorized": 0
+        },
+        {
+            "logicalId": "bbmssn_nMssnC",
+            "name": "Nombre de tâches annulées",
+            "type": "info",
+            "subtype": "numeric",
+            "isVisible": 0,
+            "isHistorized": 0
+        },
+        {
+            "logicalId": "bbrun_nEvacs",
+            "name": "Nombre de vidages automatiques",
+            "type": "info",
+            "subtype": "numeric",
+            "isVisible": 0,
+            "isHistorized": 0
+        },
+        {
+            "logicalId": "bbrun_nScrubs",
+            "name": "Nombre de détections de saleté",
+            "type": "info",
+            "subtype": "numeric",
+            "isVisible": 0,
+            "isHistorized": 0
+        },
+        {
+            "logicalId": "bbrun_nStuck",
+            "name": "Nombre de blocages",
+            "type": "info",
+            "subtype": "numeric",
+            "isVisible": 0,
+            "isHistorized": 0
+        }
+    ]
+}
