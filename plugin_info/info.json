@@ -1,7 +1,7 @@
 {
 	"id": "kroomba",
 	"name": "Roomba",
-	"description": "Plugin permettant de piloter les robots aspirateurs et laveurs de sols de la marque iRobot.",
+	"description": "Plugin permettant de piloter les robots aspirateurs (Roomba) et laveurs de sols (Braava) de la marque iRobot.",
 	"licence": "AGPL",
 	"author": "Mips",
 	"require": "4.2",
