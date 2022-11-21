@@ -146,6 +146,19 @@
             }
         },
         {
+            "logicalId": "tankLvl",
+            "name": "Réservoir",
+            "type": "info",
+            "subtype": "numeric",
+            "isVisible": 0,
+            "isHistorized": 0,
+            "unite": "%",
+            "configuration": {
+                "minValue": 0,
+                "maxValue": 100
+            }
+        },
+        {
             "logicalId": "bbmssn_nMssn",
             "name": "Nombre de tâches de nettoyage",
             "type": "info",

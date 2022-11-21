@@ -30,17 +30,6 @@ function kroomba_update() {
     config::save('api', config::genKey(), $pluginId);
     config::save("api::{$pluginId}::mode", 'localhost');
     config::save("api::{$pluginId}::restricted", 1);
-
-    try {
-        /** @var kroomba */
-        foreach (eqLogic::byType($pluginId) as $eqLogic) {
-            if (substr($eqLogic->getLogicalId(), 0, 7) == "kroomba") continue; // don't migrate old eqLogic yet
-
-            $eqLogic->migrateCommands();
-        }
-    } catch (Exception $e) {
-        log::add(__CLASS__, 'error', 'error during update:' . $e->getMessage());
-    }
 }
 
 function kroomba_remove() {

@@ -220,28 +220,6 @@ class kroomba extends eqLogic {
         ));
     }
 
-    public function migrateCommands() {
-        /** @var cmd */
-        foreach ($this->getCmd() as $cmd) {
-
-            switch ($cmd->getLogicalId()) {
-                case 'binFull':
-                    $cmd->setLogicalId('bin_full');
-                    $cmd->save(true);
-                    break;
-                case 'status':
-                    $cmd->setLogicalId('state');
-                    $cmd->save(true);
-                    break;
-                case 'battery':
-                    $cmd->setLogicalId('batPct');
-                    $cmd->save(true);
-                    break;
-            }
-        }
-        $this->createCommands();
-    }
-
     /**
      *
      * @param string $name
