@@ -223,7 +223,7 @@ class kroomba extends eqLogic {
     /**
      *
      * @param string $name
-     * @return eqLogic
+     * @return kroomba
      */
     private static function getRoomba($name) {
         $eqLogic = eqLogic::byLogicalId($name, __CLASS__);
@@ -254,7 +254,10 @@ class kroomba extends eqLogic {
 
                     switch ($key) {
                         case 'error_message':
-                            $roomba->checkAndUpdateCmd('error_message', $value == 'None' ? '' : $value);
+                            $value = ($value == 'None') ? '' : $value;
+                            if ($value != '' || $roomba->getCmdInfoValue('error_message') != '') {
+                                $roomba->checkAndUpdateCmd('error_message', $value == 'None' ? '' : $value);
+                            }
                             break;
                         case 'batInfo_mName':
                             if ($roomba->getConfiguration('battery_type', 'undefined') == 'undefined') {
@@ -300,7 +303,7 @@ class kroomba extends eqLogic {
                             break;
                         default:
                             if (!$roomba->checkAndUpdateCmd($key, $value)) {
-                                log::add(__CLASS__, 'debug', "Message sub-topic: {$key}={$value}");
+                                log::add(__CLASS__, 'debug', "Message sub-topic: {$key}=" . json_encode($value));
                             }
                             break;
                     }
@@ -327,6 +330,7 @@ class kroomba extends eqLogic {
 
 class kroombaCmd extends cmd {
     public function execute($_options = null) {
+        /** @var kroomba */
         $eqLogic = $this->getEqLogic();
         $eqLogic->send_command($this->getLogicalId());
     }

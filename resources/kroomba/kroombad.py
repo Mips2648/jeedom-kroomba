@@ -56,7 +56,7 @@ class kroomba:
                 new_roomba.setup_mqtt_client(self._config.host, self._config.port, self._config.user, self._config.password, self._config.topic_prefix+'/feedback', self._config.topic_prefix+'/command', self._config.topic_prefix+'/setting')
                 new_roomba.connect()
                 _LOGGER.info("Try to connect to iRobot %s with ip %s", new_roomba.roombaName, new_roomba.address)
-                self._roombas[new_roomba.blid] = new_roomba
+                self._roombas[new_roomba.address] = new_roomba
 
     def disconnect_all_roombas(self):
         for roomba in self._roombas.values():
@@ -84,7 +84,7 @@ class kroomba:
                     except Exception as e:
                         _LOGGER.error('Error during discovery: %s', e)
             except Exception as e:
-                _LOGGER.error('Send command to demon error: %s', e)
+                _LOGGER.error('Send command to daemon error: %s', e)
 
     async def _listen(self):
         _LOGGER.info("Start listening")
