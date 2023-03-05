@@ -248,10 +248,9 @@ class kroomba extends eqLogic {
         if (isset($_message[self::getTopicPrefix()]) && isset($_message[self::getTopicPrefix()]['feedback'])) {
             $message = $_message[self::getTopicPrefix()]['feedback'];
             foreach ($message as $key => $value) {
-                log::add(__CLASS__, 'debug', "Message for roomba: {$key}");
+                log::add(__CLASS__, 'debug', "Message for robot: {$key}");
                 $roomba = self::getRoomba($key);
                 foreach ($value as $key => $value) {
-
                     switch ($key) {
                         case 'error_message':
                             $value = ($value == 'None') ? '' : $value;
@@ -302,15 +301,17 @@ class kroomba extends eqLogic {
                         case 'signal_noise':
                             break;
                         default:
-                            if (!$roomba->checkAndUpdateCmd($key, $value)) {
-                                log::add(__CLASS__, 'debug', "Message sub-topic: {$key}=" . json_encode($value));
+                            $cmd = $roomba->getCmd('info', $key);
+                            if (!is_object($cmd)) {
+                                log::add(__CLASS__, 'debug', "ignoring sub-topic: {$key}=" . json_encode($value));
+                            } else {
+                                $roomba->checkAndUpdateCmd($cmd, $value);
                             }
-                            break;
                     }
                 }
             }
         } else {
-            log::add(__CLASS__, 'debug', 'Message is not for kroomba');
+            log::add(__CLASS__, 'warning', 'Message is not for kroomba');
             return;
         }
     }
