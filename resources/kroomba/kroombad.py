@@ -145,7 +145,7 @@ _pidfile = '/tmp/kroombad.pid'
 _apikey = ''
 _LOGGER = logging.getLogger(__name__)
 
-parser = argparse.ArgumentParser(description='kroombad Daemon for Jeedom plugin')
+parser = argparse.ArgumentParser(description='kroomba Daemon for Jeedom plugin')
 parser.add_argument("--loglevel", help="Log Level for the daemon", type=str)
 parser.add_argument("--host", help="mqtt host ip", type=str)
 parser.add_argument("--port", help="mqtt host port", type=int)

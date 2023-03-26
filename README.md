@@ -2,15 +2,15 @@
 ![Last Commit](https://badgen.net/github/last-commit/Mips2648/jeedom-kroomba)
 ![Open Issues](https://badgen.net/github/open-issues/Mips2648/jeedom-kroomba) ![Open Issues](https://badgen.net/github/open-prs/Mips2648/jeedom-kroomba)
 
-# Jeedom plugin for Roomba.
+# Jeedom plugin for iRobot
 
 <img src="plugin_info/kroomba_icon.png" align="right">
 
-This is a plugin for the Jeedom (https://www.jeedom.com) open source (https://github.com/jeedom) home automation system.
+This is a plugin for the Jeedom (<https://www.jeedom.com>) open source (<https://github.com/jeedom>) home automation system.
 
-It will permit to control the iRobot Roomba robot vacuum cleaners from your Jeedom.
+It will permit to control the iRobot Roomba & Braava robot from your Jeedom.
 
-It was originaly created by kavod (Brice Grichy) who gave  it its name kroomba (with a K as Kavod :) )
-Brice's Github repo is at  https://github.com/kavod/kroomba .
+It was originally created by kavod (Brice Grichy) who gave  it its name kroomba (with a K as Kavod :) )
+Brice's Github repo is at  <https://github.com/kavod/kroomba> .
 
-It uses the Python library Roomba980-Python written by Nick Waterton to communicate with the robot. See https://github.com/NickWaterton/Roomba980-Python
+It uses the Python library Roomba980-Python written by Nick Waterton to communicate with the robot. See <https://github.com/NickWaterton/Roomba980-Python>
