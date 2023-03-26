@@ -193,7 +193,7 @@ class kroomba extends eqLogic {
             system::kill($pid);
         }
         sleep(1);
-        system::kill('roombad.py');
+        system::kill('kroombad.py');
         // system::fuserk(config::byKey('socketport', __CLASS__));
         sleep(1);
     }
