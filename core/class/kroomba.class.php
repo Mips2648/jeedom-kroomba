@@ -223,7 +223,7 @@ class kroomba extends eqLogic {
     /**
      *
      * @param string $name
-     * @return eqLogic
+     * @return kroomba
      */
     private static function getRoomba($name) {
         $eqLogic = eqLogic::byLogicalId($name, __CLASS__);
@@ -248,13 +248,15 @@ class kroomba extends eqLogic {
         if (isset($_message[self::getTopicPrefix()]) && isset($_message[self::getTopicPrefix()]['feedback'])) {
             $message = $_message[self::getTopicPrefix()]['feedback'];
             foreach ($message as $key => $value) {
-                log::add(__CLASS__, 'debug', "Message for roomba: {$key}");
+                log::add(__CLASS__, 'debug', "Message for robot: {$key}");
                 $roomba = self::getRoomba($key);
                 foreach ($value as $key => $value) {
-
                     switch ($key) {
                         case 'error_message':
-                            $roomba->checkAndUpdateCmd('error_message', $value == 'None' ? '' : $value);
+                            $value = ($value == 'None') ? '' : $value;
+                            if ($value != '' || $roomba->getCmdInfoValue('error_message') != '') {
+                                $roomba->checkAndUpdateCmd('error_message', $value == 'None' ? '' : $value);
+                            }
                             break;
                         case 'batInfo_mName':
                             if ($roomba->getConfiguration('battery_type', 'undefined') == 'undefined') {
@@ -299,15 +301,17 @@ class kroomba extends eqLogic {
                         case 'signal_noise':
                             break;
                         default:
-                            if (!$roomba->checkAndUpdateCmd($key, $value)) {
-                                log::add(__CLASS__, 'debug', "Message sub-topic: {$key}={$value}");
+                            $cmd = $roomba->getCmd('info', $key);
+                            if (!is_object($cmd)) {
+                                log::add(__CLASS__, 'debug', "ignoring sub-topic: {$key}=" . json_encode($value));
+                            } else {
+                                $roomba->checkAndUpdateCmd($cmd, $value);
                             }
-                            break;
                     }
                 }
             }
         } else {
-            log::add(__CLASS__, 'debug', 'Message is not for kroomba');
+            log::add(__CLASS__, 'warning', 'Message is not for kroomba');
             return;
         }
     }
@@ -327,6 +331,7 @@ class kroomba extends eqLogic {
 
 class kroombaCmd extends cmd {
     public function execute($_options = null) {
+        /** @var kroomba */
         $eqLogic = $this->getEqLogic();
         $eqLogic->send_command($this->getLogicalId());
     }
