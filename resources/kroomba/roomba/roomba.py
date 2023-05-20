@@ -52,7 +52,6 @@ import sys
 import time
 import textwrap
 import io
-import configparser
 
 # Import trickery
 global HAVE_CV2
@@ -712,8 +711,8 @@ class Roomba(object):
             self.brokerFeedback = self.set_mqtt_topic(brokerFeedback)
 
     def set_mqtt_topic(self, topic, subscribe=False):
-        if self.roombaName:
-            topic = '{}/{}{}'.format(topic, self.roombaName, '/#' if subscribe else '')
+        if self.blid:
+            topic = '{}/{}{}'.format(topic, self.blid, '/#' if subscribe else '')
         return topic
 
     def setup_mqtt_client(self, broker=None,
@@ -761,7 +760,7 @@ class Roomba(object):
             self.mqttc = None
         return self.mqttc
 
-    def broker_on_connect(self, client, userdata, flags, rc):
+    def broker_on_connect(self, client: mqtt.Client, userdata, flags, rc):
         self.log.debug("Broker Connected with result code " + str(rc))
         # subscribe to roomba commands and settings messages
         if rc == 0:

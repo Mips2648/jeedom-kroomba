@@ -14,3 +14,7 @@ It was originally created by kavod (Brice Grichy) who gave  it its name kroomba 
 Brice's Github repo is at  <https://github.com/kavod/kroomba> .
 
 It uses the Python library Roomba980-Python written by Nick Waterton to communicate with the robot. See <https://github.com/NickWaterton/Roomba980-Python>
+
+Documentation: <https://mips2648.github.io/jeedom-plugins-docs/worxLandroidS>
+
+<a href="https://www.buymeacoffee.com/mips2648" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/default-orange.png" alt="Buy Me A Coffee" height="41" width="174"></a>

@@ -7,7 +7,7 @@
             "subtype": "other",
             "generic_type": "MODE_SET_STATE",
             "isVisible": 1,
-            "value": "status",
+            "value": "state",
             "display": {
                 "icon": "<i class=\"fas fa-play\"><\/i>"
             }
@@ -19,7 +19,7 @@
             "subtype": "other",
             "generic_type": "MODE_SET_STATE",
             "isVisible": 1,
-            "value": "status",
+            "value": "state",
             "display": {
                 "icon": "<i class=\"fas fa-stop\"><\/i>"
             }
@@ -31,7 +31,7 @@
             "subtype": "other",
             "generic_type": "MODE_SET_STATE",
             "isVisible": 1,
-            "value": "status",
+            "value": "state",
             "display": {
                 "icon": "<i class=\"fas fa-pause\"><\/i>"
             }
@@ -43,7 +43,7 @@
             "subtype": "other",
             "generic_type": "MODE_SET_STATE",
             "isVisible": 1,
-            "value": "status",
+            "value": "state",
             "display": {
                 "icon": "<i class=\"fas fa-step-forward\"><\/i>"
             }
@@ -55,7 +55,7 @@
             "subtype": "other",
             "generic_type": "MODE_SET_STATE",
             "isVisible": 1,
-            "value": "status",
+            "value": "state",
             "display": {
                 "icon": "<i class=\"fas fa-home\"><\/i>"
             }
@@ -67,7 +67,7 @@
             "subtype": "other",
             "generic_type": "MODE_SET_STATE",
             "isVisible": 1,
-            "value": "status",
+            "value": "state",
             "display": {
                 "icon": "<i class=\"fas fa-trash-restore\"><\/i>"
             }

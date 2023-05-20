@@ -225,12 +225,26 @@ class kroomba extends eqLogic {
      * @param string $name
      * @return kroomba
      */
-    private static function getRoomba($name) {
-        $eqLogic = eqLogic::byLogicalId($name, __CLASS__);
-        if (!is_object($eqLogic)) {
-            log::add(__CLASS__, 'info', "Creating new roomba with logicalId={$name}");
+    private static function getRoomba($blid, $name = '') {
+        $eqLogic = null;
+
+        if ($name != '') {
+            log::add(__CLASS__, 'debug', "get by name:{$name}");
+            $eqLogic = eqLogic::byLogicalId($name, __CLASS__);
+        }
+
+        if (is_object($eqLogic)) {
+            log::add(__CLASS__, 'debug', "migrate to blid:{$blid}");
+            $eqLogic->setLogicalId($blid);
+            $eqLogic->save(true);
+        } else {
+            log::add(__CLASS__, 'debug', "get by blid:{$blid}");
+            $eqLogic = eqLogic::byLogicalId($blid, __CLASS__);
+        }
+        if (!is_object($eqLogic) && $name != '') {
+            log::add(__CLASS__, 'info', "Creating new roomba with logicalId={$blid}");
             $eqLogic = new self();
-            $eqLogic->setLogicalId($name);
+            $eqLogic->setLogicalId($blid);
             $eqLogic->setEqType_name(__CLASS__);
             $eqLogic->setIsEnable(1);
             $eqLogic->setIsVisible(1);
@@ -246,11 +260,15 @@ class kroomba extends eqLogic {
     public static function handleMqttMessage($_message) {
         log::add(__CLASS__, 'debug', 'handle Mqtt Message:' . json_encode($_message));
         if (isset($_message[self::getTopicPrefix()]) && isset($_message[self::getTopicPrefix()]['feedback'])) {
-            $message = $_message[self::getTopicPrefix()]['feedback'];
-            foreach ($message as $key => $value) {
-                log::add(__CLASS__, 'debug', "Message for robot: {$key}");
-                $roomba = self::getRoomba($key);
-                foreach ($value as $key => $value) {
+            $feedback = $_message[self::getTopicPrefix()]['feedback'];
+            foreach ($feedback as $robot => $data) {
+                log::add(__CLASS__, 'debug', "Message for robot: {$robot}");
+                $roomba = self::getRoomba($robot, $data['name'] ?? '');
+                if (!$roomba) {
+                    log::add(__CLASS__, 'debug', 'no robot yet, waiting first payload');
+                    return;
+                }
+                foreach ($data as $key => $value) {
                     switch ($key) {
                         case 'error_message':
                             $value = ($value == 'None') ? '' : $value;
