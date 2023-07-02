@@ -773,14 +773,14 @@ class Roomba(object):
         # receive commands and settings from broker
         payload = msg.payload.decode("utf-8")
         if "command" in msg.topic:
-            self.log.info("Received COMMAND: {}".format(payload))
+            self.log.info("Received COMMAND from broker: {}".format(payload))
             self.send_command(payload)
         elif "setting" in msg.topic:
-            self.log.info("Received SETTING: {}".format(payload))
-            cmd = str(payload).split()
+            self.log.info("Received SETTING from broker: {}".format(payload))
+            cmd = str(payload).split(None, 1)
             self.set_preference(cmd[0], cmd[1])
         elif 'simulate' in msg.topic:
-            self.log.info('received simulate command: {}'.format(payload))
+            self.log.info('received simulate command from broker: {}'.format(payload))
             self.set_simulate(True)
             asyncio.run_coroutine_threadsafe(self.q.put(msg), self.loop)
         else:
@@ -913,17 +913,34 @@ class Roomba(object):
 
         self._send_command(myCommand)
 
+    def is_json(self, myjson):
+        try:
+            json.loads(myjson)
+        except ValueError as e:
+            return False
+        return True
+
     def _set_preference(self, preference, setting):
         self.log.info("Received SETTING: {}, {}".format(preference, setting))
-        if isinstance(setting, bool):
-            val = setting
-        elif setting.lower() == "true":
-            val = True
-        else:
-            val = False
+        try:
+            val = int(setting)
+        except ValueError:
+            try:
+                val = float(setting)
+            except ValueError:
+                val = setting
+
+        # Parse boolean string
+        if isinstance(setting, str):
+            if setting.lower() == "true":
+                val = True
+            elif setting.lower() == "false":
+                val = False
+            elif self.is_json(setting):
+                val = json.loads(setting)
         Command = {"state": {preference: val}}
         myCommand = json.dumps(Command)
-        self.log.info("Publishing Roomba {} Setting :{}s".format(self.roombaName, myCommand))
+        self.log.info(f"Publishing Roomba {self.roombaName} Setting :{myCommand}")
         self.client.publish("delta", myCommand)
 
     def _set_cleanSchedule(self, setting):

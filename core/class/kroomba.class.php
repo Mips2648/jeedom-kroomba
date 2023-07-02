@@ -22,6 +22,14 @@ require_once __DIR__ . '/../../vendor/autoload.php';
 class kroomba extends eqLogic {
     use MipsEqLogicTrait;
 
+    const CFG_MODEL_FAMILY = 'model_family';
+    const CFG_MAC = 'mac';
+    const CFG_IP_ADDR = 'netinfo_addr';
+
+    const MODEL_FAMILY_ROOMBA = 'Roomba';
+    const MODEL_FAMILY_ROOMBA_CARPET_BOOST = 'RoombaCarpetBoost';
+    const MODEL_FAMILY_BRAAVA = 'BraavaJet';
+
     private static $_MQTT2 = 'mqtt2';
 
     protected static function getSocketPort() {
@@ -222,14 +230,26 @@ class kroomba extends eqLogic {
 
     /**
      *
-     * @param string $name
+     * @param string $blid
+     * @param array $data
      * @return kroomba
      */
-    private static function getRoomba($blid, $name = '') {
+    private static function getRobot($blid, $data) {
         $eqLogic = null;
+        $name = $data['name'] ?? '';
+        if (isset($data['detectedPad'])) {
+            $robot_type = self::MODEL_FAMILY_BRAAVA;
+            log::add(__CLASS__, 'debug', "Robot is {$robot_type}");
+        } elseif (isset($data['carpetBoost']) && $data['carpetBoost'] == 1) {
+            $robot_type = self::MODEL_FAMILY_ROOMBA_CARPET_BOOST;
+            log::add(__CLASS__, 'debug', "Robot is {$robot_type}");
+        } else {
+            $robot_type = self::MODEL_FAMILY_ROOMBA;
+        }
 
         if ($name != '') {
             log::add(__CLASS__, 'debug', "get by name:{$name}");
+            /** @var kroomba */
             $eqLogic = eqLogic::byLogicalId($name, __CLASS__);
         }
 
@@ -239,6 +259,7 @@ class kroomba extends eqLogic {
             $eqLogic->save(true);
         } else {
             log::add(__CLASS__, 'debug', "get by blid:{$blid}");
+            /** @var kroomba */
             $eqLogic = eqLogic::byLogicalId($blid, __CLASS__);
         }
         if (!is_object($eqLogic) && $name != '') {
@@ -254,6 +275,11 @@ class kroomba extends eqLogic {
 
             event::add('kroomba::newDevice');
         }
+        if (is_object($eqLogic) && $eqLogic->getConfiguration(self::CFG_MODEL_FAMILY, self::MODEL_FAMILY_ROOMBA) == self::MODEL_FAMILY_ROOMBA && $robot_type != self::MODEL_FAMILY_ROOMBA) {
+            $eqLogic->setConfiguration(self::CFG_MODEL_FAMILY, $robot_type);
+            $eqLogic->save(true);
+            $eqLogic->createCommands($robot_type);
+        }
         return $eqLogic;
     }
 
@@ -263,7 +289,7 @@ class kroomba extends eqLogic {
             $feedback = $_message[self::getTopicPrefix()]['feedback'];
             foreach ($feedback as $robot => $data) {
                 log::add(__CLASS__, 'debug', "Message for robot: {$robot}");
-                $roomba = self::getRoomba($robot, $data['name'] ?? '');
+                $roomba = self::getRobot($robot, $data);
                 if (!$roomba) {
                     log::add(__CLASS__, 'debug', 'no robot yet, waiting first payload');
                     return;
@@ -291,6 +317,10 @@ class kroomba extends eqLogic {
                         case 'childLock':
                             $roomba->checkAndUpdateCmd($key, $value === 'False' ? 0 : 1);
                             break;
+                        case 'padWetness_disposable':
+                        case 'padWetness_reusable':
+                            $roomba->checkAndUpdateCmd('padWetness', $value);
+                            break;
                         case 'netinfo_addr':
                         case 'netinfo_mask':
                         case 'netinfo_gw':
@@ -308,7 +338,7 @@ class kroomba extends eqLogic {
                             break;
                         case 'mac':
                         case 'hwPartsRev_wlan0HwAddr':
-                            $roomba->setConfiguration('mac', $value);
+                            $roomba->setConfiguration(self::CFG_MAC, $value);
                             $roomba->save(true);
                             break;
                         case 'sku':
@@ -334,23 +364,76 @@ class kroomba extends eqLogic {
         }
     }
 
-    public function createCommands() {
-        $this->createCommandsFromConfigFile(__DIR__ . '/../config/commands.json', 'commands');
+    public function createCommands($commandType = '') {
+        $cmds = self::getCommandsFileContent(__DIR__ . '/../config/commands.json');
+
+        if ($commandType != '') {
+            if (array_key_exists($commandType, $cmds)) {
+                $this->createCommandsFromConfig($cmds[$commandType]);
+            }
+        } else {
+            $this->createCommandsFromConfig($cmds['common']);
+            $model_family = $this->getConfiguration(self::CFG_MODEL_FAMILY, self::MODEL_FAMILY_ROOMBA);
+            if (array_key_exists($model_family, $cmds)) {
+                $this->createCommandsFromConfig($cmds[$model_family]);
+            }
+        }
     }
 
     public function postInsert() {
         $this->createCommands();
     }
 
-    public function send_command($cmd) {
-        self::$_MQTT2::publish(kroomba::getTopicPrefix() . '/command/' . $this->getLogicalId(), $cmd);
+    public function publish_message($type, $payload) {
+        self::$_MQTT2::publish(kroomba::getTopicPrefix() . "/{$type}/" . $this->getLogicalId(), $payload);
     }
 }
 
 class kroombaCmd extends cmd {
+    public function formatValueWidget($value) {
+        switch ($this->getLogicalId()) {
+            case 'detectedPad':
+                switch ($value) {
+                    case 'reusableDry':
+                        return 'Lingette réutilisable pour le balayage à sec';
+                    case 'reusableWet':
+                        return 'Lingette réutilisable pour le lavage des sols';
+                    case 'dispDry':
+                        return 'Lingette à usage unique pour le balayage à sec';
+                    case 'dispWet':
+                        return 'Lingette à usage unique pour le lavage des sols';
+                    default:
+                        return 'Invalide';
+                }
+                // case 'state':
+                //     switch ($value) {
+                //         case 'Charging':
+                //         case 'Recharging':
+                //             return 'En charge';
+                //         default:
+                //             return 'Inconnu';
+                //     }
+            default:
+                return $value;
+        }
+    }
+
     public function execute($_options = null) {
         /** @var kroomba */
         $eqLogic = $this->getEqLogic();
-        $eqLogic->send_command($this->getLogicalId());
+
+        switch ($this->getLogicalId()) {
+            case 'set_rankOverlap':
+                $payload = 'rankOverlap ' . $_options['select'];
+                $eqLogic->publish_message('setting', $payload);
+                break;
+            case 'set_padWetness':
+                $payload = 'padWetness {"disposable": %1$s, "reusable": %1$s}';
+                $eqLogic->publish_message('setting', sprintf($payload, $_options['select']));
+                break;
+            default:
+                $eqLogic->publish_message('command', $this->getLogicalId());
+                break;
+        };
     }
 }
