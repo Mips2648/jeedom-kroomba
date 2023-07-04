@@ -50,8 +50,12 @@ class kroomba:
             tmp["msg"] = "NO_ROOMBA"
             asyncio.get_event_loop().create_task(self.__send_async(tmp))
         else:
-            _LOGGER.debug(all_roombas)
             for ip in all_roombas.keys():
+                data = all_roombas[ip]
+                if data.get('blid') in self._config.excluded_blid:
+                    _LOGGER.debug("Exclude blid: %s", data.get('blid'))
+                    continue
+
                 new_roomba = Roomba(address=ip, file=self._roomba_configFile)
                 new_roomba.setup_mqtt_client(self._config.host, self._config.port, self._config.user, self._config.password, self._config.topic_prefix+'/feedback', self._config.topic_prefix+'/command', self._config.topic_prefix+'/setting')
                 new_roomba.connect()
@@ -152,6 +156,7 @@ parser.add_argument("--port", help="mqtt host port", type=int)
 parser.add_argument("--user", help="mqtt username", type=str)
 parser.add_argument("--password", help="mqtt password", type=str)
 parser.add_argument("--topic_prefix", help="topic_prefix", type=str)
+parser.add_argument("--excluded_blid", type=str)
 parser.add_argument("--socketport", help="Socket Port", type=int)
 parser.add_argument("--callback", help="Jeedom callback url", type=str)
 parser.add_argument("--apikey", help="Plugin API Key", type=str)

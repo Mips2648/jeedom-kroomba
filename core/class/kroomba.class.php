@@ -31,6 +31,7 @@ class kroomba extends eqLogic {
     const MODEL_FAMILY_BRAAVA = 'BraavaJet';
 
     private static $_MQTT2 = 'mqtt2';
+    private static $_daemon_restart_needed = false;
 
     protected static function getSocketPort() {
         return config::byKey('socketport', __CLASS__, 55072);
@@ -156,6 +157,7 @@ class kroomba extends eqLogic {
         self::$_MQTT2::addPluginTopic(__CLASS__, $topic);
         log::add(__CLASS__, 'debug', "Listening to topic:'{$topic}'");
         self::deamon_stop();
+        self::$_daemon_restart_needed = false;
         $deamon_info = self::deamon_info();
         if ($deamon_info['launchable'] != 'ok') {
             throw new Exception(__('Veuillez vérifier la configuration', __FILE__));
@@ -163,6 +165,13 @@ class kroomba extends eqLogic {
         message::removeAll(__CLASS__, 'kroomba_no_robot');
 
         $mqttInfos = self::$_MQTT2::getFormatedInfos();
+
+        $excluded_blid = '';
+        foreach (eqLogic::byType(__CLASS__) as $eqlogic) {
+            if ($eqlogic->getIsEnable() == 0) {
+                $excluded_blid .= $eqlogic->getLogicalId() . ',';
+            }
+        }
 
         $path = realpath(dirname(__FILE__) . '/../../resources/kroomba');
         $cmd = "/usr/bin/python3 {$path}/kroombad.py";
@@ -172,6 +181,7 @@ class kroomba extends eqLogic {
         $cmd .= ' --user "' . trim(str_replace('"', '\"', $mqttInfos['user'])) . '"';
         $cmd .= ' --password "' . trim(str_replace('"', '\"', $mqttInfos['password'])) . '"';
         $cmd .= ' --topic_prefix "' . trim(str_replace('"', '\"', $topic)) . '"';
+        $cmd .= " --excluded_blid '{$excluded_blid}'";
         $cmd .= ' --socketport ' . self::getSocketPort();
         $cmd .= ' --callback ' . network::getNetworkAccess('internal', 'proto:127.0.0.1:port:comp') . '/plugins/kroomba/core/php/jeekroomba.php';
         $cmd .= ' --apikey ' . jeedom::getApiKey(__CLASS__);
@@ -382,6 +392,20 @@ class kroomba extends eqLogic {
 
     public function postInsert() {
         $this->createCommands();
+    }
+
+    public function preUpdate() {
+        if ($this->getIsEnable() != eqLogic::byId($this->getId())->getIsEnable()) {
+            log::add(__CLASS__, 'debug', "enable changed");
+            self::$_daemon_restart_needed = true;
+        }
+    }
+
+    public function postUpdate() {
+        if (self::$_daemon_restart_needed) {
+            log::add(__CLASS__, 'debug', "active eqLogic changed, restarting daemon");
+            self::executeAsync('deamon_start');
+        }
     }
 
     public function publish_message($type, $payload) {
