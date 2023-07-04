@@ -192,10 +192,10 @@ def main():
         irobot = irobotAuth(arg.login[0], arg.login[1])
         irobot.login()
         robots = irobot.get_robots()
-        logging.info("Robot ID and data: {}".format(json.dumps(robots, indent=2)))
+        logging.info("Robot ID and data: %s", json.dumps(robots, indent=2))
         if arg.maps:
             for robot in robots.keys():
-                logging.info("Robot ID {}, MAPS: {}".format(robot, json.dumps(irobot.get_maps(robot), indent=2)))
+                logging.info("Robot ID %s, MAPS: %s", robot, json.dumps(irobot.get_maps(robot), indent=2))
     else:
         logging.error("Please enter iRobot account login and password")
 

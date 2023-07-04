@@ -116,7 +116,7 @@ class icons():
         if log:
             self.log = log
         else:
-            self.log = logging.getLogger("Roomba.{}".format(__name__))
+            self.log = logging.getLogger(f"Roomba.{__name__}")
         self.angle = angle
         self.fnt = fnt
         self.size = size
@@ -160,7 +160,7 @@ class icons():
             self.icons[name] = icon
             return True
         except IOError as e:
-            self.log.warning('Error loading icon file: {} : {}'.format(filename, e))
+            self.log.warning('Error loading icon file: %s : %s', filename, e)
             self.create_default_icon(name, size)
         return False
 
@@ -181,7 +181,7 @@ class icons():
             roomba.save(output, "PNG")
             return roomba
         except Exception as e:
-            print("ERROR: {}".format(e))
+            print(f"ERROR: {e}")
             return None
 
     def draw_base_icon(self, size=None):
@@ -392,7 +392,7 @@ class Roomba(object):
         if log:
             self.log = log
         else:
-            self.log = logging.getLogger("Roomba.{}".format(roombaName if roombaName else __name__))
+            self.log = logging.getLogger(f"Roomba.{roombaName if roombaName else __name__}")
         if self.log.getEffectiveLevel() == logging.DEBUG:
             self.debug = True
         self.address = address
@@ -479,7 +479,7 @@ class Roomba(object):
         return evt.is_set()
 
     def configure_roomba(self):
-        self.log.info('configuring Roomba from file {}'.format(self.file))
+        self.log.info('configuring Roomba from file %s', self.file)
         self.roombas_config = self.get_passwd.get_roombas()
         for ip, roomba in self.roombas_config.items():
             if any([self.address == ip, self.blid == roomba['blid'], roomba['roomba_name'] == self.roombaName]):
@@ -523,7 +523,7 @@ class Roomba(object):
                 context.set_ciphers('DEFAULT@SECLEVEL=1')
                 self.client.tls_set_context(context)
             except Exception as e:
-                self.log.exception("Error setting TLS: {}".format(e))
+                self.log.exception("Error setting TLS: %s", e)
 
             # disables peer verification
             self.client.tls_insecure_set(True)
@@ -563,15 +563,14 @@ class Roomba(object):
                 await self.event_wait(self.is_connected, 1)  # wait for MQTT on_connect to fire (timeout 1 second)
             except (ConnectionRefusedError, OSError) as e:
                 if e.errno == 111:  # errno.ECONNREFUSED
-                    self.log.error('Unable to Connect to roomba {}, make sure nothing else is connected (app?), '
-                                   'as only one connection at a time is allowed'.format(self.roombaName))
+                    self.log.error('Unable to Connect to roomba %s, make sure nothing else is connected (app?), as only one connection at a time is allowed', self.roombaName)
                 elif e.errno == 113:  # errno.No Route to Host
-                    self.log.error('Unable to contact roomba {} on ip {}'.format(self.roombaName, self.address))
+                    self.log.error('Unable to contact roomba %s on ip %s', self.roombaName, self.address)
                 else:
-                    self.log.error("Connection Error: {} ".format(e))
+                    self.log.error("Connection Error: %s ", e)
 
                 await asyncio.sleep(retry_timeout)
-                self.log.error("Attempting retry Connection# {}".format(count))
+                self.log.error("Attempting retry Connection# %i", count)
 
                 count += 1
                 if count >= max_retries:
@@ -581,13 +580,12 @@ class Roomba(object):
                 self.log.error('Connection Cancelled')
                 break
             except Exception as e:
-                #self.log.error("Error: {} ".format(e))
                 self.log.exception(e)
                 if count >= max_retries:
                     break
 
         if not self.roomba_connected:
-            self.log.error("Unable to connect to {}".format(self.roombaName))
+            self.log.error("Unable to connect to %s", self.roombaName)
         return self.roomba_connected
 
     def disconnect(self):
@@ -601,22 +599,22 @@ class Roomba(object):
         #    await self.ws.cancel()
         tasks = [t for t in asyncio.Task.all_tasks() if t is not asyncio.Task.current_task()]
         [task.cancel() for task in tasks]
-        self.log.info("Cancelling {} outstanding tasks".format(len(tasks)))
+        self.log.info("Cancelling %i outstanding tasks", len(tasks))
         try:
             await asyncio.gather(*tasks, return_exceptions=True)
         except Exception as e:
-            self.log.warning("Some exception occured during cancellation:%s", e)
+            self.log.warning("Some exception occured during cancellation: %s", e)
         try:
             self.client.disconnect()
             if self.local_mqtt:
                 self.mqttc.loop_stop()
         except:
-            self.log.warning("Some exception occured during mqtt disconnect:%s", e)
-        self.log.info('{} disconnected'.format(self.roombaName))
+            self.log.warning("Some exception occured during mqtt disconnect: %s", e)
+        self.log.info('%s disconnected', self.roombaName)
 
     def connected(self, state):
         self.roomba_connected = state
-        self.publish('status', 'Online' if self.roomba_connected else 'Offline at {}'.format(time.ctime()))
+        self.publish('status', 'Online' if self.roomba_connected else f"Offline at {time.ctime()}")
 
     def on_connect(self, client, userdata, flags, rc):
         self.log.info("Roomba Connected")
@@ -625,9 +623,8 @@ class Roomba(object):
             self.client.subscribe(self.topic)
             self.client.subscribe("$SYS/#")
         else:
-            self.log.error("Connected with result code {}".format(str(rc)))
-            self.log.error("Please make sure your blid and password are "
-                           "correct for Roomba {}".format(self.roombaName))
+            self.log.error("Connected with result code %s", str(rc))
+            self.log.error("Please make sure your blid and password are correct for Roomba %s", self.roombaName)
             self.connected(False)
             self.client.disconnect()
         self.loop.call_soon_threadsafe(self.is_connected.set)
@@ -650,7 +647,7 @@ class Roomba(object):
         while True:
             try:
                 if self.q.qsize() > 0:
-                    self.log.warning('Pending event queue size is: {}'.format(self.q.qsize()))
+                    self.log.warning('Pending event queue size is: %i', self.q.qsize())
                 msg = await self.q.get()
 
                 if not self.command_q.empty():
@@ -663,7 +660,7 @@ class Roomba(object):
                 if self.pretty_print:
                     self.log.info("%-{:d}s : %s".format(self.master_indent) % (msg.topic, log_string))
                 else:
-                    self.log.info("Received Roomba Data: {}, {}".format(str(msg.topic), str(msg.payload)))
+                    self.log.info("Received Roomba Data: %s, %s", str(msg.topic), str(msg.payload))
 
                 if self.raw:
                     self.publish(msg.topic, msg.payload)
@@ -692,7 +689,7 @@ class Roomba(object):
         pass
 
     def on_subscribe(self, mosq, obj, mid, granted_qos):
-        self.log.debug("Subscribed: {} {}".format(str(mid), str(granted_qos)))
+        self.log.debug("Subscribed: %s %s", str(mid), str(granted_qos))
 
     def on_disconnect(self, mosq, obj, rc):
         self.loop.call_soon_threadsafe(self.is_connected.clear)
@@ -712,7 +709,7 @@ class Roomba(object):
 
     def set_mqtt_topic(self, topic, subscribe=False):
         if self.blid:
-            topic = '{}/{}{}'.format(topic, self.blid, '/#' if subscribe else '')
+            topic = f"{topic}/{self.blid}{'/#' if subscribe else ''}"
         return topic
 
     def setup_mqtt_client(self, broker=None,
@@ -767,28 +764,28 @@ class Roomba(object):
             client.subscribe(self.brokerCommand)
             client.subscribe(self.brokerSetting)
             client.subscribe(self.brokerCommand.replace('command', 'simulate'))
-            self.log.info('subscribed to {}, {}'.format(self.brokerCommand, self.brokerSetting))
+            self.log.info('subscribed to %s, %s', self.brokerCommand, self.brokerSetting)
 
     def broker_on_message(self, mosq, obj, msg):
         # receive commands and settings from broker
         payload = msg.payload.decode("utf-8")
         if "command" in msg.topic:
-            self.log.info("Received COMMAND from broker: {}".format(payload))
+            self.log.info("Received COMMAND from broker: %s", payload)
             self.send_command(payload)
         elif "setting" in msg.topic:
-            self.log.info("Received SETTING from broker: {}".format(payload))
+            self.log.info("Received SETTING from broker: %s", payload)
             cmd = str(payload).split(None, 1)
             self.set_preference(cmd[0], cmd[1])
         elif 'simulate' in msg.topic:
-            self.log.info('received simulate command from broker: {}'.format(payload))
+            self.log.info('received simulate command from broker: %s', payload)
             self.set_simulate(True)
             asyncio.run_coroutine_threadsafe(self.q.put(msg), self.loop)
         else:
-            self.log.warn("Unknown topic: {}".format(str(msg.topic)))
+            self.log.warn("Unknown topic: %s", str(msg.topic))
 
     def set_simulate(self, value=False):
         if self.simulation != value:
-            self.log.info('Set simulation to: {}'.format(value))
+            self.log.info('Set simulation to: %s', value)
         self.simulation = value
         if self.simulation_reset:
             self.simulation_reset.cancel()
@@ -839,7 +836,7 @@ class Roomba(object):
         {"command": "reset", "initiator": "admin", "time": 1609950197}
         {"command": "find", "initiator": "rmtApp", "time": 1612462418, "robot_id": null, "select_all": null}}}}'
         '''
-        self.log.info("Processing COMMAND: {}".format(command))
+        self.log.info("Processing COMMAND: %s", command)
         if isinstance(command, dict):
             Command = command
         else:
@@ -851,7 +848,7 @@ class Roomba(object):
         Command["time"] = self.totimestamp(datetime.datetime.now())
         Command["initiator"] = "localApp"
         myCommand = json.dumps(Command)
-        self.log.info("Sending Command: {}".format(myCommand))
+        self.log.info("Sending Command: %s", myCommand)
         self.client.publish("cmd", myCommand)
 
     def send_region_command(self, command):
@@ -875,7 +872,7 @@ class Roomba(object):
         if 'pmap_id' is not specified, the first pmap_id found in roombas list is used.
         '''
         pmaps = self.get_property('pmaps')
-        self.log.info('pmaps: {}'.format(pmaps))
+        self.log.info('pmaps: %s', pmaps)
         myCommand = {}
         if not isinstance(command, dict):
             command = json.loads(command)
@@ -921,7 +918,7 @@ class Roomba(object):
         return True
 
     def _set_preference(self, preference, setting):
-        self.log.info("Received SETTING: {}, {}".format(preference, setting))
+        self.log.info("Received SETTING: %s, %s", preference, setting)
         try:
             val = int(setting)
         except ValueError:
@@ -944,19 +941,19 @@ class Roomba(object):
         self.client.publish("delta", myCommand)
 
     def _set_cleanSchedule(self, setting):
-        self.log.info("Received Roomba {} cleanSchedule:".format(self.roombaName))
+        self.log.info("Received Roomba %s cleanSchedule:", self.roombaName)
         sched = "cleanSchedule"
         if self.is_setting("cleanSchedule2"):
             sched = "cleanSchedule2"
         Command = {"state": {sched: setting}}
         myCommand = json.dumps(Command)
-        self.log.info("Publishing Roomba {} {} : {}".format(self.roombaName, sched, myCommand))
+        self.log.info("Publishing Roomba %s %s : %s", self.roombaName, sched, myCommand)
         self.client.publish("delta", myCommand)
 
     def publish(self, topic, message):
         if self.mqttc is not None and message is not None:
-            topic = '{}/{}'.format(self.brokerFeedback, topic)
-            self.log.debug("Publishing item: {}: {}".format(topic, message))
+            topic = f"{self.brokerFeedback}/{topic}"
+            self.log.debug("Publishing item: %s: %s", topic, message)
             self.mqttc.publish(topic, message)
 
     def set_callback(self, cb=None):
@@ -973,7 +970,7 @@ class Roomba(object):
             elif len(colour) == 3:
                 colour += (255,)
         except ValueError as e:
-            self.log.error('MAP: {}'.format(e))
+            self.log.error('MAP: %s', e)
             colour = default
         return colour
 
@@ -1079,7 +1076,7 @@ class Roomba(object):
                 try:
                     self.fnt = ImageFont.truetype('FreeMono.ttf', 40)
                 except IOError as e:
-                    self.log.warning("error loading font: %s, loading default font".format(e))
+                    self.log.warning("error loading font: %s, loading default font", e)
                     self.fnt = ImageFont.load_default()
             # load icons
             self.icons.set_font(self.fnt)
@@ -1119,7 +1116,7 @@ class Roomba(object):
 
     def load_floorplan(self, filename, new_center=(0, 0), scale=None, angle=0, transparency=0.2):
         if self.base is not None:
-            self.log.info('MAP: loading floorplan: {}'.format(filename))
+            self.log.info('MAP: loading floorplan: %s', filename)
             try:
                 floorplan_tmp = Image.open(filename).convert('L')
                 floorplan_tmp = floorplan_tmp.rotate(angle, resample=Image.BICUBIC, expand=True, translate=new_center, fillcolor=255)
@@ -1134,9 +1131,9 @@ class Roomba(object):
                 if self.roombaName.lower() == 'upstairs':
                     floorplan_tmp.save('test_floorplan.png')
                 self.floorplan = floorplan_tmp
-                self.log.info('loaded floorplan: {}'.format(filename))
+                self.log.info('loaded floorplan: %s', filename)
             except Exception as e:
-                self.log.warning("MAP: unable to load {}: {}".format(filename, e))
+                self.log.warning("MAP: unable to load %s: %s", filename, e)
 
     def totimestamp(self, dt):
         td = dt - datetime.datetime(1970, 1, 1)
@@ -1265,9 +1262,8 @@ class Roomba(object):
         try:
             error_message = self._ErrorMessages[error_num]
         except KeyError as e:
-            self.log.warning(
-                "Error looking up error message {}".format(e))
-            error_message = "Unknown Error number: {}".format(error_num)
+            self.log.warning("Error looking up error message %s", e)
+            error_message = f"Unknown Error number: {error_num}"
         return error_message
 
     def publish_error_message(self):
@@ -1472,7 +1468,7 @@ class Roomba(object):
     def timer(self, name, value=False, duration=10):
         self.timers.setdefault(name, {})
         self.timers[name]['value'] = value
-        self.log.info('Set {} to: {}'.format(name, value))
+        self.log.info('Set %s to: %s', name, value)
         if self.timers[name].get('reset'):
             self.timers[name]['reset'].cancel()
         if value:
@@ -1563,7 +1559,7 @@ class Roomba(object):
         '''
         if new_state is not None:
             self.current_state = self.states[new_state]
-            self.log.info("set current state to: {}".format(self.current_state))
+            self.log.info("set current state to: %s", self.current_state)
             self.draw_map(True)
             return
 
@@ -1585,12 +1581,13 @@ class Roomba(object):
             self.timer('ignore_coordinates')
             current_mission = None  # force update of map
 
-        self.log.info('current_state: {}, current phase: {}, mission: {}, mission_min: {}, recharge_min: {}, co-ords changed: {}'.format(self.current_state,
-                                                                                                                                         phase,
-                                                                                                                                         mission,
-                                                                                                                                         self.mssnM,
-                                                                                                                                         self.rechrgM,
-                                                                                                                                         self.changed('pose')))
+        self.log.info('current_state: %s, current phase: %s, mission: %s, mission_min: %s, recharge_min: %s, co-ords changed: %s',
+                      self.current_state,
+                      phase,
+                      mission,
+                      self.mssnM,
+                      self.rechrgM,
+                      self.changed('pose'))
 
         if phase == "charge":
             #self.set_history('pose', self.zero_pose())
@@ -1638,10 +1635,10 @@ class Roomba(object):
             try:
                 self.current_state = self.states[phase]
             except KeyError:
-                self.log.warning('phase: {} not found in self.states'.format(phase))
+                self.log.warning('phase: %s not found in self.states', phase)
 
         if self.current_state != current_mission:
-            self.log.info("updated state to: {}".format(self.current_state))
+            self.log.info("updated state to: %s", self.current_state)
 
         self.publish("state", self.current_state)
 
@@ -1669,7 +1666,7 @@ class Roomba(object):
         self.log.info('Erased room outline image')
 
     def load_image(self, name, make_none=False):
-        self.log.info("MAP: opening existing {}".format(name))
+        self.log.info("MAP: opening existing %s", name)
         type = name.split('.')[-1]
         filename = '{}/{}{}'.format(self.mapPath, self.roombaName, name)
         if type == 'npy':
