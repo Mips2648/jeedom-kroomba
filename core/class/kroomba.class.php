@@ -354,6 +354,12 @@ class kroomba extends eqLogic {
                         case 'sku':
                             $roomba->setConfiguration($key, $value);
                             $roomba->save(true);
+                            break;
+                        case 'lastCommand_pmap_id':
+                        case 'lastCommand_regions':
+                        case 'lastCommand_user_pmapv_id':
+                            $roomba->create_start_regions_cmd($data['lastCommand_pmap_id'], $data['lastCommand_user_pmapv_id'], $data['lastCommand_regions']);
+                            break;
                         case 'signal_rssi':
                         case 'signal_snr':
                         case 'signal_noise':
@@ -372,6 +378,36 @@ class kroomba extends eqLogic {
             log::add(__CLASS__, 'warning', 'Message is not for kroomba');
             return;
         }
+    }
+
+    private function create_start_regions_cmd(string $pmap_id, string $user_pmapv_id, array $regions) {
+        if (empty($pmap_id) || empty($user_pmapv_id) || empty($regions))
+            return;
+
+        log::add(__CLASS__, 'debug', $regions[0]);
+        $first_region = json_decode(str_replace("'", "\"", $regions[0]), true);
+
+        foreach ($this->getCmd('action', 'start_region', null, true) as $cmd) {
+            if ($cmd->getConfiguration('pmap_id') == $pmap_id && $cmd->getConfiguration('user_pmapv_id') == $user_pmapv_id && $cmd->getConfiguration('region_id') == $first_region['region_id']) {
+                $cmd->setConfiguration('region_type', $first_region['type']);
+                $cmd->save();
+                return;
+            }
+        }
+
+        $cmd = new kroombaCmd();
+        $cmd->setLogicalId('start_region');
+        $cmd->setEqLogic_id($this->getId());
+        $cmd->setName("start_{$pmap_id}_{$first_region['type']}_{$first_region['region_id']}");
+        $cmd->setType('action');
+        $cmd->setSubType('other');
+        $cmd->setConfiguration('pmap_id', $pmap_id);
+        $cmd->setConfiguration('user_pmapv_id', $user_pmapv_id);
+        $cmd->setConfiguration('region_id', $first_region['region_id']);
+        $cmd->setConfiguration('region_type', $first_region['type']);
+
+        $cmd->save();
+        log::add(__CLASS__, 'info', __('Nouvelle commande region créée', __FILE__));
     }
 
     public function createCommands($commandType = '') {
@@ -408,7 +444,7 @@ class kroomba extends eqLogic {
         }
     }
 
-    public function publish_message($type, $payload) {
+    public function publish_message(string $type, string $payload) {
         self::$_MQTT2::publish(kroomba::getTopicPrefix() . "/{$type}/" . $this->getLogicalId(), $payload);
     }
 }
@@ -454,6 +490,26 @@ class kroombaCmd extends cmd {
             case 'set_padWetness':
                 $payload = 'padWetness {"disposable": %1$s, "reusable": %1$s}';
                 $eqLogic->publish_message('setting', sprintf($payload, $_options['select']));
+                break;
+            case 'start_region':
+                $payload = [
+                    'command' => 'start',
+                    'ordered' => 1,
+                    'pmap_id' => $this->getConfiguration('pmap_id'),
+                    'user_pmapv_id' => $this->getConfiguration('user_pmapv_id'),
+                    'regions' => [[
+                        'region_id' => $this->getConfiguration('region_id'),
+                        'type' => $this->getConfiguration('region_type'),
+                        // 'params' => [
+                        //     'padWetness' => [
+                        //         'disposable' => 1,
+                        //         'reusable' => 1
+                        //     ],
+                        //     'rankOverlap' => 25
+                        // ]
+                    ]]
+                ];
+                $eqLogic->publish_message('command', json_encode($payload));
                 break;
             default:
                 $eqLogic->publish_message('command', $this->getLogicalId());

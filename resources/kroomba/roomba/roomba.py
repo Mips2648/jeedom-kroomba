@@ -569,7 +569,9 @@ class Roomba(object):
                 else:
                     self.log.error("Connection Error: %s ", e)
 
+                self.log.debug("sleeping %is", retry_timeout)
                 await asyncio.sleep(retry_timeout)
+                retry_timeout = retry_timeout * 2
                 self.log.error("Attempting retry Connection# %i", count)
 
                 count += 1
@@ -1231,13 +1233,13 @@ class Roomba(object):
                 if isinstance(v, list):
                     newlist = []
                     for i in v:
-                        if isinstance(i, dict):
-                            for ki, vi in i.items():
-                                newlist.append((str(ki), vi))
-                        else:
-                            if not isinstance(i, str):
-                                i = str(i)
-                            newlist.append(i)
+                        # if isinstance(i, dict):
+                        #     for ki, vi in i.items():
+                        #         newlist.append((str(ki), vi))
+                        # else:
+                        if not isinstance(i, str):
+                            i = str(i)
+                        newlist.append(i)
                     v = newlist
                 if prefix is not None:
                     k = prefix+"_"+k
