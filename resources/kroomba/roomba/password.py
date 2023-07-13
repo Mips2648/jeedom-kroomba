@@ -87,7 +87,7 @@ class Password(object):
                         if addr[0] not in roomba_dict.keys():
                             s.sendto(message.encode(), (self.address, port))
                             roomba_dict[addr[0]] = parsedMsg
-                            self.log.info('Robot at IP: %s Data: %s', addr[0], json.dumps(parsedMsg, indent=2))
+                            self.log.info('Robot at IP: %s Data: %s', addr[0], json.dumps(parsedMsg))
                     except Exception as e:
                         self.log.info("json decode error: %s", e)
                         self.log.info('RECEIVED: %s', pformat(udp_data))
@@ -118,7 +118,7 @@ class Password(object):
             iRobot.login()
             self.log.info("Login done, getting robots from iRobot aws cloud...")
             cloud_roombas = iRobot.get_robots()
-            self.log.info("Got cloud info: %s", json.dumps(cloud_roombas, indent=2))
+            self.log.info("Got cloud info: %s", json.dumps(cloud_roombas))
             self.log.info("Found %i roombas defined in the cloud", len(cloud_roombas))
             if len(cloud_roombas) > 0 and len(roombas) > 0:
                 roombas = self.add_cloud_data(cloud_roombas, roombas)
@@ -133,7 +133,7 @@ class Password(object):
             blid = parsedMsg.get('robotid', parsedMsg.get("hostname", "").split('-')[1])
             robotname = parsedMsg.get('robotname', 'unknown')
             if int(parsedMsg.get("ver", "3")) < 2:
-                self.log.info("Roombas at address: %s does not have the correct firmware version. Your version info is: %s", addr, json.dumps(parsedMsg, indent=2))
+                self.log.info("Roombas at address: %s does not have the correct firmware version. Your version info is: %s", addr, json.dumps(parsedMsg))
                 continue
 
             password = parsedMsg.get('password')
