@@ -384,30 +384,30 @@ class kroomba extends eqLogic {
         if (empty($pmap_id) || empty($user_pmapv_id) || empty($regions))
             return;
 
-        log::add(__CLASS__, 'debug', $regions[0]);
-        $first_region = json_decode(str_replace("'", "\"", $regions[0]), true);
+        foreach ($regions as $region) {
+            log::add(__CLASS__, 'debug', "Detected region {$region}");
+            $decoded_region = json_decode(str_replace("'", "\"", $region), true);
 
-        foreach ($this->getCmd('action', 'start_region', null, true) as $cmd) {
-            if ($cmd->getConfiguration('pmap_id') == $pmap_id && $cmd->getConfiguration('user_pmapv_id') == $user_pmapv_id && $cmd->getConfiguration('region_id') == $first_region['region_id']) {
-                $cmd->setConfiguration('region_type', $first_region['type']);
-                $cmd->save();
-                return;
+            foreach ($this->getCmd('action', 'start_region', null, true) as $cmd) {
+                if ($cmd->getConfiguration('pmap_id') == $pmap_id && $cmd->getConfiguration('user_pmapv_id') == $user_pmapv_id && $cmd->getConfiguration('region_id') == $decoded_region['region_id']) {
+                    continue 2;
+                }
             }
+
+            $cmd = new kroombaCmd();
+            $cmd->setLogicalId('start_region');
+            $cmd->setEqLogic_id($this->getId());
+            $cmd->setName("start_{$pmap_id}_{$decoded_region['type']}_{$decoded_region['region_id']}");
+            $cmd->setType('action');
+            $cmd->setSubType('other');
+            $cmd->setConfiguration('pmap_id', $pmap_id);
+            $cmd->setConfiguration('user_pmapv_id', $user_pmapv_id);
+            $cmd->setConfiguration('region_id', $decoded_region['region_id']);
+            $cmd->setConfiguration('region_type', $decoded_region['type']);
+
+            $cmd->save();
+            log::add(__CLASS__, 'info', __('Nouvelle commande region créée', __FILE__));
         }
-
-        $cmd = new kroombaCmd();
-        $cmd->setLogicalId('start_region');
-        $cmd->setEqLogic_id($this->getId());
-        $cmd->setName("start_{$pmap_id}_{$first_region['type']}_{$first_region['region_id']}");
-        $cmd->setType('action');
-        $cmd->setSubType('other');
-        $cmd->setConfiguration('pmap_id', $pmap_id);
-        $cmd->setConfiguration('user_pmapv_id', $user_pmapv_id);
-        $cmd->setConfiguration('region_id', $first_region['region_id']);
-        $cmd->setConfiguration('region_type', $first_region['type']);
-
-        $cmd->save();
-        log::add(__CLASS__, 'info', __('Nouvelle commande region créée', __FILE__));
     }
 
     public function createCommands($commandType = '') {
