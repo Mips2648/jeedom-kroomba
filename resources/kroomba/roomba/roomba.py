@@ -776,20 +776,22 @@ class Roomba(object):
                 if isinstance(v, list):
                     newlist = []
                     for i in v:
-                        # if isinstance(i, dict):
-                        #     for ki, vi in i.items():
-                        #         newlist.append((str(ki), vi))
-                        # else:
-                        if not isinstance(i, str):
-                            i = str(i)
-                        newlist.append(i)
-                    v = newlist
+                        if isinstance(i, dict):
+                            json_i = json.dumps(i)
+                            self.log.debug("json value for %s is %s", k, json_i)
+                            newlist.append(json_i)
+                        else:
+                            if not isinstance(i, str):
+                                i = str(i)
+                            newlist.append(i)
+                    v = json.dumps(newlist)
                 if prefix is not None:
                     k = prefix+"_"+k
                 # all data starts with this, so it's redundant
                 k = k.replace("state_reported_", "")
-
-                self.publish(k, str(v))
+                if not isinstance(v, str):
+                    v = str(v)
+                self.publish(k, v)
 
         if prefix is None:
             self.update_state_machine()

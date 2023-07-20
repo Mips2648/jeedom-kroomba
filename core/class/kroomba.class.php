@@ -258,17 +258,15 @@ class kroomba extends eqLogic {
         }
 
         if ($name != '') {
-            log::add(__CLASS__, 'debug', "get by name:{$name}");
             /** @var kroomba */
             $eqLogic = eqLogic::byLogicalId($name, __CLASS__);
         }
 
         if (is_object($eqLogic)) {
-            log::add(__CLASS__, 'debug', "migrate to blid:{$blid}");
+            log::add(__CLASS__, 'debug', "migrate from {$name} to blid:{$blid}");
             $eqLogic->setLogicalId($blid);
             $eqLogic->save(true);
         } else {
-            log::add(__CLASS__, 'debug', "get by blid:{$blid}");
             /** @var kroomba */
             $eqLogic = eqLogic::byLogicalId($blid, __CLASS__);
         }
@@ -367,7 +365,7 @@ class kroomba extends eqLogic {
                         default:
                             $cmd = $roomba->getCmd('info', $key);
                             if (!is_object($cmd)) {
-                                log::add(__CLASS__, 'debug', "ignoring sub-topic: {$key}=" . json_encode($value));
+                                // log::add(__CLASS__, 'debug', "ignoring sub-topic: {$key}=" . json_encode($value));
                             } else {
                                 $roomba->checkAndUpdateCmd($cmd, $value);
                             }
@@ -381,12 +379,12 @@ class kroomba extends eqLogic {
     }
 
     private function create_start_regions_cmd(string $pmap_id, string $user_pmapv_id, $regions) {
-        if (empty($pmap_id) || empty($user_pmapv_id) || empty($regions) || !is_array($regions))
+        if (empty($pmap_id) || empty($user_pmapv_id) || empty($regions))
             return;
 
         foreach ($regions as $region) {
             log::add(__CLASS__, 'debug', "Detected region {$region}");
-            $decoded_region = json_decode(str_replace("'", "\"", $region), true);
+            $decoded_region = json_decode($region, true);
 
             if (!isset($decoded_region['type'], $decoded_region['region_id'])) {
                 log::add(__CLASS__, 'debug', "no type or no id?");
