@@ -388,6 +388,11 @@ class kroomba extends eqLogic {
             log::add(__CLASS__, 'debug', "Detected region {$region}");
             $decoded_region = json_decode(str_replace("'", "\"", $region), true);
 
+            if (!isset($decoded_region['type'], $decoded_region['region_id'])) {
+                log::add(__CLASS__, 'debug', "no type or no id?");
+                continue;
+            }
+
             foreach ($this->getCmd('action', 'start_region', null, true) as $cmd) {
                 if ($cmd->getConfiguration('pmap_id') == $pmap_id && $cmd->getConfiguration('user_pmapv_id') == $user_pmapv_id && $cmd->getConfiguration('region_id') == $decoded_region['region_id']) {
                     continue 2;
