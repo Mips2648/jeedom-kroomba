@@ -5,7 +5,6 @@ import os
 import signal
 import json
 import asyncio
-import time
 import aiohttp
 
 from config import Config
@@ -147,7 +146,7 @@ def shutdown():
 _log_level = "error"
 _pidfile = '/tmp/kroombad.pid'
 _apikey = ''
-_LOGGER = logging.getLogger(__name__)
+
 
 parser = argparse.ArgumentParser(description='kroomba Daemon for Jeedom plugin')
 parser.add_argument("--loglevel", help="Log Level for the daemon", type=str)
@@ -168,8 +167,9 @@ _log_level = args.loglevel
 _pidfile = args.pid
 _apikey = args.apikey
 
-# jeedom_utils.set_log_level(_log_level)
-_LOGGER.setLevel(jeedom_utils.convert_log_level(_log_level))
+jeedom_utils.init_logger(_log_level)
+_LOGGER = logging.getLogger(__name__)
+
 logging.getLogger('asyncio').setLevel(logging.WARNING)
 logging.getLogger('Roomba').setLevel(jeedom_utils.convert_log_level(_log_level))
 
