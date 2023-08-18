@@ -123,7 +123,7 @@ class kroomba:
 
 
 def handler(signum=None, frame=None):
-    _LOGGER.debug("Signal %i caught, exiting..." % int(signum))
+    _LOGGER.debug("Signal %i caught, exiting...", int(signum))
     irobot.close()
 
 
@@ -131,7 +131,7 @@ def shutdown():
     _LOGGER.info("Shuting down")
 
     try:
-        _LOGGER.debug("Removing PID file " + str(_pidfile))
+        _LOGGER.debug("Removing PID file %s", _pidfile)
         os.remove(_pidfile)
     except:
         pass
@@ -181,8 +181,8 @@ try:
     config = Config(**vars(args))
 
     _LOGGER.info('Log level: %s', _log_level)
-    _LOGGER.debug('Socket port : %s', config.socketport)
-    _LOGGER.debug('PID file : '+str(_pidfile))
+    _LOGGER.debug('Socket port: %s', config.socketport)
+    _LOGGER.debug('PID file: %s', _pidfile)
     jeedom_utils.write_pid(str(_pidfile))
 
     irobot = kroomba(config)
