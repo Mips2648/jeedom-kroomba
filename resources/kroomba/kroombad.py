@@ -5,7 +5,6 @@ import os
 import signal
 import json
 import asyncio
-import time
 import aiohttp
 
 from config import Config
@@ -50,8 +49,12 @@ class kroomba:
             tmp["msg"] = "NO_ROOMBA"
             asyncio.get_event_loop().create_task(self.__send_async(tmp))
         else:
-            _LOGGER.debug(all_roombas)
             for ip in all_roombas.keys():
+                data = all_roombas[ip]
+                if data.get('blid') in self._config.excluded_blid:
+                    _LOGGER.debug("Exclude blid: %s", data.get('blid'))
+                    continue
+
                 new_roomba = Roomba(address=ip, file=self._roomba_configFile)
                 new_roomba.setup_mqtt_client(self._config.host, self._config.port, self._config.user, self._config.password, self._config.topic_prefix+'/feedback', self._config.topic_prefix+'/command', self._config.topic_prefix+'/setting')
                 new_roomba.connect()
@@ -120,7 +123,7 @@ class kroomba:
 
 
 def handler(signum=None, frame=None):
-    _LOGGER.debug("Signal %i caught, exiting..." % int(signum))
+    _LOGGER.debug("Signal %i caught, exiting...", int(signum))
     irobot.close()
 
 
@@ -128,7 +131,7 @@ def shutdown():
     _LOGGER.info("Shuting down")
 
     try:
-        _LOGGER.debug("Removing PID file " + str(_pidfile))
+        _LOGGER.debug("Removing PID file %s", _pidfile)
         os.remove(_pidfile)
     except:
         pass
@@ -143,7 +146,7 @@ def shutdown():
 _log_level = "error"
 _pidfile = '/tmp/kroombad.pid'
 _apikey = ''
-_LOGGER = logging.getLogger(__name__)
+
 
 parser = argparse.ArgumentParser(description='kroomba Daemon for Jeedom plugin')
 parser.add_argument("--loglevel", help="Log Level for the daemon", type=str)
@@ -152,6 +155,7 @@ parser.add_argument("--port", help="mqtt host port", type=int)
 parser.add_argument("--user", help="mqtt username", type=str)
 parser.add_argument("--password", help="mqtt password", type=str)
 parser.add_argument("--topic_prefix", help="topic_prefix", type=str)
+parser.add_argument("--excluded_blid", type=str)
 parser.add_argument("--socketport", help="Socket Port", type=int)
 parser.add_argument("--callback", help="Jeedom callback url", type=str)
 parser.add_argument("--apikey", help="Plugin API Key", type=str)
@@ -163,8 +167,9 @@ _log_level = args.loglevel
 _pidfile = args.pid
 _apikey = args.apikey
 
-# jeedom_utils.set_log_level(_log_level)
-_LOGGER.setLevel(jeedom_utils.convert_log_level(_log_level))
+jeedom_utils.init_logger(_log_level)
+_LOGGER = logging.getLogger(__name__)
+
 logging.getLogger('asyncio').setLevel(logging.WARNING)
 logging.getLogger('Roomba').setLevel(jeedom_utils.convert_log_level(_log_level))
 
@@ -176,8 +181,8 @@ try:
     config = Config(**vars(args))
 
     _LOGGER.info('Log level: %s', _log_level)
-    _LOGGER.debug('Socket port : %s', config.socketport)
-    _LOGGER.debug('PID file : '+str(_pidfile))
+    _LOGGER.debug('Socket port: %s', config.socketport)
+    _LOGGER.debug('PID file: %s', _pidfile)
     jeedom_utils.write_pid(str(_pidfile))
 
     irobot = kroomba(config)

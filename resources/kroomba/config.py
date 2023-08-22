@@ -23,6 +23,11 @@ class Config(object):
         return self._kwargs.get('topic_prefix', 'kroomba')
 
     @property
+    def excluded_blid(self):
+        blids = self._kwargs.get('excluded_blid', '')
+        return [str(x) for x in blids.split(',') if x != '']
+
+    @property
     def apiKey(self):
         return self._kwargs.get('apikey', '')
 

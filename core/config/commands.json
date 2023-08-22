@@ -1,5 +1,5 @@
 {
-    "commands": [
+    "common": [
         {
             "logicalId": "start",
             "name": "Démarrer",
@@ -146,19 +146,6 @@
             }
         },
         {
-            "logicalId": "tankLvl",
-            "name": "Réservoir",
-            "type": "info",
-            "subtype": "numeric",
-            "isVisible": 0,
-            "isHistorized": 0,
-            "unite": "%",
-            "configuration": {
-                "minValue": 0,
-                "maxValue": 100
-            }
-        },
-        {
             "logicalId": "bbmssn_nMssn",
             "name": "Nombre de tâches de nettoyage",
             "type": "info",
@@ -213,6 +200,85 @@
             "subtype": "numeric",
             "isVisible": 0,
             "isHistorized": 0
+        }
+    ],
+    "BraavaJet": [
+        {
+            "logicalId": "detectedPad",
+            "name": "Type de lingette",
+            "type": "info",
+            "subtype": "string",
+            "isVisible": 1,
+            "isHistorized": 0
+        },
+        {
+            "logicalId": "lidOpen",
+            "name": "Couvercle ouvert",
+            "type": "info",
+            "subtype": "binary",
+            "isVisible": 0,
+            "isHistorized": 0
+        },
+        {
+            "logicalId": "tankPresent",
+            "name": "Réservoir présent",
+            "type": "info",
+            "subtype": "binary",
+            "isVisible": 0,
+            "isHistorized": 0
+        },
+        {
+            "logicalId": "tankLvl",
+            "name": "Niveau réservoir",
+            "type": "info",
+            "subtype": "numeric",
+            "isVisible": 1,
+            "isHistorized": 0,
+            "unite": "%",
+            "configuration": {
+                "minValue": 0,
+                "maxValue": 100
+            }
+        },
+        {
+            "logicalId": "padWetness",
+            "name": "Quantité de liquide",
+            "type": "info",
+            "subtype": "string",
+            "isVisible": 0,
+            "isHistorized": 0
+        },
+        {
+            "logicalId": "set_padWetness",
+            "name": "Définir quantité de liquide",
+            "type": "action",
+            "subtype": "select",
+            "configuration": {
+                "action": "padWetness",
+                "listValue": "1|Eco;2|Standard;3|Ultra"
+            },
+            "isVisible": 1,
+            "value": "padWetness"
+        },
+        {
+            "logicalId": "rankOverlap",
+            "name": "Chevauchement",
+            "type": "info",
+            "subtype": "string",
+            "isVisible": 0,
+            "isHistorized": 0
+        },
+        {
+            "logicalId": "set_rankOverlap",
+            "name": "Définir chevauchement",
+            "type": "action",
+            "subtype": "select",
+            "configuration": {
+                "action": "rankOverlap",
+                "listValue": "25|Un peu;67|Plus;85|Beaucoup"
+            },
+            "isVisible": 1,
+            "value": "rankOverlap"
         }
     ]
 }

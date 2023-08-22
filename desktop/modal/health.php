@@ -36,8 +36,8 @@ if (!isConnect('admin')) {
         /** @var kroomba */
         foreach (kroomba::byType('kroomba', true) as $eqLogic) {
             echo '<tr><td><a href="' . $eqLogic->getLinkToConfiguration() . '" style="text-decoration: none;">' . $eqLogic->getHumanName(true) . '</a></td>';
-            echo '<td><span class="label label-info" style="font-size : 1em;">' . $eqLogic->getConfiguration('mac') . '</span></td>';
-            echo '<td><span class="label label-info" style="font-size : 1em;">' . $eqLogic->getConfiguration('netinfo_addr') . '</span></td>';
+            echo '<td><span class="label label-info" style="font-size : 1em;">' . $eqLogic->getConfiguration(kroomba::CFG_MAC) . '</span></td>';
+            echo '<td><span class="label label-info" style="font-size : 1em;">' . $eqLogic->getConfiguration(kroomba::CFG_IP_ADDR) . '</span></td>';
             echo '<td><span class="label label-info" style="font-size : 1em;">' . $eqLogic->getCmdInfoValue('state') . '</span></td>';
             echo '<td><span class="label label-info" style="font-size : 1em;">' . $eqLogic->getCmdInfoValue('bin_full') . '</span></td>';
             echo '<td><span class="label label-info" style="font-size : 1em;">' . $eqLogic->getCmdInfoValue('batPct') . '%</span></td>';

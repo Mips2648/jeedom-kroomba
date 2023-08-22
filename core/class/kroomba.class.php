@@ -22,7 +22,16 @@ require_once __DIR__ . '/../../vendor/autoload.php';
 class kroomba extends eqLogic {
     use MipsEqLogicTrait;
 
+    const CFG_MODEL_FAMILY = 'model_family';
+    const CFG_MAC = 'mac';
+    const CFG_IP_ADDR = 'netinfo_addr';
+
+    const MODEL_FAMILY_ROOMBA = 'Roomba';
+    const MODEL_FAMILY_ROOMBA_CARPET_BOOST = 'RoombaCarpetBoost';
+    const MODEL_FAMILY_BRAAVA = 'BraavaJet';
+
     private static $_MQTT2 = 'mqtt2';
+    private static $_daemon_restart_needed = false;
 
     protected static function getSocketPort() {
         return config::byKey('socketport', __CLASS__, 55072);
@@ -148,6 +157,7 @@ class kroomba extends eqLogic {
         self::$_MQTT2::addPluginTopic(__CLASS__, $topic);
         log::add(__CLASS__, 'debug', "Listening to topic:'{$topic}'");
         self::deamon_stop();
+        self::$_daemon_restart_needed = false;
         $deamon_info = self::deamon_info();
         if ($deamon_info['launchable'] != 'ok') {
             throw new Exception(__('Veuillez vérifier la configuration', __FILE__));
@@ -155,6 +165,13 @@ class kroomba extends eqLogic {
         message::removeAll(__CLASS__, 'kroomba_no_robot');
 
         $mqttInfos = self::$_MQTT2::getFormatedInfos();
+
+        $excluded_blid = '';
+        foreach (eqLogic::byType(__CLASS__) as $eqlogic) {
+            if ($eqlogic->getIsEnable() == 0) {
+                $excluded_blid .= $eqlogic->getLogicalId() . ',';
+            }
+        }
 
         $path = realpath(dirname(__FILE__) . '/../../resources/kroomba');
         $cmd = "/usr/bin/python3 {$path}/kroombad.py";
@@ -164,6 +181,7 @@ class kroomba extends eqLogic {
         $cmd .= ' --user "' . trim(str_replace('"', '\"', $mqttInfos['user'])) . '"';
         $cmd .= ' --password "' . trim(str_replace('"', '\"', $mqttInfos['password'])) . '"';
         $cmd .= ' --topic_prefix "' . trim(str_replace('"', '\"', $topic)) . '"';
+        $cmd .= " --excluded_blid '{$excluded_blid}'";
         $cmd .= ' --socketport ' . self::getSocketPort();
         $cmd .= ' --callback ' . network::getNetworkAccess('internal', 'proto:127.0.0.1:port:comp') . '/plugins/kroomba/core/php/jeekroomba.php';
         $cmd .= ' --apikey ' . jeedom::getApiKey(__CLASS__);
@@ -222,23 +240,34 @@ class kroomba extends eqLogic {
 
     /**
      *
-     * @param string $name
+     * @param string $blid
+     * @param array $data
      * @return kroomba
      */
-    private static function getRoomba($blid, $name = '') {
+    private static function getRobot($blid, $data) {
         $eqLogic = null;
+        $name = $data['name'] ?? '';
+        if (isset($data['detectedPad'])) {
+            $robot_type = self::MODEL_FAMILY_BRAAVA;
+            log::add(__CLASS__, 'debug', "Robot is {$robot_type}");
+        } elseif (isset($data['carpetBoost']) && $data['carpetBoost'] == 1) {
+            $robot_type = self::MODEL_FAMILY_ROOMBA_CARPET_BOOST;
+            log::add(__CLASS__, 'debug', "Robot is {$robot_type}");
+        } else {
+            $robot_type = self::MODEL_FAMILY_ROOMBA;
+        }
 
         if ($name != '') {
-            log::add(__CLASS__, 'debug', "get by name:{$name}");
+            /** @var kroomba */
             $eqLogic = eqLogic::byLogicalId($name, __CLASS__);
         }
 
         if (is_object($eqLogic)) {
-            log::add(__CLASS__, 'debug', "migrate to blid:{$blid}");
+            log::add(__CLASS__, 'debug', "migrate from {$name} to blid:{$blid}");
             $eqLogic->setLogicalId($blid);
             $eqLogic->save(true);
         } else {
-            log::add(__CLASS__, 'debug', "get by blid:{$blid}");
+            /** @var kroomba */
             $eqLogic = eqLogic::byLogicalId($blid, __CLASS__);
         }
         if (!is_object($eqLogic) && $name != '') {
@@ -254,6 +283,11 @@ class kroomba extends eqLogic {
 
             event::add('kroomba::newDevice');
         }
+        if (is_object($eqLogic) && $eqLogic->getConfiguration(self::CFG_MODEL_FAMILY, self::MODEL_FAMILY_ROOMBA) == self::MODEL_FAMILY_ROOMBA && $robot_type != self::MODEL_FAMILY_ROOMBA) {
+            $eqLogic->setConfiguration(self::CFG_MODEL_FAMILY, $robot_type);
+            $eqLogic->save(true);
+            $eqLogic->createCommands($robot_type);
+        }
         return $eqLogic;
     }
 
@@ -263,7 +297,7 @@ class kroomba extends eqLogic {
             $feedback = $_message[self::getTopicPrefix()]['feedback'];
             foreach ($feedback as $robot => $data) {
                 log::add(__CLASS__, 'debug', "Message for robot: {$robot}");
-                $roomba = self::getRoomba($robot, $data['name'] ?? '');
+                $roomba = self::getRobot($robot, $data);
                 if (!$roomba) {
                     log::add(__CLASS__, 'debug', 'no robot yet, waiting first payload');
                     return;
@@ -291,6 +325,10 @@ class kroomba extends eqLogic {
                         case 'childLock':
                             $roomba->checkAndUpdateCmd($key, $value === 'False' ? 0 : 1);
                             break;
+                        case 'padWetness_disposable':
+                        case 'padWetness_reusable':
+                            $roomba->checkAndUpdateCmd('padWetness', $value);
+                            break;
                         case 'netinfo_addr':
                         case 'netinfo_mask':
                         case 'netinfo_gw':
@@ -308,12 +346,18 @@ class kroomba extends eqLogic {
                             break;
                         case 'mac':
                         case 'hwPartsRev_wlan0HwAddr':
-                            $roomba->setConfiguration('mac', $value);
+                            $roomba->setConfiguration(self::CFG_MAC, $value);
                             $roomba->save(true);
                             break;
                         case 'sku':
                             $roomba->setConfiguration($key, $value);
                             $roomba->save(true);
+                            break;
+                        case 'lastCommand_pmap_id':
+                        case 'lastCommand_regions':
+                        case 'lastCommand_user_pmapv_id':
+                            $roomba->create_start_regions_cmd($data['lastCommand_pmap_id'], $data['lastCommand_user_pmapv_id'], $data['lastCommand_regions']);
+                            break;
                         case 'signal_rssi':
                         case 'signal_snr':
                         case 'signal_noise':
@@ -321,7 +365,7 @@ class kroomba extends eqLogic {
                         default:
                             $cmd = $roomba->getCmd('info', $key);
                             if (!is_object($cmd)) {
-                                log::add(__CLASS__, 'debug', "ignoring sub-topic: {$key}=" . json_encode($value));
+                                // log::add(__CLASS__, 'debug', "ignoring sub-topic: {$key}=" . json_encode($value));
                             } else {
                                 $roomba->checkAndUpdateCmd($cmd, $value);
                             }
@@ -334,23 +378,145 @@ class kroomba extends eqLogic {
         }
     }
 
-    public function createCommands() {
-        $this->createCommandsFromConfigFile(__DIR__ . '/../config/commands.json', 'commands');
+    private function create_start_regions_cmd(string $pmap_id, string $user_pmapv_id, $regions) {
+        if (empty($pmap_id) || empty($user_pmapv_id) || empty($regions))
+            return;
+
+        foreach ($regions as $region) {
+            log::add(__CLASS__, 'debug', "Detected region {$region}");
+            $decoded_region = json_decode($region, true);
+
+            if (!isset($decoded_region['type'], $decoded_region['region_id'])) {
+                log::add(__CLASS__, 'debug', "no type or no id?");
+                continue;
+            }
+
+            foreach ($this->getCmd('action', 'start_region', null, true) as $cmd) {
+                if ($cmd->getConfiguration('pmap_id') == $pmap_id && $cmd->getConfiguration('user_pmapv_id') == $user_pmapv_id && $cmd->getConfiguration('region_id') == $decoded_region['region_id']) {
+                    continue 2;
+                }
+            }
+
+            $cmd = new kroombaCmd();
+            $cmd->setLogicalId('start_region');
+            $cmd->setEqLogic_id($this->getId());
+            $cmd->setName("start_{$pmap_id}_{$decoded_region['type']}_{$decoded_region['region_id']}");
+            $cmd->setType('action');
+            $cmd->setSubType('other');
+            $cmd->setConfiguration('pmap_id', $pmap_id);
+            $cmd->setConfiguration('user_pmapv_id', $user_pmapv_id);
+            $cmd->setConfiguration('region_id', $decoded_region['region_id']);
+            $cmd->setConfiguration('region_type', $decoded_region['type']);
+
+            $cmd->save();
+            log::add(__CLASS__, 'info', __('Nouvelle commande region créée', __FILE__));
+        }
+    }
+
+    public function createCommands($commandType = '') {
+        $cmds = self::getCommandsFileContent(__DIR__ . '/../config/commands.json');
+
+        if ($commandType != '') {
+            if (array_key_exists($commandType, $cmds)) {
+                $this->createCommandsFromConfig($cmds[$commandType]);
+            }
+        } else {
+            $this->createCommandsFromConfig($cmds['common']);
+            $model_family = $this->getConfiguration(self::CFG_MODEL_FAMILY, self::MODEL_FAMILY_ROOMBA);
+            if (array_key_exists($model_family, $cmds)) {
+                $this->createCommandsFromConfig($cmds[$model_family]);
+            }
+        }
     }
 
     public function postInsert() {
         $this->createCommands();
     }
 
-    public function send_command($cmd) {
-        self::$_MQTT2::publish(kroomba::getTopicPrefix() . '/command/' . $this->getLogicalId(), $cmd);
+    public function preUpdate() {
+        if ($this->getIsEnable() != eqLogic::byId($this->getId())->getIsEnable()) {
+            log::add(__CLASS__, 'debug', "enable changed");
+            self::$_daemon_restart_needed = true;
+        }
+    }
+
+    public function postUpdate() {
+        if (self::$_daemon_restart_needed) {
+            log::add(__CLASS__, 'debug', "active eqLogic changed, restarting daemon");
+            self::executeAsync('deamon_start');
+        }
+    }
+
+    public function publish_message(string $type, string $payload) {
+        self::$_MQTT2::publish(kroomba::getTopicPrefix() . "/{$type}/" . $this->getLogicalId(), $payload);
     }
 }
 
 class kroombaCmd extends cmd {
+    public function formatValueWidget($value) {
+        switch ($this->getLogicalId()) {
+            case 'detectedPad':
+                switch ($value) {
+                    case 'reusableDry':
+                        return 'Lingette réutilisable pour le balayage à sec';
+                    case 'reusableWet':
+                        return 'Lingette réutilisable pour le lavage des sols';
+                    case 'dispDry':
+                        return 'Lingette à usage unique pour le balayage à sec';
+                    case 'dispWet':
+                        return 'Lingette à usage unique pour le lavage des sols';
+                    default:
+                        return 'Invalide';
+                }
+                // case 'state':
+                //     switch ($value) {
+                //         case 'Charging':
+                //         case 'Recharging':
+                //             return 'En charge';
+                //         default:
+                //             return 'Inconnu';
+                //     }
+            default:
+                return $value;
+        }
+    }
+
     public function execute($_options = null) {
         /** @var kroomba */
         $eqLogic = $this->getEqLogic();
-        $eqLogic->send_command($this->getLogicalId());
+
+        switch ($this->getLogicalId()) {
+            case 'set_rankOverlap':
+                $payload = 'rankOverlap ' . $_options['select'];
+                $eqLogic->publish_message('setting', $payload);
+                break;
+            case 'set_padWetness':
+                $payload = 'padWetness {"disposable": %1$s, "reusable": %1$s}';
+                $eqLogic->publish_message('setting', sprintf($payload, $_options['select']));
+                break;
+            case 'start_region':
+                $payload = [
+                    'command' => 'start',
+                    'ordered' => 1,
+                    'pmap_id' => $this->getConfiguration('pmap_id'),
+                    'user_pmapv_id' => $this->getConfiguration('user_pmapv_id'),
+                    'regions' => [[
+                        'region_id' => $this->getConfiguration('region_id'),
+                        'type' => $this->getConfiguration('region_type'),
+                        // 'params' => [
+                        //     'padWetness' => [
+                        //         'disposable' => 1,
+                        //         'reusable' => 1
+                        //     ],
+                        //     'rankOverlap' => 25
+                        // ]
+                    ]]
+                ];
+                $eqLogic->publish_message('command', json_encode($payload));
+                break;
+            default:
+                $eqLogic->publish_message('command', $this->getLogicalId());
+                break;
+        };
     }
 }
