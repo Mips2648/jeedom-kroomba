@@ -392,7 +392,12 @@ class kroomba extends eqLogic {
             }
 
             foreach ($this->getCmd('action', 'start_region', null, true) as $cmd) {
-                if ($cmd->getConfiguration('pmap_id') == $pmap_id && $cmd->getConfiguration('user_pmapv_id') == $user_pmapv_id && $cmd->getConfiguration('region_id') == $decoded_region['region_id']) {
+                if ($cmd->getConfiguration('pmap_id') == $pmap_id && $cmd->getConfiguration('region_id') == $decoded_region['region_id']) {
+                    if ($cmd->getConfiguration('user_pmapv_id') != $user_pmapv_id) {
+                        $cmd->setConfiguration('user_pmapv_id', $user_pmapv_id);
+                        $cmd->save();
+                        log::add(__CLASS__, 'info', __('Commande region mise à jour', __FILE__));
+                    }
                     continue 2;
                 }
             }
@@ -404,7 +409,6 @@ class kroomba extends eqLogic {
             $cmd->setType('action');
             $cmd->setSubType('other');
             $cmd->setConfiguration('pmap_id', $pmap_id);
-            $cmd->setConfiguration('user_pmapv_id', $user_pmapv_id);
             $cmd->setConfiguration('region_id', $decoded_region['region_id']);
             $cmd->setConfiguration('region_type', $decoded_region['type']);
 
