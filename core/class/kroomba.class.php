@@ -379,7 +379,7 @@ class kroomba extends eqLogic {
     }
 
     private function create_start_regions_cmd(string $pmap_id, string $user_pmapv_id, $regions) {
-        if (empty($pmap_id) || empty($user_pmapv_id) || empty($regions))
+        if (empty($pmap_id) || empty($user_pmapv_id) || empty($regions) || !is_iterable($regions))
             return;
 
         foreach ($regions as $region) {
