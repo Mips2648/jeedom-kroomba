@@ -498,6 +498,12 @@ class kroombaCmd extends cmd {
                 $payload = 'padWetness {"disposable": %1$s, "reusable": %1$s}';
                 $eqLogic->publish_message('setting', sprintf($payload, $_options['select']));
                 break;
+            case 'childLock_on':
+                $eqLogic->publish_message('setting', 'childLock true');
+                break;
+            case 'childLock_off':
+                $eqLogic->publish_message('setting', 'childLock false');
+                break;
             case 'start_region':
                 $payload = [
                     'command' => 'start',

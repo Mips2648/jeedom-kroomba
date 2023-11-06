@@ -128,6 +128,30 @@
             "initialValue": 0
         },
         {
+            "logicalId": "childLock_on",
+            "name": "Activer sécurité enfant",
+            "type": "action",
+            "subtype": "other",
+            "isVisible": 0,
+            "value": "childLock",
+            "template": {
+                "dashboard": "core::binarySwitch",
+                "mobile": "core::binarySwitch"
+            }
+        },
+        {
+            "logicalId": "childLock_off",
+            "name": "Désactiver sécurité enfant",
+            "type": "action",
+            "subtype": "other",
+            "isVisible": 0,
+            "value": "childLock",
+            "template": {
+                "dashboard": "core::binarySwitch",
+                "mobile": "core::binarySwitch"
+            }
+        },
+        {
             "logicalId": "batPct",
             "name": "Batterie",
             "type": "info",
