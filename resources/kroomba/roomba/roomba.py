@@ -326,7 +326,7 @@ class Roomba(object):
     async def _disconnect(self):
         # if self.ws:
         #    await self.ws.cancel()
-        tasks = [t for t in asyncio.Task.all_tasks() if t is not asyncio.Task.current_task()]
+        tasks = [t for t in asyncio.all_tasks() if t is not asyncio.current_task()]
         [task.cancel() for task in tasks]
         self.log.info("Cancelling %i outstanding tasks", len(tasks))
         try:

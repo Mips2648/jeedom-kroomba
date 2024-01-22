@@ -128,7 +128,7 @@ def handler(signum=None, frame=None):
 
 
 def shutdown():
-    _LOGGER.info("Shuting down")
+    _LOGGER.info("Shutdown")
 
     try:
         _LOGGER.debug("Removing PID file %s", _pidfile)
