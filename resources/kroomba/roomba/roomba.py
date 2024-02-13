@@ -228,12 +228,13 @@ class Roomba(object):
     def setup_client(self):
         if self.client is None:
             self.client = mqtt.Client(
-                client_id=self.blid, clean_session=True,
+                callback_api_version=mqtt.CallbackAPIVersion.VERSION2,
+                client_id=self.blid,
+                clean_session=True,
                 protocol=mqtt.MQTTv311)
             # Assign event callbacks
             self.client.on_message = self.on_message
             self.client.on_connect = self.on_connect
-            self.client.on_publish = self.on_publish
             self.client.on_subscribe = self.on_subscribe
             self.client.on_disconnect = self.on_disconnect
 
@@ -345,26 +346,25 @@ class Roomba(object):
         self.roomba_connected = state
         self.publish('status', 'Online' if self.roomba_connected else f"Offline at {time.ctime()}")
 
-    def on_connect(self, client, userdata, flags, rc):
+    def on_connect(self, client, userdata, flags, reason_code, properties):
         self.log.info("Roomba Connected")
-        if rc == 0:
+        if reason_code == 0:
             self.connected(True)
             self.client.subscribe(self.topic)
             self.client.subscribe("$SYS/#")
         else:
-            self.log.error("Connected with result code %s", str(rc))
+            self.log.error("Connected with result code %s", reason_code)
             self.log.error("Please make sure your blid and password are correct for Roomba %s", self.roombaName)
             self.connected(False)
             self.client.disconnect()
         self.loop.call_soon_threadsafe(self.is_connected.set)
 
-    def on_message(self, mosq, obj, msg):
-        #print(msg.topic + " " + str(msg.qos) + " " + str(msg.payload))
-        if self.exclude != "" and self.exclude in msg.topic:
+    def on_message(self, client, userdata, message: mqtt.MQTTMessage):
+        if self.exclude != "" and self.exclude in message.topic:
             return
 
         if not self.simulation:
-            asyncio.run_coroutine_threadsafe(self.q.put(msg), self.loop)
+            asyncio.run_coroutine_threadsafe(self.q.put(message), self.loop)
 
     async def process_q(self):
         '''
@@ -408,22 +408,19 @@ class Roomba(object):
                 self.log.info("Publishing master_state")
                 await self.loop.run_in_executor(None, self.decode_topics, self.master_state)
 
-    def on_publish(self, mosq, obj, mid):
-        pass
+    def on_subscribe(self, client, userdata, mid, reason_codes, properties):
+        self.log.debug("Subscribed: %s %s", mid, reason_codes)
 
-    def on_subscribe(self, mosq, obj, mid, granted_qos):
-        self.log.debug("Subscribed: %s %s", str(mid), str(granted_qos))
-
-    def on_disconnect(self, mosq, obj, rc):
+    def on_disconnect(self, client, userdata, flags, reason_code, properties):
         self.loop.call_soon_threadsafe(self.is_connected.clear)
         self.connected(False)
-        if rc != 0:
+        if reason_code != 0:
             self.log.warning("Unexpected Disconnect! - reconnecting")
         else:
             self.log.info("Disconnected")
 
-    def on_log(self, mosq, obj, level, string):
-        self.log.info(string)
+    def on_log(self, client, userdata, level, buf):
+        self.log.info(buf)
 
     def set_mqtt_client(self, mqttc=None, brokerFeedback='/roomba/feedback'):
         self.mqttc = mqttc
@@ -462,7 +459,7 @@ class Roomba(object):
         '''
         try:
             # connect to broker
-            self.mqttc = mqtt.Client()
+            self.mqttc = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2)
             # Assign event callbacks
             self.mqttc.on_message = self.broker_on_message
             self.mqttc.on_connect = self.broker_on_connect
@@ -480,31 +477,31 @@ class Roomba(object):
             self.mqttc = None
         return self.mqttc
 
-    def broker_on_connect(self, client: mqtt.Client, userdata, flags, rc):
-        self.log.debug("Broker Connected with result code " + str(rc))
+    def broker_on_connect(self, client: mqtt.Client, userdata, flags, reason_code, properties):
+        self.log.debug("Broker Connected with result code %s", reason_code)
         # subscribe to roomba commands and settings messages
-        if rc == 0:
+        if reason_code == 0:
             client.subscribe(self.brokerCommand)
             client.subscribe(self.brokerSetting)
             client.subscribe(self.brokerCommand.replace('command', 'simulate'))
             self.log.info('subscribed to %s, %s', self.brokerCommand, self.brokerSetting)
 
-    def broker_on_message(self, mosq, obj, msg):
+    def broker_on_message(self, client, userdata, message: mqtt.MQTTMessage):
         # receive commands and settings from broker
-        payload = msg.payload.decode("utf-8")
-        if "command" in msg.topic:
+        payload = message.payload.decode("utf-8")
+        if "command" in message.topic:
             self.log.info("Received COMMAND from broker: %s", payload)
             self.send_command(payload)
-        elif "setting" in msg.topic:
+        elif "setting" in message.topic:
             self.log.info("Received SETTING from broker: %s", payload)
             cmd = str(payload).split(None, 1)
             self.set_preference(cmd[0], cmd[1])
-        elif 'simulate' in msg.topic:
+        elif 'simulate' in message.topic:
             self.log.info('received simulate command from broker: %s', payload)
             self.set_simulate(True)
-            asyncio.run_coroutine_threadsafe(self.q.put(msg), self.loop)
+            asyncio.run_coroutine_threadsafe(self.q.put(message), self.loop)
         else:
-            self.log.warn("Unknown topic: %s", str(msg.topic))
+            self.log.warn("Unknown topic: %s", message.topic)
 
     def set_simulate(self, value=False):
         if self.simulation != value:
@@ -515,7 +512,7 @@ class Roomba(object):
         if value:
             self.simulation_reset = self.loop.call_later(10, self.set_simulate)  # reset simulation in 10s
 
-    def broker_on_disconnect(self, mosq, obj, rc):
+    def broker_on_disconnect(self, client: mqtt.Client, userdata, flags, reason_code, properties):
         self.log.debug("Broker disconnected")
 
     async def async_send_command(self, command):

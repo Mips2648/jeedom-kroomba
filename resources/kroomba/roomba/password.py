@@ -15,8 +15,6 @@ import json
 import logging
 import socket
 import ssl
-import sys
-import time
 from ast import literal_eval
 import configparser
 

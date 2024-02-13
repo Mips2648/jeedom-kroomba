@@ -15,15 +15,10 @@
 # CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 
-import sys
-import os
-import base64
 import datetime
 import hashlib
 import hmac
-import random
 import requests
-import time
 import urllib.parse
 import logging
 

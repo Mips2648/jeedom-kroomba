@@ -30,6 +30,23 @@ function kroomba_update() {
     config::save('api', config::genKey(), $pluginId);
     config::save("api::{$pluginId}::mode", 'localhost');
     config::save("api::{$pluginId}::restricted", 1);
+
+    unlink(__DIR__ . '/packages.json');
+
+    $plugin = plugin::byId($pluginId);
+    $plugin->dependancy_install();
+
+    $dependencyInfo = kroomba::dependancy_info();
+    if (!isset($dependencyInfo['state'])) {
+        message::add($pluginId, __('Veuilez vérifier les dépendances', __FILE__));
+    } elseif ($dependencyInfo['state'] == 'nok') {
+        try {
+            $plugin = plugin::byId($pluginId);
+            $plugin->dependancy_install();
+        } catch (\Throwable $th) {
+            message::add($pluginId, __('Cette mise à jour nécessite de réinstaller les dépendances même si elles sont marquées comme OK', __FILE__));
+        }
+    }
 }
 
 function kroomba_remove() {
