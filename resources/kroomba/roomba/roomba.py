@@ -163,8 +163,6 @@ class Roomba(object):
         self.file = file
         self.get_passwd = Password(file=file)
         self.topic = topic
-        self.ws = None
-        self.args = None  # shadow class variable
         self.mqttc = None
         self.local_mqtt = False
         self.exclude = ""
@@ -319,26 +317,14 @@ class Roomba(object):
         return self.roomba_connected
 
     def disconnect(self):
-        try:
-            self.loop.run_until_complete(self._disconnect())
-        except RuntimeError:
-            self.loop.create_task(self._disconnect())
+        self.loop.create_task(self._disconnect())
 
     async def _disconnect(self):
-        # if self.ws:
-        #    await self.ws.cancel()
-        tasks = [t for t in asyncio.all_tasks() if t is not asyncio.current_task()]
-        [task.cancel() for task in tasks]
-        self.log.info("Cancelling %i outstanding tasks", len(tasks))
-        try:
-            await asyncio.gather(*tasks, return_exceptions=True)
-        except Exception as e:
-            self.log.warning("Some exception occured during cancellation: %s", e)
         try:
             self.client.disconnect()
             if self.local_mqtt:
                 self.mqttc.loop_stop()
-        except:
+        except Exception as e:
             self.log.warning("Some exception occured during mqtt disconnect: %s", e)
         self.log.info('%s disconnected', self.roombaName)
 

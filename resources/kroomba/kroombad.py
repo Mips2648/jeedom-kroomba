@@ -37,8 +37,16 @@ class kroomba:
         await self._jeedom_session.close()
 
     def close(self):
-        # self._listen_task.cancel()
         self.disconnect_all_roombas()
+
+        # self._listen_task.cancel()
+        tasks = [t for t in asyncio.all_tasks() if t is not asyncio.current_task()]
+        [task.cancel() for task in tasks]
+        _LOGGER.info("Cancelling %i outstanding tasks", len(tasks))
+        try:
+            asyncio.gather(*tasks, return_exceptions=True)
+        except Exception as e:
+            _LOGGER.warning("Some exception occured during cancellation: %s", e)
 
     def connect_all_roombas(self):
         self.disconnect_all_roombas()
@@ -62,6 +70,7 @@ class kroomba:
                 self._roombas[new_roomba.address] = new_roomba
 
     def disconnect_all_roombas(self):
+        roomba: Roomba
         for roomba in self._roombas.values():
             roomba.disconnect()
         self._roombas = {}
