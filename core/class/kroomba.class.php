@@ -22,6 +22,8 @@ require_once __DIR__ . '/../../vendor/autoload.php';
 class kroomba extends eqLogic {
     use MipsEqLogicTrait;
 
+    const PYTHON_PATH = __DIR__ . '/../../resources/venv/bin/python3';
+
     const CFG_MODEL_FAMILY = 'model_family';
     const CFG_MAC = 'mac';
     const CFG_IP_ADDR = 'netinfo_addr';
@@ -105,6 +107,32 @@ class kroomba extends eqLogic {
         return config::byKey('topic_prefix', __CLASS__, 'iRobot', true);
     }
 
+    public static function dependancy_install() {
+        log::remove(__CLASS__ . '_update');
+        return array('script' => __DIR__ . '/../../resources/install_#stype#.sh', 'log' => log::getPathToLog(__CLASS__ . '_update'));
+    }
+
+    public static function dependancy_info() {
+        $return = array();
+        $return['log'] = log::getPathToLog(__CLASS__ . '_update');
+        $return['progress_file'] = jeedom::getTmpFolder(__CLASS__) . '/dependance';
+        if (file_exists(jeedom::getTmpFolder(__CLASS__) . '/dependance')) {
+            $return['state'] = 'in_progress';
+        } else {
+            $requirements = realpath(__DIR__ . '/../../resources/requirements.txt');
+            $packages_installed = exec(self::PYTHON_PATH . ' -m pip freeze | awk \'!x {v[$1] = $2; next} NF>1 && $1 in v {$0 = $1"=="v[$1]} {print}\' FS=\'==\' - x=1 FS=\'>=\' ' . $requirements . ' | grep -Ec "=="');
+            $packages_needed = exec('sed -n \'$=\' ' . $requirements);
+            if (exec(system::getCmdSudo() . system::get('cmd_check') . '-Ec "python3\-dev|python3\-venv"') < 2) {
+                $return['state'] = 'nok';
+            } elseif ($packages_installed != $packages_needed) {
+                $return['state'] = 'nok';
+            } else {
+                $return['state'] = 'ok';
+            }
+        }
+        return $return;
+    }
+
     public static function deamon_info() {
         $return = array();
         $return['log'] = __CLASS__;
@@ -174,7 +202,7 @@ class kroomba extends eqLogic {
         }
 
         $path = realpath(dirname(__FILE__) . '/../../resources/kroomba');
-        $cmd = "/usr/bin/python3 {$path}/kroombad.py";
+        $cmd = self::PYTHON_PATH . " {$path}/kroombad.py";
         $cmd .= ' --loglevel ' . log::convertLogLevel(log::getLogLevel(__CLASS__));
         $cmd .= ' --host ' . $mqttInfos['ip'];
         $cmd .= ' --port ' . $mqttInfos['port'];
@@ -497,6 +525,12 @@ class kroombaCmd extends cmd {
             case 'set_padWetness':
                 $payload = 'padWetness {"disposable": %1$s, "reusable": %1$s}';
                 $eqLogic->publish_message('setting', sprintf($payload, $_options['select']));
+                break;
+            case 'childLock_on':
+                $eqLogic->publish_message('setting', 'childLock true');
+                break;
+            case 'childLock_off':
+                $eqLogic->publish_message('setting', 'childLock false');
                 break;
             case 'start_region':
                 $payload = [
