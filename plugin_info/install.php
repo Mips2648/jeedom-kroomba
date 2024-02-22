@@ -33,9 +33,6 @@ function kroomba_update() {
 
     unlink(__DIR__ . '/packages.json');
 
-    $plugin = plugin::byId($pluginId);
-    $plugin->dependancy_install();
-
     $dependencyInfo = kroomba::dependancy_info();
     if (!isset($dependencyInfo['state'])) {
         message::add($pluginId, __('Veuilez vérifier les dépendances', __FILE__));
