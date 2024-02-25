@@ -244,6 +244,12 @@ class kroomba extends eqLogic {
         sleep(1);
     }
 
+    public static function backupExclude() {
+        return [
+            'resources/venv'
+        ];
+    }
+
     public static function discoverRobots($login, $password, $address = '255.255.255.255') {
         $deamon_info = self::deamon_info();
         if ($deamon_info['state'] != 'ok') {
