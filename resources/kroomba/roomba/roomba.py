@@ -136,6 +136,7 @@ class Roomba(object):
         120: "Battery not initialized",
         122: "Charging system error",
         123: "Battery not initialized",
+        216: "Charging base bag full",
     }
 
     def __init__(self, address=None, blid=None, password=None, topic="#",
@@ -147,7 +148,7 @@ class Roomba(object):
         it will be used for logging,
         or pass a logging object
         '''
-        self.loop = asyncio.get_event_loop()
+        self.loop = asyncio.get_running_loop()
         self.debug = False
         if log:
             self.log = log
@@ -182,7 +183,7 @@ class Roomba(object):
         self.max_sqft = None
         self.cb = None
 
-        self.is_connected = asyncio.Event(loop=self.loop)
+        self.is_connected = asyncio.Event()
         self.q = asyncio.Queue()
         self.command_q = asyncio.Queue()
         self.loop.create_task(self.process_q())
