@@ -15,6 +15,7 @@ import ssl
 import sys
 import time
 import paho.mqtt.client as mqtt
+from functools import cache
 
 if sys.version_info < (3, 7):
     sys.exit("Python 3.7.0 or later required")
@@ -136,6 +137,7 @@ class Roomba(object):
         120: "Battery not initialized",
         122: "Charging system error",
         123: "Battery not initialized",
+        216: "Charging base bag full",
     }
 
     def __init__(self, address=None, blid=None, password=None, topic="#",
@@ -147,7 +149,7 @@ class Roomba(object):
         it will be used for logging,
         or pass a logging object
         '''
-        self.loop = asyncio.get_event_loop()
+        self.loop = asyncio.get_running_loop()
         self.debug = False
         if log:
             self.log = log
@@ -182,7 +184,7 @@ class Roomba(object):
         self.max_sqft = None
         self.cb = None
 
-        self.is_connected = asyncio.Event(loop=self.loop)
+        self.is_connected = asyncio.Event()
         self.q = asyncio.Queue()
         self.command_q = asyncio.Queue()
         self.loop.create_task(self.process_q())
@@ -223,6 +225,20 @@ class Roomba(object):
         self.log.warning('No Roomba specified, or found, exiting')
         return False
 
+    @cache
+    def generate_tls_context(self) -> ssl.SSLContext:
+        """Generate TLS context.
+
+        We only want to do this once ever because it's expensive.
+        """
+        ssl_context = ssl.SSLContext(ssl.PROTOCOL_TLS)
+        ssl_context.verify_mode = ssl.CERT_NONE
+        ssl_context.set_ciphers("DEFAULT:!DH")
+        ssl_context.load_default_certs()
+        # ssl.OP_LEGACY_SERVER_CONNECT is only available in Python 3.12a4+
+        ssl_context.options |= getattr(ssl, "OP_LEGACY_SERVER_CONNECT", 0x4)
+        return ssl_context
+
     def setup_client(self):
         if self.client is None:
             self.client = mqtt.Client(
@@ -241,13 +257,9 @@ class Roomba(object):
 
             self.log.info("Setting TLS")
             try:
-                #self.client._ssl_context = None
-                context = ssl.SSLContext()
-                # Either of the following context settings works - choose one
-                # Needed for 980 and earlier robots as their security level is 1.
-                # context.set_ciphers('HIGH:!DH:!aNULL')
-                context.set_ciphers('DEFAULT@SECLEVEL=1')
-                self.client.tls_set_context(context)
+                ssl_context = self.generate_tls_context()
+                self.client.tls_set_context(ssl_context)
+                self.client.tls_insecure_set(True)
             except Exception as e:
                 self.log.exception("Error setting TLS: %s", e)
 

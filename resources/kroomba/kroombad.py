@@ -55,7 +55,7 @@ class kroomba:
             _LOGGER.warning('No roomba or config file defined, please run discovery from plugin page')
             tmp = {}
             tmp["msg"] = "NO_ROOMBA"
-            asyncio.get_event_loop().create_task(self.__send_async(tmp))
+            asyncio.get_running_loop().create_task(self.__send_async(tmp))
         else:
             for ip in all_roombas.keys():
                 data = all_roombas[ip]
@@ -195,7 +195,7 @@ try:
     jeedom_utils.write_pid(str(_pidfile))
 
     irobot = kroomba(config)
-    asyncio.get_event_loop().run_until_complete(irobot.main())
+    asyncio.run(irobot.main())
 except Exception as e:
     _LOGGER.error('Fatal error: %s', e)
 shutdown()
