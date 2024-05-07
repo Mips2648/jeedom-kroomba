@@ -1,40 +1,37 @@
-class Config(object):
-    def __init__(self, **kwargs):
-        self._kwargs = kwargs
+from jeedomdaemon.base_config import BaseConfig
+
+class iRobotConfig(BaseConfig):
+    def __init__(self):
+        super().__init__()
+
+        self.add_argument("--host", help="mqtt host ip", type=str, default='127.0.0.1')
+        self.add_argument("--port", help="mqtt host port", type=int, default=1883)
+        self.add_argument("--user", help="mqtt username", type=str)
+        self.add_argument("--password", help="mqtt password", type=str)
+        self.add_argument("--topic_prefix", help="topic_prefix", type=str, default='kroomba')
+        self.add_argument("--excluded_blid", type=str)
 
     @property
     def host(self):
-        return self._kwargs.get('host', '127.0.0.1')
+        return str(self._args.host)
 
     @property
     def port(self):
-        return self._kwargs.get('port', 1883)
+        return int(self._args.port)
 
     @property
     def user(self):
-        return self._kwargs.get('user', '')
+        return str(self._args.user)
 
     @property
     def password(self):
-        return self._kwargs.get('password', '')
+        return str(self._args.password)
 
     @property
     def topic_prefix(self):
-        return self._kwargs.get('topic_prefix', 'kroomba')
+        return str(self._args.topic_prefix)
 
     @property
     def excluded_blid(self):
-        blids = self._kwargs.get('excluded_blid', '')
+        blids = str(self._args.excluded_blid)
         return [str(x) for x in blids.split(',') if x != '']
-
-    @property
-    def apiKey(self):
-        return self._kwargs.get('apikey', '')
-
-    @property
-    def callbackUrl(self):
-        return self._kwargs.get('callback', '')
-
-    @property
-    def socketport(self):
-        return self._kwargs.get('socketport', 55072)
