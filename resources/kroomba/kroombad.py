@@ -19,11 +19,10 @@ class kroomba(BaseDaemon):
         self._roombas = {}
 
     async def on_start(self):
-        self._disconnect_all_roombas()
         all_roombas = self._get_password.read_config_file()
         if not all_roombas:
             self._logger.warning('No roomba or config file defined, please run discovery from plugin page')
-            await self._jeedom_publisher.send_to_jeedom({'msg': "NO_ROOMBA"})
+            await self.send_to_jeedom({'msg': "NO_ROOMBA"})
         else:
             for ip in all_roombas.keys():
                 data = all_roombas[ip]
@@ -37,10 +36,7 @@ class kroomba(BaseDaemon):
                 self._logger.info("Try to connect to iRobot %s with ip %s", new_roomba.roombaName, new_roomba.address)
                 self._roombas[new_roomba.address] = new_roomba
 
-    def on_stop(self):
-        self._disconnect_all_roombas()
-
-    def _disconnect_all_roombas(self):
+    async def on_stop(self):
         roomba: Roomba
         for roomba in self._roombas.values():
             roomba.disconnect()
@@ -53,10 +49,8 @@ class kroomba(BaseDaemon):
                 self._get_password.password = message['password']
                 self._get_password.address = message['address']
                 result = self._get_password.get_password()
-                await self._jeedom_publisher.send_to_jeedom({'discover': result})
+                await self.send_to_jeedom({'discover': result})
             except Exception as e:
                 self._logger.error('Error during discovery: %s', e)
-
-
 
 kroomba().run()
