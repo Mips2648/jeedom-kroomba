@@ -1,201 +1,56 @@
-import logging
-import argparse
-import sys
 import os
-import signal
-import json
-import asyncio
-import aiohttp
-
-from config import Config
-from jeedom.jeedom import jeedom_utils, jeedom_socket, JEEDOM_SOCKET_MESSAGE
 
 from roomba.roomba import Roomba
 from roomba.password import Password
 
+from jeedomdaemon.base_daemon import BaseDaemon
 
-class kroomba:
-    def __init__(self, config: Config) -> None:
-        self._config = config
-        self._listen_task = None
-        self._jeedom_session = None
-        self._jeedomSocket = jeedom_socket(port=self._config.socketport, address='localhost')
+from config import iRobotConfig
 
+class kroomba(BaseDaemon):
+    def __init__(self) -> None:
+        self._config = iRobotConfig()
+        super().__init__(self._config, self.on_start, self.on_message, self.on_stop)
+
+        self.set_logger_log_level('Roomba')
         basedir = os.path.dirname(__file__)
         self._roomba_configFile = os.path.abspath(basedir + '/../../data/config.ini')
         self._get_password = Password(file=self._roomba_configFile)
         self._roombas = {}
 
-    async def main(self):
-        self._jeedom_session = aiohttp.ClientSession()
-        if not await self.__test_callback():
-            await self._jeedom_session.close()
-            return
-
-        self.connect_all_roombas()
-        await self._listen()
-        await self._jeedom_session.close()
-
-    def close(self):
-        self.disconnect_all_roombas()
-
-        # self._listen_task.cancel()
-        tasks = [t for t in asyncio.all_tasks() if t is not asyncio.current_task()]
-        [task.cancel() for task in tasks]
-        _LOGGER.info("Cancelling %i outstanding tasks", len(tasks))
-        try:
-            asyncio.gather(*tasks, return_exceptions=True)
-        except Exception as e:
-            _LOGGER.warning("Some exception occured during cancellation: %s", e)
-
-    def connect_all_roombas(self):
-        self.disconnect_all_roombas()
+    async def on_start(self):
         all_roombas = self._get_password.read_config_file()
         if not all_roombas:
-            _LOGGER.warning('No roomba or config file defined, please run discovery from plugin page')
-            tmp = {}
-            tmp["msg"] = "NO_ROOMBA"
-            asyncio.get_running_loop().create_task(self.__send_async(tmp))
+            self._logger.warning('No roomba or config file defined, please run discovery from plugin page')
+            await self.send_to_jeedom({'msg': "NO_ROOMBA"})
         else:
             for ip in all_roombas.keys():
                 data = all_roombas[ip]
                 if data.get('blid') in self._config.excluded_blid:
-                    _LOGGER.debug("Exclude blid: %s", data.get('blid'))
+                    self._logger.debug("Exclude blid: %s", data.get('blid'))
                     continue
 
                 new_roomba = Roomba(address=ip, file=self._roomba_configFile)
                 new_roomba.setup_mqtt_client(self._config.host, self._config.port, self._config.user, self._config.password, self._config.topic_prefix+'/feedback', self._config.topic_prefix+'/command', self._config.topic_prefix+'/setting')
                 new_roomba.connect()
-                _LOGGER.info("Try to connect to iRobot %s with ip %s", new_roomba.roombaName, new_roomba.address)
+                self._logger.info("Try to connect to iRobot %s with ip %s", new_roomba.roombaName, new_roomba.address)
                 self._roombas[new_roomba.address] = new_roomba
 
-    def disconnect_all_roombas(self):
+    async def on_stop(self):
         roomba: Roomba
         for roomba in self._roombas.values():
             roomba.disconnect()
         self._roombas = {}
 
-    async def _read_socket(self):
-        global JEEDOM_SOCKET_MESSAGE
-        if not JEEDOM_SOCKET_MESSAGE.empty():
-            _LOGGER.debug("Message received in socket JEEDOM_SOCKET_MESSAGE")
-            message = json.loads(JEEDOM_SOCKET_MESSAGE.get().decode('utf-8'))
-            if message['apikey'] != _apikey:
-                _LOGGER.error('Invalid apikey from socket : %s', str(message))
-                return
+    async def on_message(self, message: list):
+        if message['action'] == 'discover':
             try:
-                if message['action'] == 'discover':
-                    try:
-                        self._get_password.login = message['login']
-                        self._get_password.password = message['password']
-                        self._get_password.address = message['address']
-                        result = self._get_password.get_password()
-                        response = {}
-                        response["discover"] = result
-                        await self.__send_async(response)
-                    except Exception as e:
-                        _LOGGER.error('Error during discovery: %s', e)
+                self._get_password.login = message['login']
+                self._get_password.password = message['password']
+                self._get_password.address = message['address']
+                result = self._get_password.get_password()
+                await self.send_to_jeedom({'discover': result})
             except Exception as e:
-                _LOGGER.error('Send command to daemon error: %s', e)
+                self._logger.error('Error during discovery: %s', e)
 
-    async def _listen(self):
-        _LOGGER.info("Start listening")
-        self._jeedomSocket.open()
-        try:
-            while 1:
-                await asyncio.sleep(0.05)
-                await self._read_socket()
-        except KeyboardInterrupt:
-            _LOGGER.info("End listening")
-            shutdown()
-        except asyncio.CancelledError:
-            _LOGGER.info("listening cancelled")
-
-    async def __test_callback(self):
-        try:
-            async with self._jeedom_session.get(self._config.callbackUrl + '?test=1&apikey=' + self._config.apiKey) as resp:
-                if resp.status != 200:
-                    _LOGGER.error("Please check your network configuration page: %s-%s", resp.status, resp.reason)
-                    return False
-        except Exception as e:
-            _LOGGER.error('Callback error: %s. Please check your network configuration page', e)
-            return False
-        return True
-
-    async def __send_async(self, payload):
-        _LOGGER.debug('Send to jeedom :  %s', payload)
-        async with self._jeedom_session.post(self._config.callbackUrl + '?apikey=' + self._config.apiKey, json=payload) as resp:
-            if resp.status != 200:
-                _LOGGER.error('Error on send request to jeedom, return %s-%s', resp.status, resp.reason)
-
-# ----------------------------------------------------------------------------
-
-
-def handler(signum=None, frame=None):
-    _LOGGER.debug("Signal %i caught, exiting...", int(signum))
-    irobot.close()
-
-
-def shutdown():
-    _LOGGER.info("Shutdown")
-
-    try:
-        _LOGGER.debug("Removing PID file %s", _pidfile)
-        os.remove(_pidfile)
-    except:
-        pass
-
-    _LOGGER.debug("Exit 0")
-    sys.stdout.flush()
-    os._exit(0)
-
-# ----------------------------------------------------------------------------
-
-
-_log_level = "error"
-_pidfile = '/tmp/kroombad.pid'
-_apikey = ''
-
-
-parser = argparse.ArgumentParser(description='kroomba Daemon for Jeedom plugin')
-parser.add_argument("--loglevel", help="Log Level for the daemon", type=str)
-parser.add_argument("--host", help="mqtt host ip", type=str)
-parser.add_argument("--port", help="mqtt host port", type=int)
-parser.add_argument("--user", help="mqtt username", type=str)
-parser.add_argument("--password", help="mqtt password", type=str)
-parser.add_argument("--topic_prefix", help="topic_prefix", type=str)
-parser.add_argument("--excluded_blid", type=str)
-parser.add_argument("--socketport", help="Socket Port", type=int)
-parser.add_argument("--callback", help="Jeedom callback url", type=str)
-parser.add_argument("--apikey", help="Plugin API Key", type=str)
-parser.add_argument("--pid", help="daemon pid", type=str)
-
-args = parser.parse_args()
-
-_log_level = args.loglevel
-_pidfile = args.pid
-_apikey = args.apikey
-
-jeedom_utils.init_logger(_log_level)
-_LOGGER = logging.getLogger(__name__)
-
-logging.getLogger('asyncio').setLevel(logging.WARNING)
-logging.getLogger('Roomba').setLevel(jeedom_utils.convert_log_level(_log_level))
-
-signal.signal(signal.SIGINT, handler)
-signal.signal(signal.SIGTERM, handler)
-
-try:
-    _LOGGER.info('Starting daemon')
-    config = Config(**vars(args))
-
-    _LOGGER.info('Log level: %s', _log_level)
-    _LOGGER.debug('Socket port: %s', config.socketport)
-    _LOGGER.debug('PID file: %s', _pidfile)
-    jeedom_utils.write_pid(str(_pidfile))
-
-    irobot = kroomba(config)
-    asyncio.run(irobot.main())
-except Exception as e:
-    _LOGGER.error('Fatal error: %s', e)
-shutdown()
+kroomba().run()

@@ -384,7 +384,9 @@ class kroomba extends eqLogic {
                         case 'lastCommand_pmap_id':
                         case 'lastCommand_regions':
                         case 'lastCommand_user_pmapv_id':
-                            $roomba->create_start_regions_cmd($data['lastCommand_pmap_id'], $data['lastCommand_user_pmapv_id'], $data['lastCommand_regions']);
+                            if (isset($data['lastCommand_pmap_id'], $data['lastCommand_user_pmapv_id'], $data['lastCommand_regions'])) {
+                                $roomba->create_start_regions_cmd($data['lastCommand_pmap_id'], $data['lastCommand_user_pmapv_id'], $data['lastCommand_regions']);
+                            }
                             break;
                         case 'signal_rssi':
                         case 'signal_snr':

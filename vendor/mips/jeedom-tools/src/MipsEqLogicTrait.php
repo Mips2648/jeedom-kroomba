@@ -45,6 +45,9 @@ trait MipsEqLogicTrait {
 			if (isset($cmdDef["generic_type"])) {
 				$cmd->setGeneric_type($cmdDef["generic_type"]);
 			}
+			if (isset($cmdDef["order"])) {
+				$cmd->setOrder($cmdDef["order"]);
+			}
 			if (isset($cmdDef['display'])) {
 				foreach ($cmdDef['display'] as $key => $value) {
 					if ($key == 'title_placeholder' || $key == 'message_placeholder') {
@@ -163,6 +166,9 @@ trait MipsEqLogicTrait {
 	}
 
 	private static function pythonRequirementsInstalled(string $pythonPath, string $requirementsPath) {
+		if (!file_exists($pythonPath) || !file_exists($requirementsPath)) {
+			return false;
+		}
 		exec("{$pythonPath} -m pip freeze", $packages_installed);
 		$packages = join("||", $packages_installed);
 		exec("cat {$requirementsPath}", $packages_needed);
