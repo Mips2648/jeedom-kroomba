@@ -29,7 +29,7 @@ private static $installed = array (
     'aliases' => 
     array (
     ),
-    'reference' => 'c10dd4a22b4852b3afb31a6ecd2ecbcbb6c5ccc4',
+    'reference' => '852bd64e2d448898a2687f0260b93418ca10da43',
     'name' => '__root__',
   ),
   'versions' => 
@@ -41,16 +41,16 @@ private static $installed = array (
       'aliases' => 
       array (
       ),
-      'reference' => 'c10dd4a22b4852b3afb31a6ecd2ecbcbb6c5ccc4',
+      'reference' => '852bd64e2d448898a2687f0260b93418ca10da43',
     ),
     'mips/jeedom-tools' => 
     array (
-      'pretty_version' => 'v0.24',
-      'version' => '0.24.0.0',
+      'pretty_version' => 'v1.0',
+      'version' => '1.0.0.0',
       'aliases' => 
       array (
       ),
-      'reference' => 'bb5ab54a136f78cff1c396b896d0bb938516f292',
+      'reference' => '047aa5ca7831394566a6974ea7ccc882c04025c8',
     ),
   ),
 );
