@@ -11,7 +11,6 @@
         "Commande region mise à jour": "Aggiornamento della regione dell'ordine",
         "En charge": "A carico",
         "Impossible de lancer le démon": "Impossibile avviare il demone",
-        "Inconnu": "Inconnu",
         "Le démon mqtt2 n\\'est pas demarré": "Demone mqtt2 non avviato",
         "Le démon n\\'est pas démarré": "Il demone non è avviato",
         "Le plugin mqtt2 n\\'est pas installé": "Il plugin mqtt2 non è installato",
@@ -28,7 +27,6 @@
         "Arrêter": "Ferma",
         "Bac plein": "Cestino completo",
         "Bac présent": "Bin presente",
-        "Batterie": "Batterie",
         "Chevauchement": "Sovrapposizione",
         "Continuer": "Continua",
         "Couvercle ouvert": "Coperchio aperto",
@@ -67,7 +65,6 @@
     "plugins\/kroomba\/desktop\/js\/kroomba.js": {
         "Afficher": "Mostra",
         "Annuler": "Cancella",
-        "Aucune": "Aucune",
         "Choisir une icône": "Seleziona un\\'icona",
         "Commande info liée": "Comando info correlato",
         "Continuer": "Continua",
@@ -87,7 +84,6 @@
     },
     "plugins\/kroomba\/desktop\/modal\/health.php": {
         "Bac plein": "Cestino completo",
-        "Batterie": "Batterie",
         "IP": "IP",
         "MAC": "Mac",
         "Nom": "Nome",
@@ -116,7 +112,6 @@
         "Gestion": "Gestione",
         "IP": "IP",
         "IP du robot (optionelle)": "Robot IP (opzionale)",
-        "Identifiant": "Identifiant",
         "Informations": "Informazioni",
         "MAC": "Mac",
         "Masque": "Maschera",
@@ -132,8 +127,6 @@
         "Passerelle": "Gateway",
         "Rechercher": "Ricercare",
         "Santé": "Salute",
-        "Sauvegarder": "Sauvegarder",
-        "Supprimer": "Supprimer",
         "Type": "Tipo",
         "Visible": "Visibile",
         "uniquement nécessaire si le robot n'est pas sur le même lan que Jeedom": "necessario solo se il robot non è sulla stessa LAN di Jeedom"
