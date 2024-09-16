@@ -31,6 +31,9 @@
 		"diy",
 		"v4"
 	],
+	"os": {
+		"min": 11
+	},
 	"changelog": "https://mips2648.github.io/jeedom-plugins-docs/kroomba/#language#/changelog",
 	"documentation": "https://mips2648.github.io/jeedom-plugins-docs/kroomba/#language#/",
 	"changelog_beta": "https://mips2648.github.io/jeedom-plugins-docs/kroomba/#language#/changelog",
