@@ -2,7 +2,7 @@
     "common": [
         {
             "logicalId": "start",
-            "name": "Démarrer",
+            "name": "{{Démarrer}}",
             "type": "action",
             "subtype": "other",
             "generic_type": "MODE_SET_STATE",
@@ -14,7 +14,7 @@
         },
         {
             "logicalId": "stop",
-            "name": "Arrêter",
+            "name": "{{Arrêter}}",
             "type": "action",
             "subtype": "other",
             "generic_type": "MODE_SET_STATE",
@@ -26,7 +26,7 @@
         },
         {
             "logicalId": "pause",
-            "name": "Pause",
+            "name": "{{Pause}}",
             "type": "action",
             "subtype": "other",
             "generic_type": "MODE_SET_STATE",
@@ -38,7 +38,7 @@
         },
         {
             "logicalId": "resume",
-            "name": "Continuer",
+            "name": "{{Continuer}}",
             "type": "action",
             "subtype": "other",
             "generic_type": "MODE_SET_STATE",
@@ -50,7 +50,7 @@
         },
         {
             "logicalId": "dock",
-            "name": "Retour à la base",
+            "name": "{{Retour à la base}}",
             "type": "action",
             "subtype": "other",
             "generic_type": "MODE_SET_STATE",
@@ -62,7 +62,7 @@
         },
         {
             "logicalId": "evac",
-            "name": "Vidange",
+            "name": "{{Vidange}}",
             "type": "action",
             "subtype": "other",
             "generic_type": "MODE_SET_STATE",
@@ -74,7 +74,7 @@
         },
         {
             "logicalId": "state",
-            "name": "Etat",
+            "name": "{{Etat}}",
             "type": "info",
             "subtype": "string",
             "generic_type": "MODE_STATE",
@@ -87,7 +87,7 @@
         },
         {
             "logicalId": "error_message",
-            "name": "Erreur",
+            "name": "{{Erreur}}",
             "type": "info",
             "subtype": "string",
             "isVisible": 0,
@@ -95,7 +95,7 @@
         },
         {
             "logicalId": "bin_full",
-            "name": "Bac plein",
+            "name": "{{Bac plein}}",
             "type": "info",
             "subtype": "binary",
             "isVisible": 0,
@@ -108,7 +108,7 @@
         },
         {
             "logicalId": "bin_present",
-            "name": "Bac présent",
+            "name": "{{Bac présent}}",
             "type": "info",
             "subtype": "binary",
             "isVisible": 0,
@@ -116,7 +116,7 @@
         },
         {
             "logicalId": "childLock",
-            "name": "Sécurité enfant",
+            "name": "{{Sécurité enfant}}",
             "type": "info",
             "subtype": "binary",
             "isVisible": 0,
@@ -129,7 +129,7 @@
         },
         {
             "logicalId": "childLock_on",
-            "name": "Activer sécurité enfant",
+            "name": "{{Activer sécurité enfant}}",
             "type": "action",
             "subtype": "other",
             "isVisible": 0,
@@ -141,7 +141,7 @@
         },
         {
             "logicalId": "childLock_off",
-            "name": "Désactiver sécurité enfant",
+            "name": "{{Désactiver sécurité enfant}}",
             "type": "action",
             "subtype": "other",
             "isVisible": 0,
@@ -153,7 +153,7 @@
         },
         {
             "logicalId": "batPct",
-            "name": "Batterie",
+            "name": "{{Batterie}}",
             "type": "info",
             "subtype": "numeric",
             "generic_type": "BATTERY",
@@ -171,7 +171,7 @@
         },
         {
             "logicalId": "bbmssn_nMssn",
-            "name": "Nombre de tâches de nettoyage",
+            "name": "{{Nombre de tâches de nettoyage}}",
             "type": "info",
             "subtype": "numeric",
             "isVisible": 0,
@@ -179,7 +179,7 @@
         },
         {
             "logicalId": "bbmssn_nMssnOK",
-            "name": "Nombre de tâches réussies",
+            "name": "{{Nombre de tâches réussies}}",
             "type": "info",
             "subtype": "numeric",
             "isVisible": 0,
@@ -187,7 +187,7 @@
         },
         {
             "logicalId": "bbmssn_nMssnF",
-            "name": "Nombre de tâches échouées",
+            "name": "{{Nombre de tâches échouées}}",
             "type": "info",
             "subtype": "numeric",
             "isVisible": 0,
@@ -195,7 +195,7 @@
         },
         {
             "logicalId": "bbmssn_nMssnC",
-            "name": "Nombre de tâches annulées",
+            "name": "{{Nombre de tâches annulées}}",
             "type": "info",
             "subtype": "numeric",
             "isVisible": 0,
@@ -203,7 +203,7 @@
         },
         {
             "logicalId": "bbrun_nEvacs",
-            "name": "Nombre de vidages automatiques",
+            "name": "{{Nombre de vidages automatiques}}",
             "type": "info",
             "subtype": "numeric",
             "isVisible": 0,
@@ -211,7 +211,7 @@
         },
         {
             "logicalId": "bbrun_nScrubs",
-            "name": "Nombre de détections de saleté",
+            "name": "{{Nombre de détections de saleté}}",
             "type": "info",
             "subtype": "numeric",
             "isVisible": 0,
@@ -219,7 +219,7 @@
         },
         {
             "logicalId": "bbrun_nStuck",
-            "name": "Nombre de blocages",
+            "name": "{{Nombre de blocages}}",
             "type": "info",
             "subtype": "numeric",
             "isVisible": 0,
@@ -229,7 +229,7 @@
     "BraavaJet": [
         {
             "logicalId": "detectedPad",
-            "name": "Type de lingette",
+            "name": "{{Type de lingette}}",
             "type": "info",
             "subtype": "string",
             "isVisible": 1,
@@ -237,7 +237,7 @@
         },
         {
             "logicalId": "lidOpen",
-            "name": "Couvercle ouvert",
+            "name": "{{Couvercle ouvert}}",
             "type": "info",
             "subtype": "binary",
             "isVisible": 0,
@@ -245,7 +245,7 @@
         },
         {
             "logicalId": "tankPresent",
-            "name": "Réservoir présent",
+            "name": "{{Réservoir présent}}",
             "type": "info",
             "subtype": "binary",
             "isVisible": 0,
@@ -253,7 +253,7 @@
         },
         {
             "logicalId": "tankLvl",
-            "name": "Niveau réservoir",
+            "name": "{{Niveau réservoir}}",
             "type": "info",
             "subtype": "numeric",
             "isVisible": 1,
@@ -266,7 +266,7 @@
         },
         {
             "logicalId": "padWetness",
-            "name": "Quantité de liquide",
+            "name": "{{Quantité de liquide}}",
             "type": "info",
             "subtype": "string",
             "isVisible": 0,
@@ -274,7 +274,7 @@
         },
         {
             "logicalId": "set_padWetness",
-            "name": "Définir quantité de liquide",
+            "name": "{{Définir quantité de liquide}}",
             "type": "action",
             "subtype": "select",
             "configuration": {
@@ -286,7 +286,7 @@
         },
         {
             "logicalId": "rankOverlap",
-            "name": "Chevauchement",
+            "name": "{{Chevauchement}}",
             "type": "info",
             "subtype": "string",
             "isVisible": 0,
@@ -294,7 +294,7 @@
         },
         {
             "logicalId": "set_rankOverlap",
-            "name": "Définir chevauchement",
+            "name": "{{Définir chevauchement}}",
             "type": "action",
             "subtype": "select",
             "configuration": {

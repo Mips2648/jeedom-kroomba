@@ -18,6 +18,7 @@ class ComposerStaticInit6c9124a25aeada9064704f86d5c25a73
 
     public static $classMap = array (
         'Composer\\InstalledVersions' => __DIR__ . '/..' . '/composer/InstalledVersions.php',
+        'MipsEqLogicTrait' => __DIR__ . '/..' . '/mips/jeedom-tools/src/MipsEqLogicTrait.php',
     );
 
     public static function getInitializer(ClassLoader $loader)
