@@ -18,15 +18,19 @@
 
 require_once dirname(__FILE__) . '/../../../core/php/core.inc.php';
 
-function InstallComposerDependencies(string $pluginId) {
+function InstallComposerDependencies() {
+    $pluginId = basename(realpath(__DIR__ . '/..'));
     log::add($pluginId, 'info', 'Install composer dependencies');
     $cmd = 'cd ' . __DIR__ . '/../;export COMPOSER_ALLOW_SUPERUSER=1;export COMPOSER_HOME="/tmp/composer";' . system::getCmdSudo() . 'composer install --no-ansi --no-dev --no-interaction --no-plugins --no-progress --no-scripts --optimize-autoloader;' . system::getCmdSudo() . ' chown -R www-data:www-data *';
     shell_exec($cmd);
 }
 
+function kroomba_post_plugin_install() {
+    InstallComposerDependencies();
+}
+
 function kroomba_install() {
-    $pluginId = 'kroomba';
-    InstallComposerDependencies($pluginId);
+    $pluginId = basename(realpath(__DIR__ . '/..'));
 
     config::save('api', config::genKey(), $pluginId);
     config::save("api::{$pluginId}::mode", 'localhost');
@@ -34,8 +38,7 @@ function kroomba_install() {
 }
 
 function kroomba_update() {
-    $pluginId = 'kroomba';
-    InstallComposerDependencies($pluginId);
+    $pluginId = basename(realpath(__DIR__ . '/..'));
 
     config::save('api', config::genKey(), $pluginId);
     config::save("api::{$pluginId}::mode", 'localhost');
@@ -57,7 +60,7 @@ function kroomba_update() {
 }
 
 function kroomba_remove() {
-    $pluginId = 'kroomba';
+    $pluginId = basename(realpath(__DIR__ . '/..'));
     config::remove('api', $pluginId);
     config::remove("api::{$pluginId}::mode");
     config::remove("api::{$pluginId}::restricted");
