@@ -24,6 +24,8 @@ try {
     throw new Exception(__('401 - Accès non autorisé', __FILE__));
   }
 
+  ajax::init();
+
   if (init('action') == 'discover') {
     kroomba::discoverRobots(init('login'), init('password'), init('address'));
     ajax::success();

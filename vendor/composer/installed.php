@@ -1,33 +1,32 @@
-<?php return array (
-  'root' => 
-  array (
-    'pretty_version' => 'dev-master',
-    'version' => 'dev-master',
-    'aliases' => 
-    array (
+<?php return array(
+    'root' => array(
+        'name' => 'mips/jeedom-kroomba',
+        'pretty_version' => 'dev-master',
+        'version' => 'dev-master',
+        'reference' => '9835a0cd711f900371fc4bfac97b9f2cbf46cbec',
+        'type' => 'library',
+        'install_path' => __DIR__ . '/../../',
+        'aliases' => array(),
+        'dev' => false,
     ),
-    'reference' => '852bd64e2d448898a2687f0260b93418ca10da43',
-    'name' => '__root__',
-  ),
-  'versions' => 
-  array (
-    '__root__' => 
-    array (
-      'pretty_version' => 'dev-master',
-      'version' => 'dev-master',
-      'aliases' => 
-      array (
-      ),
-      'reference' => '852bd64e2d448898a2687f0260b93418ca10da43',
+    'versions' => array(
+        'mips/jeedom-kroomba' => array(
+            'pretty_version' => 'dev-master',
+            'version' => 'dev-master',
+            'reference' => '9835a0cd711f900371fc4bfac97b9f2cbf46cbec',
+            'type' => 'library',
+            'install_path' => __DIR__ . '/../../',
+            'aliases' => array(),
+            'dev_requirement' => false,
+        ),
+        'mips/jeedom-tools' => array(
+            'pretty_version' => 'v1.1.1',
+            'version' => '1.1.1.0',
+            'reference' => '5843ad156530cc36f40ff642baabd476219ddb6e',
+            'type' => 'library',
+            'install_path' => __DIR__ . '/../mips/jeedom-tools',
+            'aliases' => array(),
+            'dev_requirement' => false,
+        ),
     ),
-    'mips/jeedom-tools' => 
-    array (
-      'pretty_version' => 'v1.0',
-      'version' => '1.0.0.0',
-      'aliases' => 
-      array (
-      ),
-      'reference' => '047aa5ca7831394566a6974ea7ccc882c04025c8',
-    ),
-  ),
 );
