@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "ec1208d4d285237d7fe87f64a4bb7c10",
+    "content-hash": "a47bc5a5df4f5608aa770eb7043f0a37",
     "packages": [
         {
             "name": "mips/jeedom-tools",

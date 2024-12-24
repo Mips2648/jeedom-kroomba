@@ -1,19 +1,19 @@
 <?php return array(
     'root' => array(
-        'name' => '__root__',
+        'name' => 'mips/jeedom-kroomba',
         'pretty_version' => 'dev-master',
         'version' => 'dev-master',
-        'reference' => 'eca65f0badbba26697efd72f0a669f9edb7ae88f',
+        'reference' => '54563e5037477800596b8c28d1e5f4ffe58cbd83',
         'type' => 'library',
         'install_path' => __DIR__ . '/../../',
         'aliases' => array(),
         'dev' => true,
     ),
     'versions' => array(
-        '__root__' => array(
+        'mips/jeedom-kroomba' => array(
             'pretty_version' => 'dev-master',
             'version' => 'dev-master',
-            'reference' => 'eca65f0badbba26697efd72f0a669f9edb7ae88f',
+            'reference' => '54563e5037477800596b8c28d1e5f4ffe58cbd83',
             'type' => 'library',
             'install_path' => __DIR__ . '/../../',
             'aliases' => array(),
