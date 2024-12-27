@@ -7,6 +7,7 @@ from jeedomdaemon.base_daemon import BaseDaemon
 
 from config import iRobotConfig
 
+
 class kroomba(BaseDaemon):
     def __init__(self) -> None:
         self._config = iRobotConfig()
@@ -31,7 +32,15 @@ class kroomba(BaseDaemon):
                     continue
 
                 new_roomba = Roomba(address=ip, file=self._roomba_configFile)
-                new_roomba.setup_mqtt_client(self._config.host, self._config.port, self._config.user, self._config.password, self._config.topic_prefix+'/feedback', self._config.topic_prefix+'/command', self._config.topic_prefix+'/setting')
+                new_roomba.setup_mqtt_client(
+                    self._config.host,
+                    self._config.port,
+                    self._config.user,
+                    self._config.password,
+                    brokerFeedback=self._config.topic_prefix+'/feedback',
+                    brokerCommand=self._config.topic_prefix+'/command',
+                    brokerSetting=self._config.topic_prefix+'/setting'
+                    )
                 new_roomba.connect()
                 self._logger.info("Try to connect to iRobot %s with ip %s", new_roomba.roombaName, new_roomba.address)
                 self._roombas[new_roomba.address] = new_roomba
@@ -52,5 +61,6 @@ class kroomba(BaseDaemon):
                 await self.send_to_jeedom({'discover': result})
             except Exception as e:
                 self._logger.error('Error during discovery: %s', e)
+
 
 kroomba().run()
