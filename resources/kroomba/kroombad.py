@@ -40,7 +40,7 @@ class kroomba(BaseDaemon):
                     brokerFeedback=self._config.topic_prefix+'/feedback',
                     brokerCommand=self._config.topic_prefix+'/command',
                     brokerSetting=self._config.topic_prefix+'/setting'
-                    )
+                )
                 self._logger.info("Try to connect to iRobot %s with ip %s", new_roomba.roombaName, new_roomba.address)
                 await new_roomba.async_connect()
                 self._robots[new_roomba.address] = new_roomba
