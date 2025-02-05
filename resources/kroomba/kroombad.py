@@ -1,7 +1,7 @@
 import os
 
-from roomba.roomba import Roomba
-from roomba.password import Password
+from irobot.irobot import iRobot
+from irobot.password import Password
 
 from jeedomdaemon.base_daemon import BaseDaemon
 
@@ -17,21 +17,21 @@ class kroomba(BaseDaemon):
         basedir = os.path.dirname(__file__)
         self._roomba_configFile = os.path.abspath(basedir + '/../../data/config.ini')
         self._get_password = Password(file=self._roomba_configFile)
-        self._roombas = {}
+        self._robots: dict[str, iRobot] = {}
 
     async def on_start(self):
-        all_roombas = self._get_password.read_config_file()
-        if not all_roombas:
-            self._logger.warning('No roomba or config file defined, please run discovery from plugin page')
+        all_robots = self._get_password.read_config_file()
+        if not all_robots:
+            self._logger.warning('No robot or config file defined, please run discovery from plugin page')
             await self.send_to_jeedom({'msg': "NO_ROOMBA"})
         else:
-            for ip in all_roombas.keys():
-                data = all_roombas[ip]
+            for ip in all_robots.keys():
+                data = all_robots[ip]
                 if data.get('blid') in self._config.excluded_blid:
                     self._logger.debug("Exclude blid: %s", data.get('blid'))
                     continue
 
-                new_roomba = Roomba(address=ip, file=self._roomba_configFile)
+                new_roomba = iRobot(address=ip, file=self._roomba_configFile)
                 new_roomba.setup_mqtt_client(
                     self._config.host,
                     self._config.port,
@@ -41,15 +41,14 @@ class kroomba(BaseDaemon):
                     brokerCommand=self._config.topic_prefix+'/command',
                     brokerSetting=self._config.topic_prefix+'/setting'
                     )
-                new_roomba.connect()
                 self._logger.info("Try to connect to iRobot %s with ip %s", new_roomba.roombaName, new_roomba.address)
-                self._roombas[new_roomba.address] = new_roomba
+                await new_roomba.async_connect()
+                self._robots[new_roomba.address] = new_roomba
 
     async def on_stop(self):
-        roomba: Roomba
-        for roomba in self._roombas.values():
-            roomba.disconnect()
-        self._roombas = {}
+        for robot in self._robots.values():
+            robot.disconnect()
+        self._robots.clear()
 
     async def on_message(self, message: list):
         if message['action'] == 'discover':
