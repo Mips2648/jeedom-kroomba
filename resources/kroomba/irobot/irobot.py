@@ -6,22 +6,18 @@ __version__ = "3.0.0"
 
 import asyncio
 from collections.abc import Mapping
-from roomba.password import Password
+from irobot.password import Password
 import datetime
 import json
 import logging
 import socket
 import ssl
-import sys
 import time
 import paho.mqtt.client as mqtt
 from functools import cache
 
-if sys.version_info < (3, 7):
-    sys.exit("Python 3.7.0 or later required")
 
-
-class Roomba(object):
+class iRobot(object):
     '''
     This is a Class for Roomba WiFi connected Vacuum cleaners and mops
     Requires firmware version 2.0 and above (not V1.0). Tested with Roomba 980, s9
@@ -172,11 +168,9 @@ class Roomba(object):
         self.raw = False
         self.mapSize = None
         self.current_state = None
-        self.simulation = False
-        self.simulation_reset = False
         self.master_state = {}
         self.update_seconds = 300  # update with all values every 5 minutes
-        self.client = None  # Roomba MQTT client
+        self.robot_mqtt_client = None
         self.roombas_config = {}  # Roomba configuration loaded from config file
         self.history = {}
         self.timers = {}
@@ -185,10 +179,10 @@ class Roomba(object):
         self.cb = None
 
         self.is_connected = asyncio.Event()
-        self.q = asyncio.Queue()
-        self.command_q = asyncio.Queue()
-        self.loop.create_task(self.process_q())
-        self.loop.create_task(self.process_command_q())
+        self.robot_msg_queue = asyncio.Queue()
+        self.command_queue = asyncio.Queue()
+        self.loop.create_task(self.process_robot_msg_queue())
+        self.loop.create_task(self.process_command_queue())
         self.update = self.loop.create_task(self.periodic_update())
 
         if not all([self.address, self.blid, self.password]):
@@ -213,13 +207,13 @@ class Roomba(object):
     def configure_roomba(self):
         self.log.info('configuring Roomba from file %s', self.file)
         self.roombas_config = self.get_passwd.get_roombas()
-        for ip, roomba in self.roombas_config.items():
-            if any([self.address == ip, self.blid == roomba['blid'], roomba['roomba_name'] == self.roombaName]):
-                self.roombaName = roomba['roomba_name']
+        for ip, robot in self.roombas_config.items():
+            if any([self.address == ip, self.blid == robot['blid'], robot['roomba_name'] == self.roombaName]):
+                self.roombaName = robot['roomba_name']
                 self.address = ip
-                self.blid = roomba['blid']
-                self.password = roomba['password']
-                self.max_sqft = roomba.get('max_sqft', 0)
+                self.blid = robot['blid']
+                self.password = robot['password']
+                self.max_sqft = robot.get('max_sqft', 0)
                 return True
 
         self.log.warning('No Roomba specified, or found, exiting')
@@ -240,32 +234,32 @@ class Roomba(object):
         return ssl_context
 
     def setup_client(self):
-        if self.client is None:
-            self.client = mqtt.Client(
+        if self.robot_mqtt_client is None:
+            self.robot_mqtt_client = mqtt.Client(
                 callback_api_version=mqtt.CallbackAPIVersion.VERSION2,
                 client_id=self.blid,
                 clean_session=True,
                 protocol=mqtt.MQTTv311)
             # Assign event callbacks
-            self.client.on_message = self.on_message
-            self.client.on_connect = self.on_connect
-            self.client.on_subscribe = self.on_subscribe
-            self.client.on_disconnect = self.on_disconnect
+            self.robot_mqtt_client.on_message = self.on_robot_message
+            self.robot_mqtt_client.on_connect = self.on_robot_connect
+            self.robot_mqtt_client.on_subscribe = self.on_robot_subscribe
+            self.robot_mqtt_client.on_disconnect = self.on_robot_disconnect
 
             # Uncomment to enable debug messages
-            #self.client.on_log = self.on_log
+            # self.client.on_log = self.on_log
 
             self.log.info("Setting TLS")
             try:
                 ssl_context = self.generate_tls_context()
-                self.client.tls_set_context(ssl_context)
-                self.client.tls_insecure_set(True)
+                self.robot_mqtt_client.tls_set_context(ssl_context)
+                self.robot_mqtt_client.tls_insecure_set(True)
             except Exception as e:
                 self.log.exception("Error setting TLS: %s", e)
 
             # disables peer verification
-            self.client.tls_insecure_set(True)
-            self.client.username_pw_set(self.blid, self.password)
+            self.robot_mqtt_client.tls_insecure_set(True)
+            self.robot_mqtt_client.username_pw_set(self.blid, self.password)
             self.log.info("Setting TLS - OK")
             return True
         return False
@@ -289,21 +283,21 @@ class Roomba(object):
         retry_timeout = 1
         while not self.roomba_connected:
             try:
-                if self.client is None:
+                if self.robot_mqtt_client is None:
                     self.log.info("Connecting...")
                     self.setup_client()
-                    await self.loop.run_in_executor(None, self.client.connect, self.address, self.roomba_port, 60)
+                    await self.loop.run_in_executor(None, self.robot_mqtt_client.connect, self.address, self.roomba_port, 60)
                 else:
                     self.log.info("Attempting to Reconnect...")
-                    self.client.loop_stop()
-                    await self.loop.run_in_executor(None, self.client.reconnect)
-                self.client.loop_start()
+                    self.robot_mqtt_client.loop_stop()
+                    await self.loop.run_in_executor(None, self.robot_mqtt_client.reconnect)
+                self.robot_mqtt_client.loop_start()
                 await self.event_wait(self.is_connected, 1)  # wait for MQTT on_connect to fire (timeout 1 second)
             except (ConnectionRefusedError, OSError) as e:
                 if e.errno == 111:  # errno.ECONNREFUSED
-                    self.log.error('Unable to Connect to roomba %s, make sure nothing else is connected (app?), as only one connection at a time is allowed', self.roombaName)
+                    self.log.error('Unable to Connect to robot %s, make sure nothing else is connected (app?), as only one connection at a time is allowed', self.roombaName)
                 elif e.errno == 113:  # errno.No Route to Host
-                    self.log.error('Unable to contact roomba %s on ip %s', self.roombaName, self.address)
+                    self.log.error('Unable to contact robot %s on ip %s', self.roombaName, self.address)
                 else:
                     self.log.error("Connection Error: %s ", e)
 
@@ -333,7 +327,7 @@ class Roomba(object):
 
     async def _disconnect(self):
         try:
-            self.client.disconnect()
+            self.robot_mqtt_client.disconnect()
             if self.local_mqtt:
                 self.mqttc.loop_stop()
         except Exception as e:
@@ -344,51 +338,51 @@ class Roomba(object):
         self.roomba_connected = state
         self.publish('status', 'Online' if self.roomba_connected else f"Offline at {time.ctime()}")
 
-    def on_connect(self, client, userdata, flags, reason_code, properties):
+    def on_robot_connect(self, client, userdata, flags, reason_code, properties):
         self.log.info("Roomba Connected")
         if reason_code == 0:
             self.connected(True)
-            self.client.subscribe(self.topic)
-            self.client.subscribe("$SYS/#")
+            self.robot_mqtt_client.subscribe(self.topic)
+            self.robot_mqtt_client.subscribe("$SYS/#")
         else:
             self.log.error("Connected with result code %s", reason_code)
             self.log.error("Please make sure your blid and password are correct for Roomba %s", self.roombaName)
             self.connected(False)
-            self.client.disconnect()
+            self.robot_mqtt_client.disconnect()
         self.loop.call_soon_threadsafe(self.is_connected.set)
 
-    def on_message(self, client, userdata, message: mqtt.MQTTMessage):
+    def on_robot_message(self, client, userdata, message: mqtt.MQTTMessage):
         if self.exclude != "" and self.exclude in message.topic:
             return
 
-        if not self.simulation:
-            asyncio.run_coroutine_threadsafe(self.q.put(message), self.loop)
+        asyncio.run_coroutine_threadsafe(self.robot_msg_queue.put(message), self.loop)
 
-    async def process_q(self):
+    async def process_robot_msg_queue(self):
         '''
         Main processing loop, run until program exit
         '''
         while True:
             try:
-                if self.q.qsize() > 0:
-                    self.log.warning('Pending event queue size is: %i', self.q.qsize())
-                msg = await self.q.get()
+                if self.robot_msg_queue.qsize() > 10:
+                    self.log.warning('Pending event queue size is: %i', self.robot_msg_queue.qsize())
+                msg = await self.robot_msg_queue.get()
 
-                if not self.command_q.empty():
+                if not self.command_queue.empty():
                     self.log.info('Command waiting in queue')
                     await asyncio.sleep(1)
 
                 json_data = self.decode_payload(msg.topic, msg.payload)
                 self.dict_merge(self.master_state, json_data)
 
-                self.log.info("Received Roomba Data: %s, %s", str(msg.topic), str(msg.payload))
+                self.log.debug("Received Roomba Data: %s, %s", str(msg.topic), str(msg.payload))
 
                 if self.raw:
                     self.publish(msg.topic, msg.payload)
                 else:
                     await self.loop.run_in_executor(None, self.decode_topics, json_data)
 
-                self.q.task_done()
+                self.robot_msg_queue.task_done()
+                await asyncio.sleep(0.3)
 
             except asyncio.CancelledError:
                 break
@@ -406,10 +400,10 @@ class Roomba(object):
                 self.log.info("Publishing master_state")
                 await self.loop.run_in_executor(None, self.decode_topics, self.master_state)
 
-    def on_subscribe(self, client, userdata, mid, reason_codes, properties):
+    def on_robot_subscribe(self, client, userdata, mid, reason_codes, properties):
         self.log.debug("Subscribed: %s %s", mid, reason_codes)
 
-    def on_disconnect(self, client, userdata, flags, reason_code, properties):
+    def on_robot_disconnect(self, client, userdata, flags, reason_code, properties):
         self.loop.call_soon_threadsafe(self.is_connected.clear)
         self.connected(False)
         if reason_code != 0:
@@ -420,11 +414,6 @@ class Roomba(object):
     def on_log(self, client, userdata, level, buf):
         self.log.info(buf)
 
-    def set_mqtt_client(self, mqttc=None, brokerFeedback='/roomba/feedback'):
-        self.mqttc = mqttc
-        if self.mqttc is not None:
-            self.brokerFeedback = self.set_mqtt_topic(brokerFeedback)
-
     def set_mqtt_topic(self, topic, subscribe=False):
         if self.blid:
             topic = f"{topic}/{self.blid}{'/#' if subscribe else ''}"
@@ -434,9 +423,9 @@ class Roomba(object):
                           port=1883,
                           user=None,
                           passwd=None,
-                          brokerFeedback='/roomba/feedback',
-                          brokerCommand='/roomba/command',
-                          brokerSetting='/roomba/setting'):
+                          brokerFeedback='/irobot/feedback',
+                          brokerCommand='/irobot/command',
+                          brokerSetting='/irobot/setting'):
         # returns an awaitable future
 
         return self.loop.run_in_executor(None, self._setup_mqtt_client, broker,
@@ -448,14 +437,18 @@ class Roomba(object):
                            port=1883,
                            user=None,
                            passwd=None,
-                           brokerFeedback='/roomba/feedback',
-                           brokerCommand='/roomba/command',
-                           brokerSetting='/roomba/setting'):
+                           brokerFeedback='/irobot/feedback',
+                           brokerCommand='/irobot/command',
+                           brokerSetting='/irobot/setting'):
         '''
         setup local mqtt connection to broker for feedback,
         commands and settings
         '''
         try:
+            self.brokerFeedback = self.set_mqtt_topic(brokerFeedback)
+            self.brokerCommand = self.set_mqtt_topic(brokerCommand, True)
+            self.brokerSetting = self.set_mqtt_topic(brokerSetting, True)
+
             # connect to broker
             self.mqttc = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2)
             # Assign event callbacks
@@ -465,9 +458,6 @@ class Roomba(object):
             if user and passwd:
                 self.mqttc.username_pw_set(user, passwd)
             self.mqttc.connect(broker, port, 60)
-            self.brokerFeedback = self.set_mqtt_topic(brokerFeedback)
-            self.brokerCommand = self.set_mqtt_topic(brokerCommand, True)
-            self.brokerSetting = self.set_mqtt_topic(brokerSetting, True)
             self.mqttc.loop_start()
             self.local_mqtt = True
         except socket.error:
@@ -477,11 +467,10 @@ class Roomba(object):
 
     def broker_on_connect(self, client: mqtt.Client, userdata, flags, reason_code, properties):
         self.log.debug("Broker Connected with result code %s", reason_code)
-        # subscribe to roomba commands and settings messages
+        # subscribe to commands and settings messages
         if reason_code == 0:
             client.subscribe(self.brokerCommand)
             client.subscribe(self.brokerSetting)
-            client.subscribe(self.brokerCommand.replace('command', 'simulate'))
             self.log.info('subscribed to %s, %s', self.brokerCommand, self.brokerSetting)
 
     def broker_on_message(self, client, userdata, message: mqtt.MQTTMessage):
@@ -494,49 +483,36 @@ class Roomba(object):
             self.log.info("Received SETTING from broker: %s", payload)
             cmd = str(payload).split(None, 1)
             self.set_preference(cmd[0], cmd[1])
-        elif 'simulate' in message.topic:
-            self.log.info('received simulate command from broker: %s', payload)
-            self.set_simulate(True)
-            asyncio.run_coroutine_threadsafe(self.q.put(message), self.loop)
         else:
             self.log.warn("Unknown topic: %s", message.topic)
-
-    def set_simulate(self, value=False):
-        if self.simulation != value:
-            self.log.info('Set simulation to: %s', value)
-        self.simulation = value
-        if self.simulation_reset:
-            self.simulation_reset.cancel()
-        if value:
-            self.simulation_reset = self.loop.call_later(10, self.set_simulate)  # reset simulation in 10s
 
     def broker_on_disconnect(self, client: mqtt.Client, userdata, flags, reason_code, properties):
         self.log.debug("Broker disconnected")
 
     async def async_send_command(self, command):
-        await self.command_q.put({'command': command})
+        await self.command_queue.put({'command': command})
 
     async def async_set_preference(self, preference, setting):
-        await self.command_q.put({'setting': (preference, setting)})
+        await self.command_queue.put({'setting': (preference, setting)})
 
     async def async_set_cleanSchedule(self, setting):
-        await self.command_q.put({'schedule': setting})
+        await self.command_queue.put({'schedule': setting})
 
     def send_command(self, command):
-        asyncio.run_coroutine_threadsafe(self.command_q.put({'command': command}), self.loop)
+        asyncio.run_coroutine_threadsafe(self.command_queue.put({'command': command}), self.loop)
 
     def set_preference(self, preference, setting):
-        asyncio.run_coroutine_threadsafe(self.command_q.put({'setting': (preference, setting)}), self.loop)
+        asyncio.run_coroutine_threadsafe(self.command_queue.put({'setting': (preference, setting)}), self.loop)
 
     def set_cleanSchedule(self, setting):
-        asyncio.run_coroutine_threadsafe(self.command_q.put({'schedule': setting}), self.loop)
+        asyncio.run_coroutine_threadsafe(self.command_queue.put({'schedule': setting}), self.loop)
 
-    async def process_command_q(self):
+    async def process_command_queue(self):
         '''
         Command processing loop, run until program exit
         '''
         while True:
-            value = await self.command_q.get()
+            value = await self.command_queue.get()
             command = value.get('command')
             setting = value.get('setting')
             schedule = value.get('schedule')
@@ -546,7 +522,7 @@ class Roomba(object):
                 await self.loop.run_in_executor(None, self._set_preference, *setting)
             if schedule:
                 await self.loop.run_in_executor(None, self._set_cleanSchedule, schedule)
-            self.command_q.task_done()
+            self.command_queue.task_done()
 
     def _send_command(self, command):
         '''
@@ -567,7 +543,7 @@ class Roomba(object):
         Command["initiator"] = "localApp"
         myCommand = json.dumps(Command)
         self.log.info("Sending Command: %s", myCommand)
-        self.client.publish("cmd", myCommand)
+        self.robot_mqtt_client.publish("cmd", myCommand)
 
     def send_region_command(self, command):
         '''
@@ -628,13 +604,6 @@ class Roomba(object):
 
         self._send_command(myCommand)
 
-    def is_json(self, myjson):
-        try:
-            json.loads(myjson)
-        except ValueError as e:
-            return False
-        return True
-
     def _set_preference(self, preference, setting):
         self.log.info("Received SETTING: %s, %s", preference, setting)
         try:
@@ -651,12 +620,16 @@ class Roomba(object):
                 val = True
             elif setting.lower() == "false":
                 val = False
-            elif self.is_json(setting):
-                val = json.loads(setting)
+            else:
+                try:
+                    val = json.loads(setting)
+                except ValueError:
+                    pass
+
         Command = {"state": {preference: val}}
         myCommand = json.dumps(Command)
         self.log.info(f"Publishing Roomba {self.roombaName} Setting :{myCommand}")
-        self.client.publish("delta", myCommand)
+        self.robot_mqtt_client.publish("delta", myCommand)
 
     def _set_cleanSchedule(self, setting):
         self.log.info("Received Roomba %s cleanSchedule:", self.roombaName)
@@ -666,7 +639,7 @@ class Roomba(object):
         Command = {"state": {sched: setting}}
         myCommand = json.dumps(Command)
         self.log.info("Publishing Roomba %s %s : %s", self.roombaName, sched, myCommand)
-        self.client.publish("delta", myCommand)
+        self.robot_mqtt_client.publish("delta", myCommand)
 
     def publish(self, topic, message):
         if self.mqttc is not None and message is not None:
@@ -754,7 +727,7 @@ class Roomba(object):
 
         return dict(json_data)
 
-    def decode_topics(self, state, prefix=None):
+    def decode_topics(self, state: dict, prefix=None):
         '''
         decode json data dict, and publish as individual topics to
         brokerFeedback/topic the keys are concatenated with _ to make one unique
@@ -832,10 +805,6 @@ class Roomba(object):
     @property
     def error_message(self):
         return self.get_error_message(self.error_num)
-
-    @property
-    def cleanMissionStatus(self):
-        return self.get_property("cleanMissionStatus")
 
     @property
     def pose(self):
@@ -1107,11 +1076,8 @@ class Roomba(object):
         if phase is None or mission is None:
             return
 
-        current_mission = self.current_state
-
         if self.debug:
             self.timer('ignore_coordinates')
-            current_mission = None  # force update of map
 
         self.log.info('current_state: %s, current phase: %s, mission: %s, mission_min: %s, recharge_min: %s, co-ords changed: %s',
                       self.current_state,
@@ -1120,9 +1086,6 @@ class Roomba(object):
                       self.mssnM,
                       self.rechrgM,
                       self.changed('pose'))
-
-        if phase == "charge":
-            current_mission = None
 
         if self.current_state == self.states["new"] and phase != 'run':
             self.log.info('waiting for run state for New Missions')
@@ -1167,9 +1130,6 @@ class Roomba(object):
                 self.current_state = self.states[phase]
             except KeyError:
                 self.log.warning('phase: %s not found in self.states', phase)
-
-        if self.current_state != current_mission:
-            self.log.info("updated state to: %s", self.current_state)
 
         self.publish("state", self.current_state)
 

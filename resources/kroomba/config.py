@@ -1,5 +1,6 @@
 from jeedomdaemon.base_config import BaseConfig
 
+
 class iRobotConfig(BaseConfig):
     def __init__(self):
         super().__init__()
