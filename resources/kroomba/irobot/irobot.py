@@ -255,7 +255,6 @@ class iRobot(object):
                 self._logger.exception("Error setting TLS: %s", e)
 
             # disables peer verification
-            self.robot_mqtt_client.tls_insecure_set(True)
             self.robot_mqtt_client.username_pw_set(self.blid, self.password)
             self._logger.info("Setting TLS - OK")
             return True
