@@ -156,7 +156,6 @@ class Password(object):
                 password = str(data[7:].decode().rstrip('\x00'))  # for i7 - has null termination
             self.log.info("blid is: %s", blid)
             self.log.info('Password=> %s <= Yes, all this string.', password)
-            self.log.info('Use these credentials in roomba.py')
 
             file_roombas.setdefault(addr, {})
             file_roombas[addr]['blid'] = blid
@@ -181,6 +180,8 @@ class Password(object):
 
         # context = ssl.SSLContext(ssl.PROTOCOL_TLS)
         context = ssl.SSLContext()
+        context.check_hostname = False
+        context.verify_mode = ssl.CERT_NONE
         # context.set_ciphers('DEFAULT@SECLEVEL=1:HIGH:!DH:!aNULL')
         wrappedSocket = context.wrap_socket(sock)
 
