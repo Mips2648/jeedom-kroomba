@@ -13,19 +13,19 @@ class iRobotConfig(BaseConfig):
         self.add_argument("--excluded_blid", type=str)
 
     @property
-    def host(self):
+    def mqtt_host(self):
         return str(self._args.host)
 
     @property
-    def port(self):
+    def mqtt_port(self):
         return int(self._args.port)
 
     @property
-    def user(self):
+    def mqtt_user(self):
         return str(self._args.user)
 
     @property
-    def password(self):
+    def mqtt_password(self):
         return str(self._args.password)
 
     @property

@@ -33,10 +33,10 @@ class kroomba(BaseDaemon):
 
                 new_roomba = iRobot(address=ip, file=self._roomba_configFile)
                 new_roomba.setup_mqtt_client(
-                    self._config.host,
-                    self._config.port,
-                    self._config.user,
-                    self._config.password,
+                    self._config.mqtt_host,
+                    self._config.mqtt_port,
+                    self._config.mqtt_user,
+                    self._config.mqtt_password,
                     brokerFeedback=self._config.topic_prefix+'/feedback',
                     brokerCommand=self._config.topic_prefix+'/command',
                     brokerSetting=self._config.topic_prefix+'/setting'
