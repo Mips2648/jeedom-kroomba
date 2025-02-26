@@ -50,7 +50,7 @@ try {
             ));
         }
     } elseif (isset($result['msg'])) {
-        if ($result['msg'] == 'NO_ROOMBA') {
+        if ($result['msg'] == 'NO_ROBOT') {
             message::add('kroomba', __('Aucun robot configuré, veuillez lancer une découverte depuis la page de gestion des équipements du plugin', __FILE__), '', 'kroomba_no_robot');
         }
     }
