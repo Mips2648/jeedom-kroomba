@@ -56,7 +56,7 @@
     },
     "plugins\/kroomba\/core\/php\/jeekroomba.php": {
         "Aucun robot configuré, veuillez lancer une découverte depuis la page de gestion des équipements du plugin": "Se não houver nenhum robô configurado, inicie uma pesquisa a partir da página de gestão de equipamentos da ficha",
-        "Découverte réussie, relance du démon": "Descoberta bem sucedida, relançamento demoníaco",
+        "Découverte réussie": "Descoberta bem sucedida",
         "Echec de la découverte, veuillez consulter le log du démon": "A descoberta falhou, verifique o registo do daemon",
         "Vous n\\'etes pas autorisé à effectuer cette action": "Não está autorizado a efetuar esta ação"
     },
