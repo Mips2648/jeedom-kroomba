@@ -9,6 +9,8 @@
         "Arrêté": "Parado",
         "Bloqué": "Bloqueado",
         "Commande region mise à jour": "Atualização da região de encomenda",
+        "Découverte des robots sur tout le réseau...": "Descubra os robots em toda a rede...",
+        "Découverte du robot avec l'ip %s": "Descobrir o robot com ip %s",
         "En charge": "Em carga",
         "Impossible de lancer le démon": "Não é possível iniciar o daemon",
         "Inconnu": "Desconhecido",
@@ -141,10 +143,8 @@
     "plugins\/kroomba\/plugin_info\/configuration.php": {
         "Configuration robots": "Configuração do robô",
         "Démon": "Daemon",
-        "MQTT": "MQTT",
         "Port socket interne": "Porta de tomada interna",
         "Supprimer toutes les configurations connues des robots": "Eliminar todas as configurações de robôs conhecidas",
-        "Topic préfixe": "Prefixo do tópico",
         "Zone danger": "Zona de perigo"
     },
     "plugins\/kroomba\/plugin_info\/install.php": {
