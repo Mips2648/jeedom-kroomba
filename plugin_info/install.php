@@ -43,6 +43,7 @@ function kroomba_update() {
     config::save('api', config::genKey(), $pluginId);
     config::save("api::{$pluginId}::mode", 'localhost');
     config::save("api::{$pluginId}::restricted", 1);
+    config::save('topic_prefix', null, $pluginId);
 
     unlink(__DIR__ . '/packages.json');
 

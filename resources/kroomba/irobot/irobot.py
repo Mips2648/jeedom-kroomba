@@ -288,7 +288,6 @@ class iRobot:
                 self.local_mqtt_client.loop_stop()
         except Exception as e:
             self._logger.warning("Some exception occured during mqtt disconnect: %s", e)
-        self._logger.info('%s disconnected', self._config.name)
 
     def _set_connected(self, state: bool):
         self.connected = state
@@ -366,9 +365,9 @@ class iRobot:
         self.loop.call_soon_threadsafe(self.is_connected.clear)
         self._set_connected(False)
         if reason_code != 0:
-            self._logger.warning("Unexpected Disconnect! - reconnecting")
+            self._logger.warning("Unexpected disconnect from %s! - reconnecting", self.name)
         else:
-            self._logger.info("Disconnected")
+            self._logger.info('%s disconnected', self.name)
 
     def set_mqtt_topic(self, topic, subscribe=False):
         if self._config.blid:

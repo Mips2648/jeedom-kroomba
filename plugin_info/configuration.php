@@ -24,13 +24,6 @@ if (!isConnect()) {
 ?>
 <form class="form-horizontal">
     <fieldset>
-        <legend><i class="fas fa-wifi"></i> {{MQTT}}</legend>
-        <div class="form-group">
-            <label class="col-sm-4 control-label">{{Topic préfixe}}</label>
-            <div class="col-sm-2">
-                <input class="configKey form-control" data-l1key="topic_prefix" placeholder="iRobot" />
-            </div>
-        </div>
         <legend><i class="fas fa-university"></i> {{Démon}}</legend>
         <div class="form-group">
             <label class="col-sm-4 control-label">{{Port socket interne}}</label>

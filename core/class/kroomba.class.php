@@ -104,7 +104,7 @@ class kroomba extends eqLogic {
     }
 
     private static function getTopicPrefix() {
-        return config::byKey('topic_prefix', __CLASS__, 'iRobot', true);
+        return 'iRobot';
     }
 
     public static function dependancy_install() {
@@ -152,22 +152,6 @@ class kroomba extends eqLogic {
         return $return;
     }
 
-    public static function preConfig_topic_prefix($value) {
-        log::add(__CLASS__, 'debug', 'preConfig_topic_prefix');
-        if (self::getTopicPrefix() != $value) {
-            self::removeMQTTTopicRegistration();
-        }
-        return $value;
-    }
-
-    public static function postConfig_topic_prefix($value) {
-        log::add(__CLASS__, 'debug', 'postConfig_topic_prefix');
-        $deamon_info = self::deamon_info();
-        if ($deamon_info['state'] === 'ok') {
-            self::deamon_start();
-        }
-    }
-
     public static function removeMQTTTopicRegistration() {
         $topic = self::getTopicPrefix();
         log::add(__CLASS__, 'debug', "Stop listening to topic:'{$topic}'");
@@ -175,9 +159,9 @@ class kroomba extends eqLogic {
     }
 
     public static function deamon_start() {
-        $topic = self::getTopicPrefix();
-        self::$_MQTT2::addPluginTopic(__CLASS__, $topic);
-        log::add(__CLASS__, 'debug', "Listening to topic:'{$topic}'");
+        $topic_prefix = self::getTopicPrefix();
+        self::$_MQTT2::addPluginTopic(__CLASS__, $topic_prefix);
+        log::add(__CLASS__, 'debug', "Listening to topic:'{$topic_prefix}'");
         self::deamon_stop();
         self::$_daemon_restart_needed = false;
         $deamon_info = self::deamon_info();
@@ -202,7 +186,7 @@ class kroomba extends eqLogic {
         $cmd .= ' --port ' . $mqttInfos['port'];
         $cmd .= ' --user "' . trim(str_replace('"', '\"', $mqttInfos['user'])) . '"';
         $cmd .= ' --password "' . trim(str_replace('"', '\"', $mqttInfos['password'])) . '"';
-        $cmd .= ' --topic_prefix "' . trim(str_replace('"', '\"', $topic)) . '"';
+        $cmd .= ' --topic_prefix "' . trim(str_replace('"', '\"', $topic_prefix)) . '"';
         $cmd .= " --excluded_blid '{$excluded_blid}'";
         $cmd .= ' --socketport ' . self::getSocketPort();
         $cmd .= ' --callback ' . network::getNetworkAccess('internal', 'proto:127.0.0.1:port:comp') . '/plugins/kroomba/core/php/jeekroomba.php';
@@ -254,9 +238,9 @@ class kroomba extends eqLogic {
         }
         if ($address == '') $address = '255.255.255.255';
         if ($address == '255.255.255.255') {
-            log::add(__CLASS__, 'info', 'Découverte des robots sur tout le réseau...');
+            log::add(__CLASS__, 'info', __('Découverte des robots sur tout le réseau...', __FILE__));
         } else {
-            log::add(__CLASS__, 'info', "Découverte du robot avec l'ip {$address}");
+            log::add(__CLASS__, 'info', sprintf(__("Découverte du robot avec l'ip %s", __FILE__), $address));
         }
         self::sendToDaemon(array(
             'action' => 'discover',
