@@ -65,8 +65,27 @@ class kroomba(BaseDaemon):
             await self._robot_configs.discover()
 
         if len(self._robot_configs.robots) == 0:
-            self._logger.warning('No robot or config file defined, please run discovery from plugin page')
+            self._logger.warning('No robot configured, please run discovery from plugin page')
             await self.send_to_jeedom({'msg': "NO_ROBOT"})
+        else:
+            await self.__connect_robots()
+
+    async def on_stop(self):
+        await self.__disconnect_robots()
+
+    async def on_message(self, message: list):
+        if message['action'] == 'discover':
+            try:
+                result = await self._robot_configs.discover(message['address'], message['login'], message['password'])
+                await self.send_to_jeedom({'discover': result})
+                if result:
+                    await self.__connect_robots()
+            except Exception as e:
+                self._logger.error('Exception during discovery: %s', e)
+                await self.send_to_jeedom({'discover': False})
+
+    async def __connect_robots(self):
+        await self.__disconnect_robots()
 
         for robot_config in self._robot_configs.robots.values():
             if robot_config.blid in self._config.excluded_blid:
@@ -86,18 +105,10 @@ class kroomba(BaseDaemon):
             if await new_robot.async_connect():
                 self._robots.append(new_robot)
 
-    async def on_stop(self):
+    async def __disconnect_robots(self):
         for robot in self._robots:
             await robot.disconnect()
         self._robots.clear()
-
-    async def on_message(self, message: list):
-        if message['action'] == 'discover':
-            try:
-                result = await self._robot_configs.discover(message['address'], message['login'], message['password'])
-                await self.send_to_jeedom({'discover': result})
-            except Exception as e:
-                self._logger.error('Error during discovery: %s', e)
 
 
 kroomba().run()

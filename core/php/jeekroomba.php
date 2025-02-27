@@ -33,20 +33,20 @@ try {
         die();
     } elseif (isset($result['discover'])) {
         if ($result['discover']) {
-            log::add('kroomba', 'info', 'Découverte réussie, relance du démon');
+            $message = __('Découverte réussie', __FILE__);
+            log::add('kroomba', 'info', $message);
             event::add('jeedom::alert', array(
                 'level' => 'success',
                 'page' => 'kroomba',
-                'message' => __('Découverte réussie, relance du démon', __FILE__),
+                'message' => $message,
             ));
-            sleep(2);
-            kroomba::deamon_start();
         } else {
-            log::add('kroomba', 'info', 'Echec de la découverte, veuillez consulter le log du démon');
+            $message = __('Echec de la découverte, veuillez consulter le log du démon', __FILE__);
+            log::add('kroomba', 'warning', $message);
             event::add('jeedom::alert', array(
                 'level' => 'warning',
                 'page' => 'kroomba',
-                'message' => __('Echec de la découverte, veuillez consulter le log du démon', __FILE__),
+                'message' => $message,
             ));
         }
     } elseif (isset($result['msg'])) {
