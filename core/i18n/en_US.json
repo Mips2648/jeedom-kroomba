@@ -56,7 +56,7 @@
     },
     "plugins\/kroomba\/core\/php\/jeekroomba.php": {
         "Aucun robot configuré, veuillez lancer une découverte depuis la page de gestion des équipements du plugin": "No robot configured, please launch a discovery from the plugin's equipment management page",
-        "Découverte réussie, relance du démon": "Successful discovery, demon relaunch",
+        "Découverte réussie": "Successful discovery",
         "Echec de la découverte, veuillez consulter le log du démon": "Discovery failed, please check daemon log",
         "Vous n\\'etes pas autorisé à effectuer cette action": "You are not authorized to perform this action"
     },
