@@ -140,9 +140,9 @@ $('#md_modal_kroomba').dialog({
     },
     "{{Continuer}}": function () {
       $(this).dialog("close");
-      $.ajax({// fonction permettant de faire de l'ajax
-        type: "POST", // methode de transmission des données au fichier php
-        url: "plugins/kroomba/core/ajax/kroomba.ajax.php", // url du fichier php
+      $.ajax({
+        type: "POST",
+        url: "plugins/kroomba/core/ajax/kroomba.ajax.php",
         data: {
           action: "discover",
           login: $('#irobot_login').value(),
@@ -153,7 +153,7 @@ $('#md_modal_kroomba').dialog({
         error: function (request, status, error) {
           handleAjaxError(request, status, error);
         },
-        success: function (data) { // si l'appel a bien fonctionné
+        success: function (data) {
           if (data.state != 'ok') {
             $('#div_alert').showAlert({ message: data.result, level: 'danger' });
             return;
@@ -167,8 +167,21 @@ $('#md_modal_kroomba').dialog({
 });
 
 $('#bt_synckroomba').on('click', function () {
+  $("#irobot_method").val("");
   $('#irobot_login').val('');
   $('#irobot_password').val('');
   $('#irobot_ip').val('');
+  $('.irobot_local').hide();
+  $('.irobot_cloud').hide();
   $('#md_modal_kroomba').dialog('open');
+});
+
+$("#irobot_method").change(function () {
+  if ($(this).val() == 'local') {
+    $('.irobot_local').show();
+    $('.irobot_cloud').hide();
+  } else {
+    $('.irobot_local').hide();
+    $('.irobot_cloud').show();
+  }
 });

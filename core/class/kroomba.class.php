@@ -15,7 +15,7 @@
 * You should have received a copy of the GNU General Public License
 * along with Jeedom. If not, see <http://www.gnu.org/licenses/>.
 */
-require_once dirname(__FILE__) . '/../../../../core/php/core.inc.php';
+require_once __DIR__ . '/../../../../core/php/core.inc.php';
 
 require_once __DIR__ . '/../../vendor/autoload.php';
 
@@ -179,7 +179,7 @@ class kroomba extends eqLogic {
             }
         }
 
-        $path = realpath(dirname(__FILE__) . '/../../resources/kroomba');
+        $path = realpath(__DIR__ . '/../../resources/kroomba');
         $cmd = self::PYTHON_PATH . " {$path}/kroombad.py";
         $cmd .= ' --loglevel ' . log::convertLogLevel(log::getLogLevel(__CLASS__));
         $cmd .= ' --host ' . $mqttInfos['ip'];
@@ -228,13 +228,10 @@ class kroomba extends eqLogic {
         ];
     }
 
-    public static function discoverRobots($login, $password, $address = '255.255.255.255') {
+    public static function discoverRobots($login = '', $password = '', $address = '255.255.255.255') {
         $deamon_info = self::deamon_info();
         if ($deamon_info['state'] != 'ok') {
             throw new RuntimeException(__('Le démon n\'est pas démarré', __FILE__));
-        }
-        if (empty($login) || empty($password)) {
-            throw new Exception(__('Vous devez entrer votre adresse email et votre mot de passe', __FILE__));
         }
         if ($address == '') $address = '255.255.255.255';
         if ($address == '255.255.255.255') {
