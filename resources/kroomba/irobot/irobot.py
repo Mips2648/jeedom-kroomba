@@ -10,11 +10,12 @@ import datetime
 import json
 import logging
 import socket
-import ssl
 import time
 import paho.mqtt.client as mqtt
-from functools import cache
 
+from .const import ERROR_CONNECTION_REFUSED, ERROR_NO_ROUTE_TO_HOST, ROBOT_PORT
+
+from .utils import generate_tls_context
 from .configs import iRobotConfig
 
 
@@ -144,7 +145,7 @@ class iRobot:
             raise ValueError('Missing parameter, could not configure iRobot')
 
         self._config = config
-        self.port = 8883
+        self.port = ROBOT_PORT
         self.local_mqtt_client = None
         self.local_mqtt = False
         self.connected = False
@@ -186,20 +187,6 @@ class iRobot:
             pass
         return evt.is_set()
 
-    @cache
-    def generate_tls_context(self) -> ssl.SSLContext:
-        """Generate TLS context.
-
-        We only want to do this once ever because it's expensive.
-        """
-        ssl_context = ssl.SSLContext(ssl.PROTOCOL_TLS)
-        ssl_context.verify_mode = ssl.CERT_NONE
-        ssl_context.set_ciphers("DEFAULT:!DH")
-        ssl_context.load_default_certs()
-        # ssl.OP_LEGACY_SERVER_CONNECT is only available in Python 3.12a4+
-        ssl_context.options |= getattr(ssl, "OP_LEGACY_SERVER_CONNECT", 0x4)
-        return ssl_context
-
     async def setup_client(self):
         if self.robot_mqtt_client is None:
             self.robot_mqtt_client = mqtt.Client(
@@ -215,7 +202,7 @@ class iRobot:
 
             self._logger.info("Setting TLS")
             try:
-                ssl_context = self.generate_tls_context()
+                ssl_context = generate_tls_context()
                 self.robot_mqtt_client.tls_set_context(ssl_context)
                 self.robot_mqtt_client.tls_insecure_set(True)
             except Exception as e:
@@ -254,9 +241,9 @@ class iRobot:
                 await self.event_wait(self.is_connected, 1)  # wait for MQTT on_connect to fire (timeout 1 second)
             except (ConnectionRefusedError, OSError) as e:
                 if e.errno == 111:  # errno.ECONNREFUSED
-                    self._logger.error('Robot %s found but connection is refused, make sure nothing else is connected (app?), as only one connection at a time is allowed', self._config.name)
+                    self._logger.error(ERROR_CONNECTION_REFUSED, self.name)
                 elif e.errno == 113:  # errno.No Route to Host
-                    self._logger.error('Unable to contact robot %s on ip %s', self._config.name, self._config.ip)
+                    self._logger.error(ERROR_NO_ROUTE_TO_HOST, self.ip)
                 else:
                     self._logger.error("Connection Error: %s ", e)
 
@@ -282,6 +269,8 @@ class iRobot:
         return self.connected
 
     async def disconnect(self):
+        if not self.connected:
+            return
         try:
             self.robot_mqtt_client.disconnect()
             if self.local_mqtt:

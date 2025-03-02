@@ -9,11 +9,10 @@ from pprint import pformat
 import json
 import logging
 import socket
-import ssl
 from ast import literal_eval
 import configparser
-import requests
 
+from .password import iRobotPassword
 from .const import BROADCAST_IP, DEFAULT_TIMEOUT
 
 
@@ -190,12 +189,9 @@ class iRobotConfigs:
 
         if len(robots_with_missing_pswd) > 0:
             if cloud_login and cloud_password:
-                try:
-                    self._logger.info("Try to get missing robots password from cloud...")
-                    cloud_data = await self.__get_passwords_from_cloud(cloud_login, cloud_password)
-                except requests.HTTPError as e:
-                    self._logger.error("Error getting cloud data: %s", e)
-                else:
+                self._logger.info("Try to get missing robots password from cloud...")
+                cloud_data = iRobotPassword.get_passwords_from_cloud(cloud_login, cloud_password)
+                if cloud_data is not None:
                     self._logger.debug("Got cloud data: %s", json.dumps(cloud_data))
                     self._logger.info("Found %i robots defined in the cloud", len(cloud_data))
                     for id, data in cloud_data.items():
@@ -212,129 +208,12 @@ class iRobotConfigs:
                                       "(about 2 seconds). Release the button and your robot will "
                                       "flash WIFI light.", robot.name, robot.ip)
                     await asyncio.sleep(10)
-                    data = await self.__get_password_from_robot(robot.ip)
-                    if len(data) <= 7:
-                        self._logger.warning('Cannot get password for robot %s at ip %s, received %i bytes. Follow the instructions and try again.', robot.name, robot.ip, len(data))
+                    data = iRobotPassword(robot.ip).get_password_from_robot()
+                    if data is None or len(data) <= 7:
+                        self._logger.warning('Cannot get password for robot %s at ip %s. Follow the instructions and try again.', robot.name, robot.ip)
                         continue
-                    # Convert password to str
-                    robot.password = str(data[7:].decode().rstrip('\x00'))
+                    robot.password = data
                     self._logger.info("Robot %s added to configuration with password from robot", robot.name)
                     self.__robots[robot.blid] = robot
 
         return self.__save_config_file()
-
-    async def __get_password_from_robot(self, ip):
-        '''
-        Send MQTT magic packet to addr
-        this is 0xf0 (mqtt reserved) 0x05(data length) 0xefcc3b2900 (data)
-        Should receive 37 bytes containing the password for robot at addr
-        This is is 0xf0 (mqtt RESERVED) length (0x23 = 35) 0xefcc3b2900 (magic packet),
-        followed by 0xXXXX... (30 bytes of password). so 7 bytes, followed by 30 bytes of password
-        total of 37 bytes
-        Uses 10 second timeout for socket connection
-        '''
-        data = b''
-        packet = bytes.fromhex('f005efcc3b2900')
-        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        sock.settimeout(10)
-
-        # context = ssl.SSLContext(ssl.PROTOCOL_TLS)
-        context = ssl.SSLContext()
-        context.check_hostname = False
-        context.verify_mode = ssl.CERT_NONE
-        # context.set_ciphers('DEFAULT@SECLEVEL=1:HIGH:!DH:!aNULL')
-        wrappedSocket = context.wrap_socket(sock)
-
-        try:
-            wrappedSocket.connect((ip, 8883))
-            self._logger.debug('Connection Successful')
-            wrappedSocket.send(packet)
-            self._logger.debug('Waiting for data')
-
-            while len(data) < 37:
-                data_received = wrappedSocket.recv(1024)
-                data += data_received
-                if len(data_received) == 0:
-                    self._logger.info("socket closed")
-                    break
-
-            wrappedSocket.close()
-            return data
-
-        except socket.timeout as e:
-            self._logger.error('Connection Timeout Error (for %s): %s', ip, e)
-        except (ConnectionRefusedError, OSError) as e:
-            if e.errno == 111:  # errno.ECONNREFUSED
-                self._logger.error('Robot %s found but connection is refused, make sure nothing else is connected (app?), as only one connection at a time is allowed', ip)
-            elif e.errno == 113:  # errno.No Route to Host
-                self._logger.error('Unable to contact robot on ip %s; Is the ip correct?', ip)
-            else:
-                self._logger.error("Connection Error (for %s): %s", ip, e)
-        except Exception as e:
-            self._logger.exception(e)
-
-        self._logger.error('Unable to get password from robot')
-        return data
-
-    async def __get_passwords_from_cloud(self, login: str, password: str) -> dict:
-        r = requests.get("https://disc-prod.iot.irobotapi.com/v1/discover/endpoints?country_code=US")
-        r.raise_for_status()
-        response = r.json()
-        deployment = response['deployments'][next(iter(response['deployments']))]
-        self.httpBase = deployment['httpBase']
-        # iotBase = deployment['httpBaseAuth']
-        # iotUrl = urllib.parse.urlparse(iotBase)
-        # self.iotHost = iotUrl.netloc
-        # region = deployment['awsRegion']
-
-        self.apikey = response['gigya']['api_key']
-        self.gigyaBase = response['gigya']['datacenter_domain']
-
-        data = {"apiKey": self.apikey,
-                "targetenv": "mobile",
-                "loginID": login,
-                "password": password,
-                "format": "json",
-                "targetEnv": "mobile",
-                }
-
-        self._logger.debug("Post accounts.login request")
-        r = requests.post("https://accounts.%s/accounts.login" % self.gigyaBase, data=data)
-        r.raise_for_status()
-        response = r.json()
-        self._logger.debug("response: %s", response)
-        '''
-        data = {"timestamp": int(time.time()),
-                "nonce": "%d_%d" % (int(time.time()), random.randint(0, 2147483647)),
-                "oauth_token": response.get('sessionInfo', {}).get('sessionToken', ''),
-                "targetEnv": "mobile"}
-        '''
-        uid = response['UID']
-        uidSig = response['UIDSignature']
-        sigTime = response['signatureTimestamp']
-
-        data = {
-            "app_id": "ANDROID-C7FB240E-DF34-42D7-AE4E-A8C17079A294",
-            "assume_robot_ownership": "0",
-            "gigya": {
-                "signature": uidSig,
-                "timestamp": sigTime,
-                "uid": uid,
-            }
-        }
-
-        header = {
-            "Content-Type": "application/json",
-            "host": "unauth1.prod.iot.irobotapi.com"
-        }
-
-        self._logger.debug("Post login request to %s with data %s", self.httpBase, data)
-        r = requests.post("%s/v2/login" % self.httpBase, json=data, headers=header)
-        r.raise_for_status()
-        response = r.json()
-        self._logger.debug("response: %s", response)
-        # access_key = response['credentials']['AccessKeyId']
-        # secret_key = response['credentials']['SecretKey']
-        # session_token = response['credentials']['SessionToken']
-
-        return response['robots']
