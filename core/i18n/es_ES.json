@@ -22,8 +22,7 @@
         "Nouvelle commande region créée": "Creación de un nuevo comando de región",
         "Retour à la base": "Volver a la base",
         "Tâche achevée": "Tarea realizada",
-        "Veuillez vérifier la configuration": "Compruebe la configuración",
-        "Vous devez entrer votre adresse email et votre mot de passe": "Debe introducir su dirección de correo electrónico y contraseña"
+        "Veuillez vérifier la configuration": "Compruebe la configuración"
     },
     "plugins\/kroomba\/core\/config\/commands.json": {
         "Activer sécurité enfant": "Activar el bloqueo para niños",
@@ -126,6 +125,7 @@
         "Modèle": "Modelo",
         "Mot de passe": "Contraseña",
         "Mot de passe iRobot": "Contraseña iRobot",
+        "Méthode": "Método",
         "Nom": "Nombre",
         "Nom de l'équipement": "Nombre del equipo",
         "Objet parent": "Objeto padre",
@@ -136,6 +136,8 @@
         "Santé": "Salud",
         "Sauvegarder": "Para salvaguardar",
         "Supprimer": "Eliminar",
+        "Sélectionnez": "Seleccione",
+        "Sélectionnez une méthode": "Seleccione un método",
         "Type": "Tipo",
         "Visible": "Visible",
         "uniquement nécessaire si le robot n'est pas sur le même lan que Jeedom": "sólo es necesario si el robot no está en la misma LAN que Jeedom"
