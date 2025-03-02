@@ -209,7 +209,7 @@ $eqLogics = eqLogic::byType($plugin->getId());
         <div class="form-group">
             <label class="col-sm-6 control-label">{{Méthode}}</label>
             <div class="col-sm-6">
-                <select class="" id="irobot_method" placeholder="{{Sélectionnez}}">
+                <select class="" id="irobot_method">
                     <option value="" disabled selected>{{Sélectionnez une méthode}}</option>
                     <option value="local">Connexion locale</option>
                     <option value="cloud">Connexion cloud</option>
