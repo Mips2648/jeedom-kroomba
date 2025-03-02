@@ -24,7 +24,7 @@ function addCmdToTable(_cmd) {
   if (!isset(_cmd.configuration)) {
     _cmd.configuration = {};
   }
-  var tr = '<tr class="cmd" data-cmd_id="' + init(_cmd.id) + '">';
+  let tr = '<tr class="cmd" data-cmd_id="' + init(_cmd.id) + '">';
 
   tr += '<td>';
   tr += '<span class="cmdAttr" data-l1key="id" style="display:none;"></span>';
@@ -55,11 +55,9 @@ function addCmdToTable(_cmd) {
   tr += '</div>';
   tr += '</td>';
 
-  if (typeof jeeFrontEnd !== 'undefined' && jeeFrontEnd.jeedomVersion !== 'undefined') {
-    tr += '<td>';
-    tr += '<span class="cmdAttr" data-l1key="htmlstate"></span>';
-    tr += '</td>';
-  }
+  tr += '<td>';
+  tr += '<span class="cmdAttr" data-l1key="htmlstate"></span>';
+  tr += '</td>';
 
   tr += '<td>';
   if (is_numeric(_cmd.id)) {

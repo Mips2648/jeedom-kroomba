@@ -16,7 +16,7 @@
  * along with Jeedom. If not, see <http://www.gnu.org/licenses/>.
  */
 try {
-    require_once dirname(__FILE__) . "/../../../../core/php/core.inc.php";
+    require_once __DIR__ . "/../../../../core/php/core.inc.php";
 
     if (!jeedom::apiAccess(init('apikey'), 'kroomba')) {
         echo __('Vous n\'etes pas autorisé à effectuer cette action', __FILE__);
