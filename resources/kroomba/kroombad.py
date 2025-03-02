@@ -1,3 +1,4 @@
+import asyncio
 import os
 from pathlib import Path
 
@@ -87,6 +88,8 @@ class kroomba(BaseDaemon):
     async def __connect_robots(self):
         await self.__disconnect_robots()
 
+        coros_connect = []
+
         for robot_config in self._robot_configs.robots.values():
             if robot_config.blid in self._config.excluded_blid:
                 self._logger.debug("Exclude robot: %s", robot_config.name)
@@ -102,13 +105,18 @@ class kroomba(BaseDaemon):
                 brokerCommand=self._config.topic_prefix+'/command',
                 brokerSetting=self._config.topic_prefix+'/setting'
             )
-            if await new_robot.async_connect():
-                self._robots.append(new_robot)
+
+            coros_connect.append(new_robot.async_connect())
+            self._robots.append(new_robot)
+
+        if len(coros_connect) > 0:
+            await asyncio.gather(*coros_connect)
 
     async def __disconnect_robots(self):
         for robot in self._robots:
             await robot.disconnect()
         self._robots.clear()
+        await asyncio.sleep(1)
 
 
 kroomba().run()
