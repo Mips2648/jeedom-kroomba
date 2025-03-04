@@ -11,6 +11,7 @@ import json
 import logging
 import socket
 import time
+import uuid
 import paho.mqtt.client as mqtt
 
 from .const import ERROR_CONNECTION_REFUSED, ERROR_NO_ROUTE_TO_HOST, ROBOT_PORT
@@ -394,7 +395,7 @@ class iRobot:
             self.brokerSetting = self.set_mqtt_topic(brokerSetting, True)
 
             # connect to broker
-            self.local_mqtt_client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2)
+            self.local_mqtt_client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2, f"iRobot-{uuid.uuid4().hex[:10]}")
             # Assign event callbacks
             self.local_mqtt_client.on_message = self.broker_on_message
             self.local_mqtt_client.on_connect = self.broker_on_connect
