@@ -6,31 +6,26 @@ __version__ = "3.0.0"
 
 import asyncio
 from collections.abc import Mapping
-from irobot.password import Password
 import datetime
 import json
 import logging
 import socket
-import ssl
 import time
+import uuid
 import paho.mqtt.client as mqtt
-from functools import cache
+
+from .const import ERROR_CONNECTION_REFUSED, ERROR_NO_ROUTE_TO_HOST, ROBOT_PORT
+
+from .utils import generate_tls_context
+from .configs import iRobotConfig
 
 
-class iRobot(object):
+class iRobot:
     '''
-    This is a Class for Roomba WiFi connected Vacuum cleaners and mops
-    Requires firmware version 2.0 and above (not V1.0). Tested with Roomba 980, s9
-    and braava M6.
-    username (blid) and password are required, and can be found using the
-    Password() class (in password.py - or can be auto discovered)
+    This is a Class for iRobot WiFi connected Vacuum cleaners and mops
+
     Most of the underlying info was obtained from here:
     https://github.com/koalazak/dorita980 many thanks!
-    The values received from the Roomba as stored in a dictionary called
-    master_state, and can be accessed at any time, the contents are live, and
-    will build with time after connection.
-    This is not needed if the forward to mqtt option is used, as the events will
-    be decoded and published on the designated mqtt client topic.
     '''
 
     VERSION = __version__ = "3.0"
@@ -82,6 +77,7 @@ class iRobot(object):
         25: "Reboot required",
         26: "Vacuum problem",
         27: "Vacuum problem",
+        28: "Error",
         29: "Software update needed",
         30: "Vacuum problem",
         31: "Reboot required",
@@ -104,15 +100,40 @@ class iRobot(object):
         48: "Path blocked",
         52: "Pad required attention",
         53: "Software update required",
+        54: "Blades stuck",
+        55: "Left blades stuck",
+        56: "Right blades stuck",
+        57: "Cutting deck stuck",
+        58: "Navigation problem",
+        59: "Tilt detected",
+        60: "Rolled over",
+        62: "Stop button pushed",
+        63: "Hardware error",
         65: "Hardware problem detected",
         66: "Low memory",
-        68: "Hardware problem detected",
+        67: "Handle lifted",
+        68: "Dead camera",
+        69: "Navigation problem",
+        70: "Problem sensing beacons",
         73: "Pad type changed",
         74: "Max area reached",
         75: "Navigation problem",
         76: "Hardware problem detected",
+        78: "Left wheel error",
+        79: "Right wheel error",
+        85: "Path to charging station blocked",
+        86: "Path to charging station blocked",
         88: "Back-up refused",
         89: "Mission runtime too long",
+        91: "Workspace path error",
+        92: "Workspace path error",
+        93: "Workspace path error",
+        94: "Wheel motor over temp",
+        95: "Wheel motor under temp",
+        96: "Blade motor over temp",
+        97: "Blade motor under temp",
+        98: "Software error",
+        99: "Navigation problem",
         101: "Battery isn't connected",
         102: "Charging error",
         103: "Charging error",
@@ -131,68 +152,66 @@ class iRobot(object):
         118: "Battery communication failure",
         119: "Charging timeout",
         120: "Battery not initialized",
+        121: "Clean the charging contacts",
         122: "Charging system error",
         123: "Battery not initialized",
         216: "Charging base bag full",
+        1000: "Left edge-sweeping brush stuck",
+        1001: "Right edge-sweeping brush stuck",
+        1002: "Cleaning unavailable. Check subscription status.",
+        1003: "Dead vision board",
+        1004: "Map was unavailable",
+        1007: "Contact customer care",
+        1008: "Cleaning arm is stuck",
+        1009: "Robot stalled",
     }
 
-    def __init__(self, address=None, blid=None, password=None, topic="#",
-                 roombaName="", file="./config.ini", log=None):
+    def __init__(self, config: iRobotConfig):
         '''
-        address is the IP address of the Roomba,
-        leave topic as is, unless debugging (# = all messages).
-        if a python standard logging object called 'Roomba' exists,
-        it will be used for logging,
-        or pass a logging object
+        Initialize the iRobot object
         '''
-        self.loop = asyncio.get_running_loop()
-        self.debug = False
-        if log:
-            self.log = log
-        else:
-            self.log = logging.getLogger(f"Roomba.{roombaName if roombaName else __name__}")
-        if self.log.getEffectiveLevel() == logging.DEBUG:
-            self.debug = True
-        self.address = address
-        self.roomba_port = 8883
-        self.blid = blid
-        self.password = password
-        self.roombaName = roombaName
-        self.file = file
-        self.get_passwd = Password(file=file)
-        self.topic = topic
-        self.mqttc = None
-        self.local_mqtt = False
-        self.exclude = ""
-        self.roomba_connected = False
+        self._loop = asyncio.get_running_loop()
+        self._debug = False
+        self._logger = logging.getLogger()
+        if self._logger.getEffectiveLevel() == logging.DEBUG:
+            self._debug = True
+
+        if not all([config.name, config.ip, config.blid, config.password]):
+            self._logger.critical('Could not configure iRobot')
+            raise ValueError('Missing parameter, could not configure iRobot')
+
+        self._config = config
+        self.port = ROBOT_PORT
+        self.__local_mqtt_client = None
+        self.__local_mqtt = False
+        self.__connected = False
+        self.__try_to_connect = True
         self.raw = False
         self.mapSize = None
         self.current_state = None
         self.master_state = {}
         self.update_seconds = 300  # update with all values every 5 minutes
-        self.robot_mqtt_client = None
-        self.roombas_config = {}  # Roomba configuration loaded from config file
+        self.__robot_mqtt_client = None
         self.history = {}
         self.timers = {}
         self.flags = {}
         self.max_sqft = None
         self.cb = None
 
-        self.is_connected = asyncio.Event()
-        self.robot_msg_queue = asyncio.Queue()
-        self.command_queue = asyncio.Queue()
-        self.loop.create_task(self.process_robot_msg_queue())
-        self.loop.create_task(self.process_command_queue())
-        self.update = self.loop.create_task(self.periodic_update())
+        self.__is_connected = asyncio.Event()
+        self.__robot_msg_queue: asyncio.Queue[mqtt.MQTTMessage] = asyncio.Queue()
+        self.__command_queue: asyncio.Queue[dict] = asyncio.Queue()
+        self._loop.create_task(self.__process_robot_msg_queue())
+        self._loop.create_task(self.__process_command_queue())
+        self._loop.create_task(self.__periodic_update())
 
-        if not all([self.address, self.blid, self.password]):
-            if not self.configure_roomba():
-                self.log.critical('Could not configure Roomba')
-        else:
-            self.roombas_config = {self.address: {
-                                   "blid": self.blid,
-                                   "password": self.password,
-                                   "roomba_name": self.roombaName}}
+    @property
+    def name(self):
+        return self._config.name
+
+    @property
+    def ip(self):
+        return self._config.ip
 
     async def event_wait(self, evt, timeout):
         '''
@@ -204,63 +223,30 @@ class iRobot(object):
             pass
         return evt.is_set()
 
-    def configure_roomba(self):
-        self.log.info('configuring Roomba from file %s', self.file)
-        self.roombas_config = self.get_passwd.get_roombas()
-        for ip, robot in self.roombas_config.items():
-            if any([self.address == ip, self.blid == robot['blid'], robot['roomba_name'] == self.roombaName]):
-                self.roombaName = robot['roomba_name']
-                self.address = ip
-                self.blid = robot['blid']
-                self.password = robot['password']
-                self.max_sqft = robot.get('max_sqft', 0)
-                return True
-
-        self.log.warning('No Roomba specified, or found, exiting')
-        return False
-
-    @cache
-    def generate_tls_context(self) -> ssl.SSLContext:
-        """Generate TLS context.
-
-        We only want to do this once ever because it's expensive.
-        """
-        ssl_context = ssl.SSLContext(ssl.PROTOCOL_TLS)
-        ssl_context.verify_mode = ssl.CERT_NONE
-        ssl_context.set_ciphers("DEFAULT:!DH")
-        ssl_context.load_default_certs()
-        # ssl.OP_LEGACY_SERVER_CONNECT is only available in Python 3.12a4+
-        ssl_context.options |= getattr(ssl, "OP_LEGACY_SERVER_CONNECT", 0x4)
-        return ssl_context
-
-    def setup_client(self):
-        if self.robot_mqtt_client is None:
-            self.robot_mqtt_client = mqtt.Client(
+    async def setup_client(self):
+        if self.__robot_mqtt_client is None:
+            self.__robot_mqtt_client = mqtt.Client(
                 callback_api_version=mqtt.CallbackAPIVersion.VERSION2,
-                client_id=self.blid,
+                client_id=self._config.blid,
                 clean_session=True,
                 protocol=mqtt.MQTTv311)
             # Assign event callbacks
-            self.robot_mqtt_client.on_message = self.on_robot_message
-            self.robot_mqtt_client.on_connect = self.on_robot_connect
-            self.robot_mqtt_client.on_subscribe = self.on_robot_subscribe
-            self.robot_mqtt_client.on_disconnect = self.on_robot_disconnect
+            self.__robot_mqtt_client.on_message = self.on_robot_mqtt_message
+            self.__robot_mqtt_client.on_connect = self.on_robot_mqtt_connect
+            self.__robot_mqtt_client.on_subscribe = self.on_robot_mqtt_subscribe
+            self.__robot_mqtt_client.on_disconnect = self.on_robot_mqtt_disconnect
 
-            # Uncomment to enable debug messages
-            # self.client.on_log = self.on_log
-
-            self.log.info("Setting TLS")
+            self._logger.info("Setting TLS")
             try:
-                ssl_context = self.generate_tls_context()
-                self.robot_mqtt_client.tls_set_context(ssl_context)
-                self.robot_mqtt_client.tls_insecure_set(True)
+                ssl_context = generate_tls_context()
+                self.__robot_mqtt_client.tls_set_context(ssl_context)
+                self.__robot_mqtt_client.tls_insecure_set(True)
             except Exception as e:
-                self.log.exception("Error setting TLS: %s", e)
+                self._logger.exception("Error setting TLS: %s", e)
 
             # disables peer verification
-            self.robot_mqtt_client.tls_insecure_set(True)
-            self.robot_mqtt_client.username_pw_set(self.blid, self.password)
-            self.log.info("Setting TLS - OK")
+            self.__robot_mqtt_client.username_pw_set(self._config.blid, self._config.password)
+            self._logger.info("Setting TLS - OK")
             return True
         return False
 
@@ -268,155 +254,162 @@ class iRobot(object):
         '''
         just create async_connect task
         '''
-        return self.loop.create_task(self.async_connect())
+        return self._loop.create_task(self.async_connect())
 
     async def async_connect(self):
         '''
-        Connect to Roomba MQTT server
+        Connect to iRobot MQTT server
         '''
-        if not all([self.address, self.blid, self.password]):
-            self.log.critical("Invalid address, blid, or password! All these "
-                              "must be specified!")
-            return False
         count = 0
         max_retries = 3
         retry_timeout = 1
-        while not self.roomba_connected:
+        while not self.__connected and self.__try_to_connect:
             try:
-                if self.robot_mqtt_client is None:
-                    self.log.info("Connecting...")
-                    self.setup_client()
-                    await self.loop.run_in_executor(None, self.robot_mqtt_client.connect, self.address, self.roomba_port, 60)
+                if self.__robot_mqtt_client is None:
+                    self._logger.info("Try to connect to %s with ip %s", self._config.name, self._config.ip)
+                    await self.setup_client()
+                    await self._loop.run_in_executor(None, self.__robot_mqtt_client.connect, self._config.ip, self.port, 60)
                 else:
-                    self.log.info("Attempting to Reconnect...")
-                    self.robot_mqtt_client.loop_stop()
-                    await self.loop.run_in_executor(None, self.robot_mqtt_client.reconnect)
-                self.robot_mqtt_client.loop_start()
-                await self.event_wait(self.is_connected, 1)  # wait for MQTT on_connect to fire (timeout 1 second)
+                    self._logger.info("Attempting to Reconnect...")
+                    self.__robot_mqtt_client.loop_stop()
+                    await self._loop.run_in_executor(None, self.__robot_mqtt_client.reconnect)
+                self.__robot_mqtt_client.loop_start()
+                await self.event_wait(self.__is_connected, 1)  # wait for MQTT on_connect to fire (timeout 1 second)
             except (ConnectionRefusedError, OSError) as e:
                 if e.errno == 111:  # errno.ECONNREFUSED
-                    self.log.error('Unable to Connect to robot %s, make sure nothing else is connected (app?), as only one connection at a time is allowed', self.roombaName)
+                    self._logger.error(ERROR_CONNECTION_REFUSED, self.name)
                 elif e.errno == 113:  # errno.No Route to Host
-                    self.log.error('Unable to contact robot %s on ip %s', self.roombaName, self.address)
+                    self._logger.error(ERROR_NO_ROUTE_TO_HOST, self.ip)
                 else:
-                    self.log.error("Connection Error: %s ", e)
+                    self._logger.error("Connection Error: %s ", e)
 
-                self.log.debug("sleeping %is", retry_timeout)
+                self._logger.debug("sleeping %is", retry_timeout)
                 await asyncio.sleep(retry_timeout)
                 retry_timeout = retry_timeout * 2
-                self.log.error("Attempting retry Connection# %i", count)
+                self._logger.error("Attempting retry Connection# %i", count)
 
                 count += 1
                 if count >= max_retries:
                     retry_timeout = 60
 
             except asyncio.CancelledError:
-                self.log.error('Connection Cancelled')
+                self._logger.error('Connection Cancelled')
                 break
             except Exception as e:
-                self.log.exception(e)
+                self._logger.exception(e)
                 if count >= max_retries:
                     break
 
-        if not self.roomba_connected:
-            self.log.error("Unable to connect to %s", self.roombaName)
-        return self.roomba_connected
+        if not self.__connected:
+            self._logger.error("Unable to connect to %s", self._config.name)
+        return self.__connected
 
-    def disconnect(self):
-        self.loop.create_task(self._disconnect())
-
-    async def _disconnect(self):
-        try:
-            self.robot_mqtt_client.disconnect()
-            if self.local_mqtt:
-                self.mqttc.loop_stop()
-        except Exception as e:
-            self.log.warning("Some exception occured during mqtt disconnect: %s", e)
-        self.log.info('%s disconnected', self.roombaName)
-
-    def connected(self, state):
-        self.roomba_connected = state
-        self.publish('status', 'Online' if self.roomba_connected else f"Offline at {time.ctime()}")
-
-    def on_robot_connect(self, client, userdata, flags, reason_code, properties):
-        self.log.info("Roomba Connected")
-        if reason_code == 0:
-            self.connected(True)
-            self.robot_mqtt_client.subscribe(self.topic)
-            self.robot_mqtt_client.subscribe("$SYS/#")
-        else:
-            self.log.error("Connected with result code %s", reason_code)
-            self.log.error("Please make sure your blid and password are correct for Roomba %s", self.roombaName)
-            self.connected(False)
-            self.robot_mqtt_client.disconnect()
-        self.loop.call_soon_threadsafe(self.is_connected.set)
-
-    def on_robot_message(self, client, userdata, message: mqtt.MQTTMessage):
-        if self.exclude != "" and self.exclude in message.topic:
+    async def disconnect(self):
+        if not self.__connected:
             return
+        try:
+            self.__robot_mqtt_client.disconnect()
+            if self.__local_mqtt:
+                self.__local_mqtt_client.loop_stop()
+        except Exception as e:
+            self._logger.warning("Some exception occured during mqtt disconnect: %s", e)
 
-        asyncio.run_coroutine_threadsafe(self.robot_msg_queue.put(message), self.loop)
+    def _set_connected(self, state: bool):
+        self.__connected = state
+        self.publish('status', 'Online' if self.__connected else f"Offline at {time.ctime()}")
 
-    async def process_robot_msg_queue(self):
-        '''
-        Main processing loop, run until program exit
-        '''
+    def on_robot_mqtt_connect(self, client, userdata, flags, reason_code, properties):
+        if reason_code == 0:
+            self._logger.info("%s connected", self.name)
+            self._set_connected(True)
+            self.__robot_mqtt_client.subscribe('#')
+            self.__robot_mqtt_client.subscribe("$SYS/#")
+        else:
+            self._logger.error("Connected with result code %s", reason_code)
+            self._logger.error("Please make sure your blid and password are correct for robot %s", self._config.name)
+            self.__try_to_connect = False
+            self._set_connected(False)
+            self.__robot_mqtt_client.disconnect()
+        self._loop.call_soon_threadsafe(self.__is_connected.set)
+
+    def on_robot_mqtt_message(self, client, userdata, message: mqtt.MQTTMessage):
+        asyncio.run_coroutine_threadsafe(self.__robot_msg_queue.put(message), self._loop)
+
+    async def __process_robot_msg_queue(self):
         while True:
             try:
-                if self.robot_msg_queue.qsize() > 10:
-                    self.log.warning('Pending event queue size is: %i', self.robot_msg_queue.qsize())
-                msg = await self.robot_msg_queue.get()
+                if self.__robot_msg_queue.qsize() > 15:
+                    self._logger.warning('Pending event queue size is: %i', self.__robot_msg_queue.qsize())
+                msg = await self.__robot_msg_queue.get()
 
-                if not self.command_queue.empty():
-                    self.log.info('Command waiting in queue')
-                    await asyncio.sleep(1)
+                if not self.__command_queue.empty():
+                    self._logger.debug('Command waiting in queue, pausing processing')
+                    await asyncio.sleep(0.1)
 
                 json_data = self.decode_payload(msg.topic, msg.payload)
                 self.dict_merge(self.master_state, json_data)
 
-                self.log.debug("Received Roomba Data: %s, %s", str(msg.topic), str(msg.payload))
+                self._logger.debug("Received data: %s, %s", msg.topic, msg.payload)
 
                 if self.raw:
                     self.publish(msg.topic, msg.payload)
                 else:
-                    await self.loop.run_in_executor(None, self.decode_topics, json_data)
+                    await self._loop.run_in_executor(None, self.decode_topics, json_data)
 
-                self.robot_msg_queue.task_done()
-                await asyncio.sleep(0.3)
+                self.__robot_msg_queue.task_done()
+                await asyncio.sleep(0.1)
 
             except asyncio.CancelledError:
                 break
             except Exception as e:
-                self.log.exception(e)
+                self._logger.exception(e)
 
-    async def periodic_update(self):
-        '''
-        publish status peridically
-        '''
+    async def __process_command_queue(self):
         while True:
-            # default every 5 minutes
-            await asyncio.sleep(self.update_seconds)
-            if self.roomba_connected:
-                self.log.info("Publishing master_state")
-                await self.loop.run_in_executor(None, self.decode_topics, self.master_state)
+            try:
+                value = await self.__command_queue.get()
+                command = value.get('command')
+                setting = value.get('setting')
+                schedule = value.get('schedule')
+                if command:
+                    await self._loop.run_in_executor(None, self._send_command, command)
+                if setting:
+                    await self._loop.run_in_executor(None, self._set_preference, *setting)
+                if schedule:
+                    await self._loop.run_in_executor(None, self._set_cleanSchedule, schedule)
+                self.__command_queue.task_done()
+            except asyncio.CancelledError:
+                break
+            except Exception as e:
+                self._logger.exception(e)
 
-    def on_robot_subscribe(self, client, userdata, mid, reason_codes, properties):
-        self.log.debug("Subscribed: %s %s", mid, reason_codes)
+    async def __periodic_update(self):
+        while True:
+            try:
+                # default every 5 minutes
+                await asyncio.sleep(self.update_seconds)
+                if self.__connected:
+                    self._logger.info("Publishing %s master_state", self.name)
+                    await self._loop.run_in_executor(None, self.decode_topics, self.master_state)
+            except asyncio.CancelledError:
+                break
+            except Exception as e:
+                self._logger.exception(e)
 
-    def on_robot_disconnect(self, client, userdata, flags, reason_code, properties):
-        self.loop.call_soon_threadsafe(self.is_connected.clear)
-        self.connected(False)
+    def on_robot_mqtt_subscribe(self, client, userdata, mid, reason_codes, properties):
+        self._logger.debug("Subscribed: %s %s", mid, reason_codes)
+
+    def on_robot_mqtt_disconnect(self, client, userdata, flags, reason_code, properties):
+        self._loop.call_soon_threadsafe(self.__is_connected.clear)
+        self._set_connected(False)
         if reason_code != 0:
-            self.log.warning("Unexpected Disconnect! - reconnecting")
+            self._logger.warning("Unexpected disconnect from %s! - reconnecting", self.name)
         else:
-            self.log.info("Disconnected")
-
-    def on_log(self, client, userdata, level, buf):
-        self.log.info(buf)
+            self._logger.info('%s disconnected', self.name)
 
     def set_mqtt_topic(self, topic, subscribe=False):
-        if self.blid:
-            topic = f"{topic}/{self.blid}{'/#' if subscribe else ''}"
+        if self._config.blid:
+            topic = f"{topic}/{self._config.blid}{'/#' if subscribe else ''}"
         return topic
 
     def setup_mqtt_client(self, broker=None,
@@ -428,10 +421,10 @@ class iRobot(object):
                           brokerSetting='/irobot/setting'):
         # returns an awaitable future
 
-        return self.loop.run_in_executor(None, self._setup_mqtt_client, broker,
-                                         port, user, passwd,
-                                         brokerFeedback, brokerCommand,
-                                         brokerSetting)
+        return self._loop.run_in_executor(None, self._setup_mqtt_client, broker,
+                                          port, user, passwd,
+                                          brokerFeedback, brokerCommand,
+                                          brokerSetting)
 
     def _setup_mqtt_client(self, broker=None,
                            port=1883,
@@ -450,79 +443,62 @@ class iRobot(object):
             self.brokerSetting = self.set_mqtt_topic(brokerSetting, True)
 
             # connect to broker
-            self.mqttc = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2)
+            self.__local_mqtt_client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2, f"iRobot-{uuid.uuid4().hex[:10]}")
             # Assign event callbacks
-            self.mqttc.on_message = self.broker_on_message
-            self.mqttc.on_connect = self.broker_on_connect
-            self.mqttc.on_disconnect = self.broker_on_disconnect
+            self.__local_mqtt_client.on_message = self.broker_on_message
+            self.__local_mqtt_client.on_connect = self.broker_on_connect
+            self.__local_mqtt_client.on_disconnect = self.broker_on_disconnect
             if user and passwd:
-                self.mqttc.username_pw_set(user, passwd)
-            self.mqttc.connect(broker, port, 60)
-            self.mqttc.loop_start()
-            self.local_mqtt = True
+                self.__local_mqtt_client.username_pw_set(user, passwd)
+            self.__local_mqtt_client.connect(broker, port, 60)
+            self.__local_mqtt_client.loop_start()
+            self.__local_mqtt = True
         except socket.error:
-            self.log.error("Unable to connect to MQTT Broker")
-            self.mqttc = None
-        return self.mqttc
+            self._logger.error("Unable to connect to MQTT Broker")
+            self.__local_mqtt_client = None
+        return self.__local_mqtt_client
 
     def broker_on_connect(self, client: mqtt.Client, userdata, flags, reason_code, properties):
-        self.log.debug("Broker Connected with result code %s", reason_code)
+        self._logger.debug("Broker Connected with result code %s", reason_code)
         # subscribe to commands and settings messages
         if reason_code == 0:
             client.subscribe(self.brokerCommand)
             client.subscribe(self.brokerSetting)
-            self.log.info('subscribed to %s, %s', self.brokerCommand, self.brokerSetting)
+            self._logger.info('subscribed to %s, %s', self.brokerCommand, self.brokerSetting)
 
     def broker_on_message(self, client, userdata, message: mqtt.MQTTMessage):
         # receive commands and settings from broker
         payload = message.payload.decode("utf-8")
         if "command" in message.topic:
-            self.log.info("Received COMMAND from broker: %s", payload)
+            self._logger.info("Received COMMAND from broker: %s", payload)
             self.send_command(payload)
         elif "setting" in message.topic:
-            self.log.info("Received SETTING from broker: %s", payload)
-            cmd = str(payload).split(None, 1)
+            self._logger.info("Received SETTING from broker: %s", payload)
+            cmd = payload.split(None, 1)
             self.set_preference(cmd[0], cmd[1])
         else:
-            self.log.warn("Unknown topic: %s", message.topic)
+            self._logger.warning("Unknown topic: %s", message.topic)
 
     def broker_on_disconnect(self, client: mqtt.Client, userdata, flags, reason_code, properties):
-        self.log.debug("Broker disconnected")
+        self._logger.debug("Broker disconnected")
 
     async def async_send_command(self, command):
-        await self.command_queue.put({'command': command})
+        await self.__command_queue.put({'command': command})
 
     async def async_set_preference(self, preference, setting):
-        await self.command_queue.put({'setting': (preference, setting)})
+        await self.__command_queue.put({'setting': (preference, setting)})
 
     async def async_set_cleanSchedule(self, setting):
-        await self.command_queue.put({'schedule': setting})
+        await self.__command_queue.put({'schedule': setting})
 
     def send_command(self, command):
-        asyncio.run_coroutine_threadsafe(self.command_queue.put({'command': command}), self.loop)
+        asyncio.run_coroutine_threadsafe(self.__command_queue.put({'command': command}), self._loop)
 
     def set_preference(self, preference, setting):
-        asyncio.run_coroutine_threadsafe(self.command_queue.put({'setting': (preference, setting)}), self.loop)
+        asyncio.run_coroutine_threadsafe(self.__command_queue.put({'setting': (preference, setting)}), self._loop)
 
     def set_cleanSchedule(self, setting):
-        asyncio.run_coroutine_threadsafe(self.command_queue.put({'schedule': setting}), self.loop)
-
-    async def process_command_queue(self):
-        '''
-        Command processing loop, run until program exit
-        '''
-        while True:
-            value = await self.command_queue.get()
-            command = value.get('command')
-            setting = value.get('setting')
-            schedule = value.get('schedule')
-            if command:
-                await self.loop.run_in_executor(None, self._send_command, command)
-            if setting:
-                await self.loop.run_in_executor(None, self._set_preference, *setting)
-            if schedule:
-                await self.loop.run_in_executor(None, self._set_cleanSchedule, schedule)
-            self.command_queue.task_done()
+        asyncio.run_coroutine_threadsafe(self.__command_queue.put({'schedule': setting}), self._loop)
 
     def _send_command(self, command):
         '''
@@ -530,7 +506,7 @@ class iRobot(object):
         {"command": "reset", "initiator": "admin", "time": 1609950197}
         {"command": "find", "initiator": "rmtApp", "time": 1612462418, "robot_id": null, "select_all": null}}}}'
         '''
-        self.log.info("Processing COMMAND: %s", command)
+        self._logger.info("Processing COMMAND: %s", command)
         if isinstance(command, dict):
             Command = command
         else:
@@ -542,8 +518,8 @@ class iRobot(object):
         Command["time"] = self.totimestamp(datetime.datetime.now())
         Command["initiator"] = "localApp"
         myCommand = json.dumps(Command)
-        self.log.info("Sending Command: %s", myCommand)
-        self.robot_mqtt_client.publish("cmd", myCommand)
+        self._logger.info("Sending Command: %s", myCommand)
+        self.__robot_mqtt_client.publish("cmd", myCommand)
 
     def send_region_command(self, command):
         '''
@@ -563,10 +539,10 @@ class iRobot(object):
                 }
         command is json string, or dictionary.
         need 'regions' defined, or else whole map will be cleaned.
-        if 'pmap_id' is not specified, the first pmap_id found in roombas list is used.
+        if 'pmap_id' is not specified, the first pmap_id found in robots list is used.
         '''
         pmaps = self.get_property('pmaps')
-        self.log.info('pmaps: %s', pmaps)
+        self._logger.info('pmaps: %s', pmaps)
         myCommand = {}
         if not isinstance(command, dict):
             command = json.loads(command)
@@ -605,7 +581,7 @@ class iRobot(object):
         self._send_command(myCommand)
 
     def _set_preference(self, preference, setting):
-        self.log.info("Received SETTING: %s, %s", preference, setting)
+        self._logger.info("Received SETTING: %s, %s", preference, setting)
         try:
             val = int(setting)
         except ValueError:
@@ -628,24 +604,24 @@ class iRobot(object):
 
         Command = {"state": {preference: val}}
         myCommand = json.dumps(Command)
-        self.log.info(f"Publishing Roomba {self.roombaName} Setting :{myCommand}")
-        self.robot_mqtt_client.publish("delta", myCommand)
+        self._logger.info(f"Publishing {self._config.name} Setting :{myCommand}")
+        self.__robot_mqtt_client.publish("delta", myCommand)
 
     def _set_cleanSchedule(self, setting):
-        self.log.info("Received Roomba %s cleanSchedule:", self.roombaName)
+        self._logger.info("Received %s cleanSchedule", self._config.name)
         sched = "cleanSchedule"
         if self.is_setting("cleanSchedule2"):
             sched = "cleanSchedule2"
         Command = {"state": {sched: setting}}
         myCommand = json.dumps(Command)
-        self.log.info("Publishing Roomba %s %s : %s", self.roombaName, sched, myCommand)
-        self.robot_mqtt_client.publish("delta", myCommand)
+        self._logger.info("Publishing %s %s : %s", self._config.name, sched, myCommand)
+        self.__robot_mqtt_client.publish("delta", myCommand)
 
     def publish(self, topic, message):
-        if self.mqttc is not None and message is not None:
+        if self.__local_mqtt_client is not None and message is not None:
             topic = f"{self.brokerFeedback}/{topic}"
-            self.log.debug("Publishing item: %s: %s", topic, message)
-            self.mqttc.publish(topic, message)
+            self._logger.debug("Publishing item: %s: %s", topic, message)
+            self.__local_mqtt_client.publish(topic, message)
 
     def set_callback(self, cb=None):
         self.cb = cb
@@ -654,9 +630,9 @@ class iRobot(object):
         self.raw = raw
         self.max_sqft = int(max_sqft)
         if self.raw:
-            self.log.info("Posting RAW data")
+            self._logger.info("Posting RAW data")
         else:
-            self.log.info("Posting DECODED data")
+            self._logger.info("Posting DECODED data")
 
     def totimestamp(self, dt):
         td = dt - datetime.datetime(1970, 1, 1)
@@ -746,7 +722,7 @@ class iRobot(object):
                     for i in v:
                         if isinstance(i, dict):
                             json_i = json.dumps(i)
-                            self.log.debug("json value for %s is %s", k, json_i)
+                            self._logger.debug("json value for %s is %s", k, json_i)
                             newlist.append(json_i)
                         else:
                             if not isinstance(i, str):
@@ -769,7 +745,7 @@ class iRobot(object):
         if not isinstance(items, list):
             items = [items]
         for item in items:
-            value = await self.loop.run_in_executor(None, self.get_property, item)
+            value = await self._loop.run_in_executor(None, self.get_property, item)
             result[item] = value
         return result
 
@@ -777,7 +753,7 @@ class iRobot(object):
         try:
             error_message = self._ErrorMessages[error_num]
         except KeyError as e:
-            self.log.warning("Error looking up error message %s", e)
+            self._logger.warning("Error looking up error message %s", e)
             error_message = f"Unknown Error number: {error_num}"
         return error_message
 
@@ -964,17 +940,17 @@ class iRobot(object):
     def when_run(self, name):
         th = self.timers.get(name, {}).get('reset', None)
         if th:
-            return max(0, int(th._when - self.loop.time()))
+            return max(0, int(th._when - self._loop.time()))
         return 0
 
     def timer(self, name, value=False, duration=10):
         self.timers.setdefault(name, {})
         self.timers[name]['value'] = value
-        self.log.info('Set %s to: %s', name, value)
+        self._logger.debug('Set %s to: %s', name, value)
         if self.timers[name].get('reset'):
             self.timers[name]['reset'].cancel()
         if value:
-            self.timers[name]['reset'] = self.loop.call_later(duration, self.timer, name)  # reset reset timer in duration seconds
+            self.timers[name]['reset'] = self._loop.call_later(duration, self.timer, name)  # reset reset timer in duration seconds
 
     def roomba_type(self, type):
         '''
@@ -993,7 +969,7 @@ class iRobot(object):
 
     def update_state_machine(self, new_state=None):
         '''
-        Roomba progresses through states (phases), current identified states
+        iRobot progresses through states (phases), current identified states
         are:
         ""              : program started up, no state yet
         "run"           : running on a Cleaning Mission
@@ -1001,7 +977,7 @@ class iRobot(object):
         "hmMidMsn"      : need to recharge
         "hmPostMsn"     : mission completed
         "charge"        : charging
-        "stuck"         : Roomba is stuck
+        "stuck"         : robot is stuck
         "stop"          : Stopped
         "pause"         : paused
         "evac"          : emptying bin
@@ -1061,7 +1037,7 @@ class iRobot(object):
         '''
         if new_state is not None:
             self.current_state = self.states[new_state]
-            self.log.info("set current state to: %s", self.current_state)
+            self._logger.info("set current state to: %s", self.current_state)
             return
 
         self.publish_error_message()  # publish error messages
@@ -1076,28 +1052,31 @@ class iRobot(object):
         if phase is None or mission is None:
             return
 
-        if self.debug:
+        if self._debug:
             self.timer('ignore_coordinates')
 
-        self.log.info('current_state: %s, current phase: %s, mission: %s, mission_min: %s, recharge_min: %s, co-ords changed: %s',
-                      self.current_state,
-                      phase,
-                      mission,
-                      self.mssnM,
-                      self.rechrgM,
-                      self.changed('pose'))
+        self._logger.debug(
+            '%s current_state: %s, current phase: %s, mission: %s, mission_min: %s, recharge_min: %s, co-ords changed: %s',
+            self.name,
+            self.current_state,
+            phase,
+            mission,
+            self.mssnM,
+            self.rechrgM,
+            self.changed('pose')
+        )
 
         if self.current_state == self.states["new"] and phase != 'run':
-            self.log.info('waiting for run state for New Missions')
+            self._logger.info('waiting for run state for New Missions')
             if time.time() - self.timers['start'] >= 20:
-                self.log.warning('Timeout waiting for run state')
+                self._logger.warning('Timeout waiting for run state')
                 self.current_state = self.states[phase]
 
         elif phase == "run" and (self.is_set('ignore_run') or mission == 'none'):
-            self.log.info('Ignoring bogus run state')
+            self._logger.info('Ignoring bogus run state')
 
         elif phase == "charge" and mission == 'none' and self.is_set('ignore_run'):
-            self.log.info('Ignoring bogus charge/mission state')
+            self._logger.info('Ignoring bogus charge/mission state')
             self.update_history("cycle", self.previous('cycle'))
 
         elif phase in ["hmPostMsn", "hmMidMsn", "hmUsrDock"]:
@@ -1129,9 +1108,9 @@ class iRobot(object):
             try:
                 self.current_state = self.states[phase]
             except KeyError:
-                self.log.warning('phase: %s not found in self.states', phase)
+                self._logger.warning('phase: %s not found in self.states', phase)
 
         self.publish("state", self.current_state)
 
         if self.is_set('ignore_coordinates') and self.current_state != self.states["new"]:
-            self.log.info('Ignoring co-ordinate updates')
+            self._logger.info('Ignoring co-ordinate updates')

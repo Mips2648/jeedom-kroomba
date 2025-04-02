@@ -15,7 +15,7 @@
  * along with Jeedom. If not, see <http://www.gnu.org/licenses/>.
  */
 
-require_once dirname(__FILE__) . '/../../../core/php/core.inc.php';
+require_once __DIR__ . '/../../../core/php/core.inc.php';
 include_file('core', 'authentification', 'php');
 if (!isConnect()) {
     include_file('desktop', '404', 'php');
@@ -24,13 +24,6 @@ if (!isConnect()) {
 ?>
 <form class="form-horizontal">
     <fieldset>
-        <legend><i class="fas fa-wifi"></i> {{MQTT}}</legend>
-        <div class="form-group">
-            <label class="col-sm-4 control-label">{{Topic préfixe}}</label>
-            <div class="col-sm-2">
-                <input class="configKey form-control" data-l1key="topic_prefix" placeholder="iRobot" />
-            </div>
-        </div>
         <legend><i class="fas fa-university"></i> {{Démon}}</legend>
         <div class="form-group">
             <label class="col-sm-4 control-label">{{Port socket interne}}</label>

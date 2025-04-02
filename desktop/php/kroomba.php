@@ -191,13 +191,7 @@ $eqLogics = eqLogic::byType($plugin->getId());
                                 <th style="min-width:220px;width:350px;">{{Nom}}</th>
                                 <th style="min-width:140px;width:200px;">{{Type}}</th>
                                 <th style="min-width:260px;">{{Options}}</th>
-                                <?php
-                                if (version_compare(jeedom::version(), '4.3.0', '>=')) {
-                                ?>
-                                    <th>{{Etat}}</th>
-                                <?php
-                                }
-                                ?>
+                                <th>{{Etat}}</th>
                                 <th style="min-width:80px;width:140px;">{{Actions}}</th>
                             </tr>
                         </thead>
@@ -213,19 +207,44 @@ $eqLogics = eqLogic::byType($plugin->getId());
 <div id="md_modal_kroomba" title="{{Découverte des robots}}">
     <form class="form-horizontal" style="overflow:hidden !important;">
         <div class="form-group">
-            <label class="col-sm-6 control-label">{{Identifiant}}</label>
+            <label class="col-sm-6 control-label">{{Méthode}}</label>
             <div class="col-sm-6">
-                <input type="text" class="form-control" id="irobot_login" placeholder="{{Adresse eMail iRobot}}" />
+                <select class="" id="irobot_method">
+                    <option value="" disabled selected>{{Sélectionnez une méthode}}</option>
+                    <option value="local">Connexion locale</option>
+                    <option value="cloud">Connexion cloud</option>
+                </select>
             </div>
         </div>
-
-        <div id="password" class="form-group">
-            <label class="col-sm-6 control-label">{{Mot de passe}}</label>
-            <div class="col-sm-6">
-                <input type="password" class="form-control" id="irobot_password" placeholder="{{Mot de passe iRobot}}" />
+        <div class="irobot_local">
+            <div class="alert alert-info globalRemark">
+                <ul>
+                    <li>Assurez-vous que les robots à découvrir sont sur la base de recharge et allumés (voyant vert allumé).</li>
+                    <li>Ensuite, appuyez et maintenez le bouton HOME de votre robot jusqu'à ce qu'il émette une série de tonalités (environ 2 secondes).</li>
+                    <li>Relâchez le bouton et le voyant WIFI devrait clignoter.</li>
+                    <li>Cliquez sur le bouton <i>Continuer</i> ci-dessous.</li>
+                </ul>
             </div>
         </div>
-        <div id="password" class="form-group">
+        <div class="irobot_cloud">
+            <div class="alert alert-info globalRemark">
+                Saisissez l'adresse eMail et le mot de passe de votre compte iRobot afin que le plugin se connecte au cloud pour récupérer la liste des robots configurés et leur mot de passe. <br>
+                Ces informations ne sont pas sauvegardées et la connexion cloud ne sera pas utilisée pour contrôler le robot, elle est uniquement utilisée pour récupérer les informations nécessaires à la configuration.
+            </div>
+            <div class="form-group ">
+                <label class="col-sm-6 control-label">{{Identifiant}}</label>
+                <div class="col-sm-6">
+                    <input type="text" class="form-control" id="irobot_login" placeholder="{{Adresse eMail iRobot}}" />
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-sm-6 control-label">{{Mot de passe}}</label>
+                <div class="col-sm-6">
+                    <input type="password" class="form-control" id="irobot_password" placeholder="{{Mot de passe iRobot}}" />
+                </div>
+            </div>
+        </div>
+        <div class="form-group">
             <label class="col-sm-6 control-label">
                 {{IP du robot (optionelle)}}
                 <sup><i class="fas fa-question-circle" title="{{uniquement nécessaire si le robot n'est pas sur le même lan que Jeedom}}"></i></sup>

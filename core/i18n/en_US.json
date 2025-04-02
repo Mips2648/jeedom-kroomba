@@ -9,6 +9,8 @@
         "Arrêté": "Stopped",
         "Bloqué": "Blocked",
         "Commande region mise à jour": "Command region update",
+        "Découverte des robots sur tout le réseau...": "Discover robots all over the network...",
+        "Découverte du robot avec l'ip %s": "Discovering the robot with ip %s",
         "En charge": "Under load",
         "Impossible de lancer le démon": "Unable to start daemon",
         "Inconnu": "Unknown",
@@ -20,8 +22,7 @@
         "Nouvelle commande region créée": "New region command created",
         "Retour à la base": "Back to base",
         "Tâche achevée": "Task completed",
-        "Veuillez vérifier la configuration": "Please check configuration",
-        "Vous devez entrer votre adresse email et votre mot de passe": "Enter your email address and password"
+        "Veuillez vérifier la configuration": "Please check configuration"
     },
     "plugins\/kroomba\/core\/config\/commands.json": {
         "Activer sécurité enfant": "Enable child lock",
@@ -56,7 +57,7 @@
     },
     "plugins\/kroomba\/core\/php\/jeekroomba.php": {
         "Aucun robot configuré, veuillez lancer une découverte depuis la page de gestion des équipements du plugin": "No robot configured, please launch a discovery from the plugin's equipment management page",
-        "Découverte réussie, relance du démon": "Successful discovery, demon relaunch",
+        "Découverte réussie": "Successful discovery",
         "Echec de la découverte, veuillez consulter le log du démon": "Discovery failed, please check daemon log",
         "Vous n\\'etes pas autorisé à effectuer cette action": "You are not authorized to perform this action"
     },
@@ -124,6 +125,7 @@
         "Modèle": "Model",
         "Mot de passe": "Password",
         "Mot de passe iRobot": "IRobot password",
+        "Méthode": "Method",
         "Nom": "Name",
         "Nom de l'équipement": "Equipment name",
         "Objet parent": "Parent object",
@@ -134,6 +136,7 @@
         "Santé": "Health",
         "Sauvegarder": "Save",
         "Supprimer": "Delete",
+        "Sélectionnez une méthode": "Select a method",
         "Type": "Type",
         "Visible": "Visible",
         "uniquement nécessaire si le robot n'est pas sur le même lan que Jeedom": "only necessary if the robot is not on the same LAN as Jeedom"
@@ -141,10 +144,8 @@
     "plugins\/kroomba\/plugin_info\/configuration.php": {
         "Configuration robots": "Robot configuration",
         "Démon": "Daemon",
-        "MQTT": "MQTT",
         "Port socket interne": "Internal socket port",
         "Supprimer toutes les configurations connues des robots": "Delete all known robot configurations",
-        "Topic préfixe": "Topic prefix",
         "Zone danger": "Danger zone"
     },
     "plugins\/kroomba\/plugin_info\/install.php": {

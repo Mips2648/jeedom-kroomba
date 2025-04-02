@@ -16,7 +16,7 @@
  * along with Jeedom. If not, see <http://www.gnu.org/licenses/>.
  */
 try {
-    require_once dirname(__FILE__) . "/../../../../core/php/core.inc.php";
+    require_once __DIR__ . "/../../../../core/php/core.inc.php";
 
     if (!jeedom::apiAccess(init('apikey'), 'kroomba')) {
         echo __('Vous n\'etes pas autorisé à effectuer cette action', __FILE__);
@@ -33,24 +33,24 @@ try {
         die();
     } elseif (isset($result['discover'])) {
         if ($result['discover']) {
-            log::add('kroomba', 'info', 'Découverte réussie, relance du démon');
+            $message = __('Découverte réussie', __FILE__);
+            log::add('kroomba', 'info', $message);
             event::add('jeedom::alert', array(
                 'level' => 'success',
                 'page' => 'kroomba',
-                'message' => __('Découverte réussie, relance du démon', __FILE__),
+                'message' => $message,
             ));
-            sleep(2);
-            kroomba::deamon_start();
         } else {
-            log::add('kroomba', 'info', 'Echec de la découverte, veuillez consulter le log du démon');
+            $message = __('Echec de la découverte, veuillez consulter le log du démon', __FILE__);
+            log::add('kroomba', 'warning', $message);
             event::add('jeedom::alert', array(
                 'level' => 'warning',
                 'page' => 'kroomba',
-                'message' => __('Echec de la découverte, veuillez consulter le log du démon', __FILE__),
+                'message' => $message,
             ));
         }
     } elseif (isset($result['msg'])) {
-        if ($result['msg'] == 'NO_ROOMBA') {
+        if ($result['msg'] == 'NO_ROBOT') {
             message::add('kroomba', __('Aucun robot configuré, veuillez lancer une découverte depuis la page de gestion des équipements du plugin', __FILE__), '', 'kroomba_no_robot');
         }
     }

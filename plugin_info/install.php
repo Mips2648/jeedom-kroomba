@@ -16,7 +16,7 @@
  * along with Jeedom. If not, see <http://www.gnu.org/licenses/>.
  */
 
-require_once dirname(__FILE__) . '/../../../core/php/core.inc.php';
+require_once __DIR__ . '/../../../core/php/core.inc.php';
 
 function InstallComposerDependencies() {
     $pluginId = basename(realpath(__DIR__ . '/..'));
@@ -43,6 +43,7 @@ function kroomba_update() {
     config::save('api', config::genKey(), $pluginId);
     config::save("api::{$pluginId}::mode", 'localhost');
     config::save("api::{$pluginId}::restricted", 1);
+    config::save('topic_prefix', null, $pluginId);
 
     unlink(__DIR__ . '/packages.json');
 
