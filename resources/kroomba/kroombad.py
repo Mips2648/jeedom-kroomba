@@ -69,7 +69,7 @@ class kroomba(BaseDaemon):
             self._logger.warning('No robot configured, please run discovery from plugin page')
             await self.send_to_jeedom({'msg': "NO_ROBOT"})
         else:
-            await self.__connect_robots()
+            asyncio.create_task(self.__connect_robots())
 
     async def on_stop(self):
         await self.__disconnect_robots()
@@ -91,23 +91,26 @@ class kroomba(BaseDaemon):
         coros_connect = []
 
         for robot_config in self._robot_configs.robots.values():
-            if robot_config.blid in self._config.excluded_blid:
-                self._logger.debug("Exclude robot: %s", robot_config.name)
-                continue
+            try:
+                if robot_config.blid in self._config.excluded_blid:
+                    self._logger.debug("Exclude robot: %s", robot_config.name)
+                    continue
 
-            new_robot = iRobot(robot_config)
-            new_robot.setup_mqtt_client(
-                self._config.mqtt_host,
-                self._config.mqtt_port,
-                self._config.mqtt_user,
-                self._config.mqtt_password,
-                brokerFeedback=self._config.topic_prefix+'/feedback',
-                brokerCommand=self._config.topic_prefix+'/command',
-                brokerSetting=self._config.topic_prefix+'/setting'
-            )
+                new_robot = iRobot(robot_config)
+                new_robot.setup_mqtt_client(
+                    self._config.mqtt_host,
+                    self._config.mqtt_port,
+                    self._config.mqtt_user,
+                    self._config.mqtt_password,
+                    brokerFeedback=self._config.topic_prefix+'/feedback',
+                    brokerCommand=self._config.topic_prefix+'/command',
+                    brokerSetting=self._config.topic_prefix+'/setting'
+                )
 
-            coros_connect.append(new_robot.async_connect())
-            self._robots.append(new_robot)
+                coros_connect.append(new_robot.async_connect())
+                self._robots.append(new_robot)
+            except Exception as e:
+                self._logger.error('Exception during connection of robot %s: %s', robot_config.name, e)
 
         if len(coros_connect) > 0:
             await asyncio.gather(*coros_connect)
