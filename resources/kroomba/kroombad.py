@@ -78,9 +78,9 @@ class kroomba(BaseDaemon):
         if message['action'] == 'discover':
             try:
                 result = await self._robot_configs.discover(message['address'], message['login'], message['password'])
-                await self.send_to_jeedom({'discover': result})
                 if result:
                     await self.__connect_robots()
+                await self.send_to_jeedom({'discover': result})
             except Exception as e:
                 self._logger.error('Exception during discovery: %s', e)
                 await self.send_to_jeedom({'discover': False})
