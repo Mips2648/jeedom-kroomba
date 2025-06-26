@@ -174,18 +174,18 @@ class iRobotConfigs:
 
         robots_with_missing_pswd: dict[str, iRobotConfig] = {}
 
-        for robot in discovered_robots.values():
+        for discovered_robot in discovered_robots.values():
 
-            if robot.blid in self.__robots.keys():
-                self._logger.info("Robot %s already configured, updating ip & name", robot.name)
-                self.__robots[robot.blid].ip = robot.ip
-                self.__robots[robot.blid].name = robot.name
+            if discovered_robot.blid in self.__robots.keys():
+                self._logger.info("Robot %s already configured, updating ip & name", discovered_robot.name)
+                self.__robots[discovered_robot.blid].ip = discovered_robot.ip
+                self.__robots[discovered_robot.blid].name = discovered_robot.name
             else:
-                if robot.password is None:
-                    robots_with_missing_pswd[robot.blid] = robot
+                if discovered_robot.password is None:
+                    robots_with_missing_pswd[discovered_robot.blid] = discovered_robot
                 else:
-                    self._logger.info("Robot %s added to configuration with password received during discovery: %s", robot.name, robot.password)
-                    self.__robots[robot.blid] = robot
+                    self._logger.info("Robot %s added to configuration with password received during discovery: %s", discovered_robot.name, discovered_robot.password)
+                    self.__robots[discovered_robot.blid] = discovered_robot
 
         if len(robots_with_missing_pswd) > 0:
             if cloud_login and cloud_password:
@@ -194,11 +194,11 @@ class iRobotConfigs:
                 if cloud_data is not None:
                     self._logger.debug("Got cloud data: %s", json.dumps(cloud_data))
                     self._logger.info("Found %i robots defined in the cloud", len(cloud_data))
-                    for id, data in cloud_data.items():
-                        if id in robots_with_missing_pswd.keys():
-                            robots_with_missing_pswd[id].password = data.get('password')
-                            self._logger.info("Robot %s added to configuration with password from cloud", robot.name)
-                            self.__robots[id] = robots_with_missing_pswd[id]
+                    for blid, data in cloud_data.items():
+                        if blid in robots_with_missing_pswd.keys():
+                            robots_with_missing_pswd[blid].password = data.get('password')
+                            self._logger.info("Robot %s added to configuration with password from cloud", robots_with_missing_pswd[blid].name)
+                            self.__robots[blid] = robots_with_missing_pswd[blid]
             else:
                 for robot in robots_with_missing_pswd.values():
                     self._logger.info("To add/update your robot details,"

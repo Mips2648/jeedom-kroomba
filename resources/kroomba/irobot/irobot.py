@@ -177,8 +177,16 @@ class iRobot:
             self._debug = True
 
         if not all([config.name, config.ip, config.blid, config.password]):
-            self._logger.critical('Could not configure iRobot')
-            raise ValueError('Missing parameter, could not configure iRobot')
+            missing_params = []
+            if not config.name:
+                missing_params.append("name")
+            if not config.ip:
+                missing_params.append("ip")
+            if not config.blid:
+                missing_params.append("blid")
+            if not config.password:
+                missing_params.append("password")
+            raise ValueError(f"Missing parameter(s): {', '.join(missing_params)}. Could not configure iRobot")
 
         self._config = config
         self.port = ROBOT_PORT
