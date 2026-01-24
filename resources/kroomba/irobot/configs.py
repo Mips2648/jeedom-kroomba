@@ -36,22 +36,30 @@ class iRobotConfig(object):
     @password.setter
     def password(self, value):
         self.__password = value
+        if value is None:
+            self.__data.pop("password", None)
+        else:
+            self.__data["password"] = value
 
     @property
     def ip(self):
         return self.__ip
 
+
     @ip.setter
     def ip(self, value):
         self.__ip = value
+        self.__data["ip"] = value
 
     @property
     def name(self):
         return self.__name
 
     @name.setter
-    def name(self, value: str):
+    def name(self, value):
         self.__name = value
+        # selon convention: robotname dans ton JSON
+        self.__data["robotname"] = value
 
     @property
     def version(self):
