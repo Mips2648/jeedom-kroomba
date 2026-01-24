@@ -107,9 +107,14 @@ class iRobotConfigs:
             configs = json.loads(self.__json_file.read_text(encoding='utf-8'))
             for blid, data in configs.items():
                 config = iRobotConfig(blid, data)
-                if config.password is None or len(config.password) <= 7:
-                    self._logger.warning("Robot %s at IP %s does not have a valid password configured, please run discovery to update the configuration", config.name, config.ip)
+                if config.password is None:
+                    self._logger.warning("Robot %s at IP %s does not have a password configured, please run discovery to update the configuration", config.name, config.ip)
                     continue
+                
+                if config.password is None or len(config.password) <= 7:
+                    self._logger.warning("Robot %s at IP %s does not have a valid password configured %s, please run discovery to update the configuration", config.name, config.ip, config.password)
+                    continue
+                
                 self.__robots[blid] = iRobotConfig(blid, data)
 
     def __save_config_file(self):
