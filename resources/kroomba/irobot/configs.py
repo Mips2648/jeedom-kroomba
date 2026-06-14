@@ -21,43 +21,39 @@ class iRobotConfig(object):
         self.__blid: str = blid
         self.__data: dict = data
 
-        self.__password: str | None = self.__data.get('password', None)
-        self.__ip: str = str(self.__data.get('ip', ''))
-        self.__name: str = str(self.__data.get('robotname', 'unknown'))
-
     @property
     def blid(self):
         return self.__blid
 
     @property
-    def password(self):
-        return self.__password
+    def password(self) -> str | None:
+        return self.__data.get('password', None)
 
     @password.setter
-    def password(self, value):
-        self.__password = value
+    def password(self, value: str):
+        self.__data["password"] = value
 
     @property
-    def ip(self):
-        return self.__ip
+    def ip(self) -> str:
+        return str(self.__data.get('ip', ''))
 
     @ip.setter
-    def ip(self, value):
-        self.__ip = value
+    def ip(self, value: str):
+        self.__data["ip"] = value
 
     @property
-    def name(self):
-        return self.__name
+    def name(self) -> str:
+        return str(self.__data.get('robotname', 'unknown'))
 
     @name.setter
     def name(self, value: str):
-        self.__name = value
+        self.__data["robotname"] = value
 
     @property
-    def version(self):
+    def version(self) -> int:
         return int(self.__data.get('ver', 3))
 
-    def toJSON(self):
+    def getData(self):
         return self.__data
 
 
@@ -97,7 +93,7 @@ class iRobotConfigs:
         for ip, value in old_configs.items():
             if value['blid'] in new_configs.keys():
                 continue
-            new_configs[value['blid']] = iRobotConfig(value['blid'], value['data']).toJSON()
+            new_configs[value['blid']] = iRobotConfig(value['blid'], value['data']).getData()
 
         self.__json_file.write_text(json.dumps(new_configs, indent=2), encoding='utf-8')
 
@@ -115,7 +111,7 @@ class iRobotConfigs:
     def __save_config_file(self):
         data = {}
         for robot in self.__robots.values():
-            data[robot.blid] = robot.toJSON()
+            data[robot.blid] = robot.getData()
         self.__json_file.write_text(json.dumps(data, indent=2), encoding='utf-8')
         return True
 
