@@ -8,4 +8,6 @@ It will permit to control the iRobot Roomba & Braava robot from your Jeedom.
 
 Documentation: <https://mips2648.github.io/jeedom-plugins-docs/kroomba>
 
+[![Sponsor Mips2648](https://img.shields.io/badge/Sponsor-Mips2648-ea4aaa?logo=githubsponsors)](https://github.com/sponsors/Mips2648)
+
 <a href="https://www.buymeacoffee.com/mips2648" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/default-orange.png" alt="Buy Me A Coffee" height="41" width="174"></a>
