@@ -1,5 +1,7 @@
 # Jeedom plugin for iRobot
 
+[![CI](https://github.com/mips2648/jeedom-kroomba/actions/workflows/ci.yml/badge.svg)](https://github.com/mips2648/jeedom-kroomba/actions/workflows/ci.yml)
+
 <img src="plugin_info/kroomba_icon.png" align="right">
 
 This is a plugin for the Jeedom (<https://www.jeedom.com>) open source (<https://github.com/jeedom>) home automation system.
