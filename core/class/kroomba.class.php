@@ -496,7 +496,7 @@ class kroombaCmd extends cmd {
         }
     }
 
-    public function execute($_options = null) {
+    public function execute($_options = null): bool {
         /** @var kroomba */
         $eqLogic = $this->getEqLogic();
 
@@ -539,5 +539,6 @@ class kroombaCmd extends cmd {
                 $eqLogic->publish_message('command', $this->getLogicalId());
                 break;
         };
+        return true;
     }
 }
