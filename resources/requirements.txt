@@ -1,4 +1,4 @@
 requests==2.34.2
 paho-mqtt~=2.1.0
-aiohttp~=3.14.3
+aiohttp~=3.14.4
 jeedomdaemon~=2.0.0
